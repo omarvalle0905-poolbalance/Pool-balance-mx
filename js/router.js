@@ -6,6 +6,12 @@
  * ============================================================
  */
 
+// ── 🔧 FIX: Inicializar PostRender ANTES de que las vistas se registren ──
+// Las vistas (biblioteca.js, portal.js, etc.) hacen "PostRender.xxx = ..."
+// en el nivel superior del archivo. Como router.js carga antes que las vistas,
+// aquí garantizamos que PostRender exista para evitar "ReferenceError".
+window.PostRender = window.PostRender || {};
+
 const Router = (() => {
 
   // ── Registro de rutas ──

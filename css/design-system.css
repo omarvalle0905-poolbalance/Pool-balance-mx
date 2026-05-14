@@ -35,7 +35,7 @@
 
   /* Layout */
   --sidebar-width:        260px;
-  --bottom-nav-height:    80px;         /* aumentado para mejor visibilidad */
+  --bottom-nav-height:    80px;
   --content-max-width:    1100px;
 
   /* Bordes */
@@ -105,7 +105,7 @@ h2 { font-size: clamp(1.4rem, 3.5vw, 2.2rem); }
 h3 { font-size: clamp(1.1rem, 2.5vw, 1.5rem); }
 h4 { font-size: 1.125rem; }
 
-p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; } /* ↑ de implícito 14px → 16px base */
+p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; }
 
 /* ── Scrollbar personalizado ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -192,7 +192,6 @@ p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; } /* ↑ d
    SPLASH LOADER — con logo real y ondas
 ───────────────────────────────────────── */
 
-/* Fondo de ondas animadas */
 .loader-waves {
   position: absolute;
   inset: 0;
@@ -233,7 +232,6 @@ p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; } /* ↑ d
   100% { transform: rotate(360deg); }
 }
 
-/* Logo */
 .loader-logo-wrap {
   position: relative;
   z-index: 1;
@@ -255,7 +253,6 @@ p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; } /* ↑ d
   display: block;
 }
 
-/* Nombre de marca */
 .loader-brand {
   position: relative;
   z-index: 1;
@@ -284,7 +281,6 @@ p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; } /* ↑ d
   text-transform: uppercase;
 }
 
-/* Barra de progreso */
 .loader-bar-track {
   position: relative;
   z-index: 1;
@@ -303,7 +299,6 @@ p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; } /* ↑ d
   animation: loader-bar 1.6s ease-in-out forwards;
 }
 
-/* ── Loader bar (clase legacy, mantener por compatibilidad) ── */
 .loader-bar {
   animation: loader-bar 1.8s ease-in-out forwards;
 }
@@ -519,7 +514,6 @@ p { color: var(--text-secondary); line-height: 1.72; font-size: 1rem; } /* ↑ d
   margin-bottom: 32px;
 }
 
-/* Watermark eliminado — se veía como parche */
 .section-eyebrow {
   display: inline-flex;
   align-items: center;

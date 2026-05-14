@@ -113,9 +113,25 @@ function hideLoader() {
   }
 
   if (app) {
+    app.classList.remove('opacity-0');
     app.style.opacity = '1';
   }
 }
+
+// ── Seguro de emergencia: si algo falla, el loader desaparece igual ──
+// Evita que la pantalla azul se quede trabada en producción (Vercel)
+setTimeout(() => {
+  const loader = document.getElementById('app-loader');
+  const app    = document.getElementById('app');
+  if (loader && loader.style.display !== 'none') {
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 400);
+  }
+  if (app) {
+    app.classList.remove('opacity-0');
+    app.style.opacity = '1';
+  }
+}, 3500); // 3.5 segundos máximo — si para entonces no cargó, se muestra igual
 
 // ─────────────────────────────────────────
 //  GLOBAL KEYBOARD NAVIGATION

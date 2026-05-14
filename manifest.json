@@ -7,7 +7,7 @@
   "display": "standalone",
   "background_color": "#0E4569",
   "theme_color": "#0E4569",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "lang": "es-MX",
   "categories": ["business", "lifestyle"],
   "icons": [

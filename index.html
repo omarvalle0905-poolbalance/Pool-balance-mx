@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <!-- ═══════════════════════════════════════════
+       META BÁSICO
+  ═══════════════════════════════════════════ -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- ═══════════════════════════════════════════
+       SEO TÉCNICO
+  ═══════════════════════════════════════════ -->
+  <title>Pool Balance | Gestoría Técnica y Monitoreo de Albercas en Veracruz</title>
+  <meta name="description" content="Una alberca cristalina no siempre es una alberca segura. Pool Balance usa fotómetros digitales profesionales para garantizar el equilibrio químico real del agua de tu alberca en Veracruz. Servicio técnico certificado, bitácoras digitales y monitoreo continuo." />
+  <meta name="keywords" content="mantenimiento de albercas Veracruz, química de agua piscinas, monitoreo albercas, gestoría hídrica, Pool Balance Veracruz, fotómetro digital alberca" />
+  <meta name="author" content="Pool Balance — Veracruz, México" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://poolbalance.mx" />
+
+  <!-- ═══════════════════════════════════════════
+       OPEN GRAPH (Facebook, WhatsApp, Instagram)
+  ═══════════════════════════════════════════ -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Pool Balance" />
+  <meta property="og:title" content="Pool Balance | Gestoría Técnica y Monitoreo de Albercas en Veracruz" />
+  <meta property="og:description" content="Una alberca cristalina no siempre es una alberca segura. Usamos fotómetros digitales y el Método Pool Balance™ para garantizar agua realmente segura en tu alberca. Veracruz, México." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?w=1200&h=630&fit=crop" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Alberca cristalina gestionada por Pool Balance en Veracruz" />
+  <meta property="og:url" content="https://poolbalance.mx" />
+  <meta property="og:locale" content="es_MX" />
+
+  <!-- ═══════════════════════════════════════════
+       TWITTER CARD
+  ═══════════════════════════════════════════ -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pool Balance | Gestoría Técnica de Albercas en Veracruz" />
+  <meta name="twitter:description" content="Una alberca cristalina no siempre es una alberca segura. Fotómetros digitales + Método Pool Balance™." />
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?w=1200&h=630&fit=crop" />
+
+  <!-- ═══════════════════════════════════════════
+       PWA
+  ═══════════════════════════════════════════ -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0E4569" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pool Balance" />
+  <link rel="apple-touch-icon" href="images/logo.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="images/logo.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/logo.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="images/logo.png" />
+
+  <!-- ═══════════════════════════════════════════
+       TIPOGRAFÍA — Bricolage Grotesque
+  ═══════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet" />
+
+  <!-- ═══════════════════════════════════════════
+       TAILWIND CSS
+  ═══════════════════════════════════════════ -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bruma:    '#EEF1F5',
+            marino:   '#0E4569',
+            'marino-dark': '#0a3350',
+            'marino-light': '#1a5a82',
+            arcilla:  '#E8664A',
+            'arcilla-dark': '#d44f33',
+            'arcilla-light': '#fde8e3',
+            cristal:  '#6FB8C6',
+            'cristal-dark': '#5aa3b1',
+            'cristal-light': '#8ecbd7',
+            success:  '#2D9E6B',
+            warning:  '#E8A838',
+            danger:   '#D95C5C',
+          },
+          fontFamily: {
+            sans: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            '2xl': '1rem',
+            '3xl': '1.5rem',
+            '4xl': '2rem',
+          },
+          boxShadow: {
+            'card': '0 2px 20px rgba(14,69,105,0.07)',
+            'card-hover': '0 8px 40px rgba(14,69,105,0.13)',
+            'nav': '0 -1px 0 rgba(14,69,105,0.08), 0 -4px 24px rgba(14,69,105,0.06)',
+            'sidebar': '2px 0 24px rgba(14,69,105,0.08)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- ═══════════════════════════════════════════
+       FONT AWESOME
+  ═══════════════════════════════════════════ -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" />
+
+  <!-- ═══════════════════════════════════════════
+       CSS PROPIO
+  ═══════════════════════════════════════════ -->
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <!-- Schema.org JSON-LD para SEO local -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Pool Balance",
+    "description": "Gestoría técnica y monitoreo profesional de albercas en Veracruz, México.",
+    "url": "https://poolbalance.mx",
+    "telephone": "+52-229-123-4567",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Veracruz",
+      "addressRegion": "Veracruz",
+      "addressCountry": "MX"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 19.1738,
+      "longitude": -96.1342
+    },
+    "openingHours": "Mo-Sa 08:00-18:00",
+    "priceRange": "$$",
+    "serviceType": "Mantenimiento y Monitoreo de Albercas"
+  }
+  </script>
+</head>
+
+<body class="bg-bruma font-sans antialiased overflow-x-hidden">
+
+  <!-- ═══════════════════════════════════════════
+       LOADER DE INICIO — Splash con logo real
+  ═══════════════════════════════════════════ -->
+  <div id="app-loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500" style="background: #0E4569;">
+
+    <!-- Fondo animado: ondas de agua -->
+    <div class="loader-waves" aria-hidden="true">
+      <div class="loader-wave loader-wave-1"></div>
+      <div class="loader-wave loader-wave-2"></div>
+      <div class="loader-wave loader-wave-3"></div>
+    </div>
+
+    <!-- Logo real -->
+    <div class="loader-logo-wrap" aria-hidden="true">
+      <img src="images/logo.png"
+           alt="Pool Balance logo"
+           class="loader-logo-img"
+           width="120" height="120"
+           draggable="false" />
+    </div>
+
+    <!-- Nombre de la marca -->
+    <div class="loader-brand">
+      <span class="loader-brand-name">Pool Balance</span>
+      <span class="loader-brand-sub">Gestoría Técnica · Veracruz</span>
+    </div>
+
+    <!-- Barra de carga -->
+    <div class="loader-bar-track" role="progressbar" aria-label="Cargando…">
+      <div class="loader-bar-fill"></div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       BRAND TOPBAR — Fuera del #app para que sea
+       visible desde el primer frame (sin opacity-0)
+       Solo en móvil/tablet · oculto en desktop lg+
+  ═══════════════════════════════════════════ -->
+  <header id="brand-topbar" class="brand-topbar" role="banner" aria-label="Pool Balance">
+    <img src="images/logo.png"
+         class="brand-topbar-logo"
+         alt="Pool Balance logo"
+         width="34" height="34" />
+    <div class="brand-topbar-text">
+      <span class="brand-topbar-name">Pool <em>Balance</em></span>
+      <span class="brand-topbar-sub">El activo más valioso es el agua</span>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       LAYOUT PRINCIPAL
+  ═══════════════════════════════════════════ -->
+  <div id="app" class="app-layout opacity-0 transition-opacity duration-500">
+
+    <!-- SIDEBAR (Desktop lg+) -->
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Navegación principal">
+      <!-- Logo -->
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <img src="images/logo.png" alt="Pool Balance" width="44" height="44" style="border-radius:10px;object-fit:contain;" draggable="false" />
+        </div>
+        <div>
+          <p class="sidebar-brand-name">Pool Balance</p>
+          <p class="sidebar-brand-sub">Gestoría Técnica</p>
+        </div>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="sidebar-nav">
+        <a href="#" class="sidebar-link active" data-view="home">
+          <i class="fa-solid fa-house sidebar-link-icon"></i>
+          <span>Inicio</span>
+        </a>
+        <a href="#" class="sidebar-link" data-view="servicios">
+          <i class="fa-solid fa-layer-group sidebar-link-icon"></i>
+          <span>Servicios</span>
+        </a>
+        <a href="#" class="sidebar-link" data-view="biblioteca">
+          <i class="fa-solid fa-headphones sidebar-link-icon"></i>
+          <span>Biblioteca</span>
+        </a>
+        <a href="#" class="sidebar-link" data-view="portal">
+          <i class="fa-solid fa-user-shield sidebar-link-icon"></i>
+          <span>Mi Portal</span>
+        </a>
+      </nav>
+
+      <!-- CTA Sidebar -->
+      <div class="sidebar-cta">
+        <a id="sidebar-whatsapp" href="#" target="_blank" rel="noopener" class="sidebar-cta-btn">
+          <i class="fa-brands fa-whatsapp mr-2"></i>
+          Agendar visita
+        </a>
+        <p class="sidebar-cta-schedule">
+          <i class="fa-regular fa-clock mr-1 opacity-60"></i>
+          Lun–Sáb · 8am – 6pm
+        </p>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="main-content" class="main-content" role="main">
+      <!-- Las vistas se renderizan aquí dinámicamente -->
+      <div id="view-container"></div>
+    </main>
+
+    <!-- BOTTOM NAV (Mobile / Tablet) -->
+    <nav id="bottom-nav" class="bottom-nav" role="navigation" aria-label="Navegación inferior">
+      <button class="bottom-nav-item active" data-view="home" aria-label="Inicio">
+        <i class="fa-solid fa-house bottom-nav-icon"></i>
+        <span class="bottom-nav-label">Inicio</span>
+      </button>
+      <button class="bottom-nav-item" data-view="servicios" aria-label="Servicios">
+        <i class="fa-solid fa-layer-group bottom-nav-icon"></i>
+        <span class="bottom-nav-label">Servicios</span>
+      </button>
+      <button class="bottom-nav-item" data-view="biblioteca" aria-label="Biblioteca">
+        <i class="fa-solid fa-headphones bottom-nav-icon"></i>
+        <span class="bottom-nav-label">Biblioteca</span>
+      </button>
+      <button class="bottom-nav-item" data-view="portal" aria-label="Mi Portal">
+        <i class="fa-solid fa-user-shield bottom-nav-icon"></i>
+        <span class="bottom-nav-label">Mi Portal</span>
+      </button>
+    </nav>
+
+  </div><!-- /#app -->
+
+  <!-- ═══════════════════════════════════════════
+       TOAST NOTIFICATIONS
+  ═══════════════════════════════════════════ -->
+  <div id="toast-container" class="fixed top-6 right-4 left-4 md:left-auto md:w-80 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ═══════════════════════════════════════════
+       SCRIPTS — Orden de carga crítico
+       1. Datos  →  2. Firebase  →  3. Servicios
+       →  4. Componentes  →  5. Vistas  →  6. App
+  ═══════════════════════════════════════════ -->
+
+  <!-- 1. Configuración y datos -->
+  <script src="data/config.js"></script>
+
+  <!-- 2. Firebase (inicialización + servicios) -->
+  <script src="js/firebase/firebase.js"></script>
+  <script src="js/firebase/auth.js"></script>
+  <script src="js/firebase/firestore.js"></script>
+  <script src="js/firebase/pdf.js"></script>
+
+  <!-- 3. Router y componentes de navegación -->
+  <script src="js/router.js"></script>
+  <script src="js/components/nav.js"></script>
+
+  <!-- 4. Vistas -->
+  <script src="js/views/home.js"></script>
+  <script src="js/views/servicios.js"></script>
+  <script src="js/views/biblioteca.js"></script>
+  <script src="js/views/bitacora-detalle.js"></script>
+  <script src="js/views/portal.js"></script>
+
+  <!-- 5. App principal (siempre al final) -->
+  <script src="js/app.js"></script>
+
+</body>
+</html>

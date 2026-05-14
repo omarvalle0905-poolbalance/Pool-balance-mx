@@ -1,0 +1,61 @@
+{
+  "name": "Pool Balance",
+  "short_name": "Pool Balance",
+  "description": "Gestoría técnica y monitoreo de albercas en Veracruz. Agua segura, no solo cristalina.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0E4569",
+  "theme_color": "#0E4569",
+  "orientation": "portrait-primary",
+  "lang": "es-MX",
+  "categories": ["business", "lifestyle"],
+  "icons": [
+    {
+      "src": "images/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Servicios",
+      "short_name": "Servicios",
+      "description": "Ver paquetes y precios",
+      "url": "./#servicios",
+      "icons": [{ "src": "images/logo.png", "sizes": "any" }]
+    },
+    {
+      "name": "Mi Portal",
+      "short_name": "Mi Portal",
+      "description": "Portal del cliente",
+      "url": "./#portal",
+      "icons": [{ "src": "images/logo.png", "sizes": "any" }]
+    }
+  ]
+}

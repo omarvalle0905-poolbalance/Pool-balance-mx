@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diagnóstico Pool Balance</title>
+  <style>
+    body { font-family: monospace; background: #0E4569; color: #fff; padding: 20px; font-size: 14px; }
+    h1 { color: #6FB8C6; margin-bottom: 20px; }
+    .ok  { color: #2D9E6B; }
+    .err { color: #E8664A; font-weight: bold; }
+    .log { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; margin: 6px 0; word-break: break-all; }
+  </style>
+</head>
+<body>
+<h1>🔍 Diagnóstico Pool Balance</h1>
+<div id="out"></div>
+
+<script>
+const out = document.getElementById('out');
+function log(msg, ok) {
+  const d = document.createElement('div');
+  d.className = 'log ' + (ok === true ? 'ok' : ok === false ? 'err' : '');
+  d.textContent = msg;
+  out.appendChild(d);
+}
+
+log('Iniciando diagnóstico…');
+
+window.onerror = (msg, src, line, col, err) => {
+  log('❌ ERROR GLOBAL: ' + msg + ' | ' + src + ' línea ' + line, false);
+  return true;
+};
+window.onunhandledrejection = (e) => {
+  log('❌ PROMISE FALLIDA: ' + (e.reason?.message || e.reason), false);
+};
+
+function cargar(src, nombre, checks) {
+  const s = document.createElement('script');
+  s.src = src;
+  s.onload = () => {
+    log('✅ ' + nombre + ' cargó', true);
+    if (checks) checks();
+  };
+  s.onerror = () => log('❌ FALLÓ: ' + nombre + ' — 404 o error de red', false);
+  document.head.appendChild(s);
+}
+
+cargar('data/config.js', 'data/config.js', () => {
+  if (typeof APP_CONFIG !== 'undefined')
+    log('✅ APP_CONFIG OK — claves: ' + Object.keys(APP_CONFIG).join(', '), true);
+  else
+    log('❌ APP_CONFIG no definido tras cargar config.js', false);
+});
+
+cargar('js/firebase/firebase.js', 'js/firebase/firebase.js', () => {
+  if (typeof initFirebase === 'undefined') {
+    log('❌ initFirebase() no existe', false);
+    return;
+  }
+  log('✅ initFirebase() existe — probando…', true);
+  initFirebase()
+    .then(fb => {
+      if (fb) log('✅ Firebase OK — auth:' + !!fb.auth + ' db:' + !!fb.db, true);
+      else    log('⚠️ Firebase devolvió null (modo demo) — dominio no autorizado?', null);
+    })
+    .catch(e => log('❌ initFirebase error: ' + e.message, false));
+});
+
+cargar('js/firebase/auth.js',         'js/firebase/auth.js', null);
+cargar('js/firebase/firestore.js',    'js/firebase/firestore.js', null);
+cargar('js/firebase/pdf.js',          'js/firebase/pdf.js', null);
+cargar('js/router.js',                'js/router.js', () => {
+  if (typeof Router !== 'undefined') log('✅ Router OK', true);
+  else log('❌ Router no definido', false);
+});
+cargar('js/components/nav.js',        'js/components/nav.js', () => {
+  if (typeof Nav !== 'undefined') log('✅ Nav OK', true);
+  else log('❌ Nav no definido', false);
+});
+cargar('js/views/home.js',            'js/views/home.js', () => {
+  if (typeof renderHome !== 'undefined') log('✅ renderHome() OK', true);
+  else log('❌ renderHome no definido', false);
+});
+cargar('js/views/servicios.js',       'js/views/servicios.js', null);
+cargar('js/views/biblioteca.js',      'js/views/biblioteca.js', null);
+cargar('js/views/bitacora-detalle.js','js/views/bitacora-detalle.js', null);
+cargar('js/views/portal.js',          'js/views/portal.js', null);
+cargar('js/app.js',                   'js/app.js', () => {
+  if (typeof initApp !== 'undefined') log('✅ initApp() OK', true);
+  else log('❌ initApp no definido', false);
+});
+
+log('— esperando resultados —');
+</script>
+</body>
+</html>

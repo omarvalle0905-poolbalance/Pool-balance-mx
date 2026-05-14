@@ -43,6 +43,14 @@ const Router = (() => {
     isNavigating = true;
     const container = document.getElementById('view-container');
 
+    // 🔧 FIX: si no existe el contenedor (ej. en diagnostico.html), salir
+    // limpiamente sin tronar. En index.html siempre existe.
+    if (!container) {
+      console.warn('[Router] #view-container no existe en este documento.');
+      isNavigating = false;
+      return;
+    }
+
     // ── Transición de salida ──
     if (container.firstChild) {
       container.style.opacity = '0';
@@ -85,7 +93,7 @@ const Router = (() => {
     }
 
     // ── Actualizar navegación activa ──
-    Nav.setActive(viewName);
+    if (typeof Nav !== 'undefined' && Nav.setActive) Nav.setActive(viewName);
 
     // ── Disparar evento de vista lista ──
     document.dispatchEvent(new CustomEvent('viewRendered', { detail: { view: viewName } }));

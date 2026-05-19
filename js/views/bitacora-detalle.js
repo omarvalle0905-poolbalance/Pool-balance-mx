@@ -710,7 +710,9 @@ function _iconEstado(val, cfg) {
 }
 
 // Post-render
-PostRender.bitacora = function() {
+window.PostRender = window.PostRender || {}; // <-- ESTA ES LA LÍNEA SALVAVIDAS
+
+window.PostRender.bitacora = function() {
   window.BitacoraUI = BitacoraUI;
   document.addEventListener('keydown', function onKey(e) {
     if (e.key === 'Escape') BitacoraUI.closeGallery();
@@ -718,6 +720,6 @@ PostRender.bitacora = function() {
     if (e.key === 'ArrowRight') BitacoraUI.galleryNext();
   });
 };
-window.PostRender = PostRender;
+
 window.renderBitacoraDetalle = renderBitacoraDetalle;
 window.PARAMETROS = PARAMETROS;

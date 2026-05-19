@@ -317,16 +317,14 @@ async function initApp() {
   // 3. PostRender global
   window.PostRender = window.PostRender || {};
 
-  // 4. ── FIREBASE INIT (async) ──────────────
-  //    Inicializa en paralelo con el resto de la UI.
-  //    Si falla, la app corre en modo demo automáticamente.
-  initFirebase().then(fb => {
-    if (fb) {
-      console.log('%c🔥 Conectado a Firebase Firestore', 'color:#FFCA28;font-weight:bold;');
-    } else {
-      console.warn('%c⚡ Modo Demo — configura Firebase en js/firebase/firebase.js', 'color:#C97A4F;');
-    }
-  });
+ // 4. ── FIREBASE INIT (async) ──────────────
+  //  Esperamos a que Firebase se descargue y conecte antes de seguir
+  const fb = await initFirebase();
+  if (fb) {
+    console.log('%c🔥 Conectado a Firebase Firestore', 'color:#FFCA28;font-weight:bold;');
+  } else {
+    console.warn('%c⚡ Modo Demo — configura Firebase en js/firebase/firebase.js', 'color:#C97A4F;');
+  }
 
   // 5. Registrar rutas en el Router
   Router.register('home',       () => renderHome());

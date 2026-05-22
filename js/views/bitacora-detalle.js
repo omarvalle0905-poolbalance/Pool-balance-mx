@@ -5,6 +5,8 @@
  *  dashboard didáctico que el cliente entiende sin ser técnico.
  *
  *  Consume: objeto bitácora de Firestore (via FirestoreService)
+ *
+ *  v1.0.1 - Fix: soporte para fotos como objeto {url,path,momento,timestamp}
  * ============================================================
  */
 
@@ -180,6 +182,19 @@ const PARAMETROS = {
     },
   },
 };
+
+// ─────────────────────────────────────────
+//  HELPER: normaliza una foto a URL string
+//  Soporta ambos formatos:
+//    - string (formato viejo)
+//    - { url, path, momento, timestamp } (formato nuevo PhotoQueue V1.0.1+)
+// ─────────────────────────────────────────
+
+function _fotoToUrl(foto) {
+  if (!foto) return '';
+  if (typeof foto === 'string') return foto;
+  return foto.url || '';
+}
 
 // ─────────────────────────────────────────
 //  RENDER PRINCIPAL DE LA VISTA
@@ -374,7 +389,9 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
         <span class="badge badge-marino ml-1">${fotos.length}</span>
       </h2>
       <div class="gallery-grid" role="list" aria-label="Galería de fotos del servicio">
-        ${fotos.map((fotoUrl, i) => `
+        ${fotos.map((foto, i) => {
+          const fotoUrl = _fotoToUrl(foto);
+          return `
           <div
             class="gallery-thumb"
             role="listitem"
@@ -388,7 +405,8 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
               <i class="fa-solid fa-expand text-white text-sm"></i>
             </div>
           </div>
-        `).join('')}
+          `;
+        }).join('')}
       </div>
     </section>` : ''}
 
@@ -627,7 +645,9 @@ const BitacoraUI = {
   _fotos: [],
 
   openGallery(index) {
-    this._fotos = window._currentBitacora?.fotos || [];
+    // Normaliza las fotos a array de URLs strings (soporta formato objeto y string)
+    const fotosRaw = window._currentBitacora?.fotos || [];
+    this._fotos = fotosRaw.map(_fotoToUrl).filter(Boolean);
     if (!this._fotos.length) return;
     this._currentIndex = index;
     this._showPhoto();

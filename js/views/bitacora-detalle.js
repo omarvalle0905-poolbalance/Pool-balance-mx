@@ -272,8 +272,10 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       display: flex;
       flex-direction: column;
       gap: 24px;
-      max-width: 600px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      overflow-x: hidden;
     }
     #view-bitacora-detalle .premium-dark-card {
       background-color: #11161F !important;
@@ -1035,12 +1037,20 @@ window.PostRender.bitacora = function() {
   
   document.addEventListener('keydown', window._bitacoraKeyHandler);
 
-  // Inicializar galería 3D Coverflow
+  // Inicializar galería 3D Coverflow (robusto: rAF + fallback + resize)
   BitacoraUI._current3DIndex = 0;
+  requestAnimationFrame(() => requestAnimationFrame(() => BitacoraUI.update3DGallery()));
   setTimeout(() => {
     BitacoraUI.update3DGallery();
     BitacoraUI.init3DSwipe();
-  }, 100);
+  }, 120);
+
+  // Re-acomodar el carrusel al rotar / cambiar tamaño de pantalla
+  if (window._bitacoraResizeHandler) {
+    window.removeEventListener('resize', window._bitacoraResizeHandler);
+  }
+  window._bitacoraResizeHandler = () => BitacoraUI.update3DGallery();
+  window.addEventListener('resize', window._bitacoraResizeHandler);
 };
 
 window.renderBitacoraDetalle = renderBitacoraDetalle;

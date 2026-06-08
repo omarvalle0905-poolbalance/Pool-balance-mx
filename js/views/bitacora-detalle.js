@@ -1,12 +1,14 @@
 /**
  * ============================================================
- *  POOL BALANCE — VISTA: BITÁCORA DETALLADA
+ *  POOL BALANCE — VISTA: BITÁCORA DETALLADA (MODO OSCURO PREMIUM)
  *  El "Traductor Visual" — convierte números crudos en un
- *  dashboard didáctico que el cliente entiende sin ser técnico.
+ *  dashboard didáctico y elegante que el cliente entiende sin
+ *  ser técnico.
  *
  *  Consume: objeto bitácora de Firestore (via FirestoreService)
  *
- *  v1.0.1 - Fix: soporte para fotos como objeto {url,path,momento,timestamp}
+ *  v2.0.0 - Rediseño premium dark: aro de score grande, tarjetas
+ *           con glow, sliders con punto luminoso y carrusel de fotos.
  * ============================================================
  */
 
@@ -184,6 +186,16 @@ const PARAMETROS = {
 };
 
 // ─────────────────────────────────────────
+//  PALETA DE ESTADO (sobre fondo oscuro)
+// ─────────────────────────────────────────
+
+const ESTADO_DARK = {
+  optimo:  { color: '#46c98a', label: 'ÓPTIMO' },
+  alerta:  { color: '#f0b94e', label: 'ATENCIÓN' },
+  critico: { color: '#ef6b6b', label: 'CRÍTICO' },
+};
+
+// ─────────────────────────────────────────
 //  HELPER: normaliza una foto a URL string
 //  Soporta ambos formatos:
 //    - string (formato viejo)
@@ -207,12 +219,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
           tecnico, fecha, pdf_url, litros_retrolav,
           litros_evap, quimicos_usados, _id } = bitacora;
 
-  const estadoConfig = {
-    optimo:    { label: 'Óptimo',   css: 'badge-success', icon: 'fa-circle-check' },
-    corregido: { label: 'Corregido',css: 'badge-warning', icon: 'fa-circle-half-stroke' },
-    alerta:    { label: 'Alerta',   css: 'badge-danger',  icon: 'fa-triangle-exclamation' },
-  };
-  const est = estadoConfig[estado?.toLowerCase()] || estadoConfig.optimo;
+  const score = _calcScore(lecturas);
 
   // Parámetros principales (siempre visibles)
   const paramPrincipales = ['ph','cloro_libre','cloro_combinado','alcalinidad','dureza_calcica','lsi'];
@@ -224,121 +231,77 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     ...paramOpcionales.filter(p => lecturas[p] !== undefined && lecturas[p] !== null),
   ];
 
-  return `
-  <article class="view-page" id="view-bitacora-detalle">
+  const tieneFotos = fotos && fotos.length > 0;
 
-    <!-- ── HEADER STICKY ── -->
-    <header class="sticky-header">
-      <div class="content-container flex items-center gap-3">
-        <button
-          onclick="Router.navigate('portal')"
-          class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-          style="background: var(--color-marino-xlight); color: var(--color-marino);"
-          aria-label="Volver al portal"
-        >
-          <i class="fa-solid fa-arrow-left text-sm" aria-hidden="true"></i>
-        </button>
+  return `
+  <article class="view-page report-dark" id="view-bitacora-detalle">
+
+    <!-- ── HEADER ── -->
+    <header class="rp-header">
+      <div class="rp-header-brand">
+        <img src="images/logo.png" class="rp-header-logo" alt="Pool Balance" width="38" height="38" />
         <div class="min-w-0">
-          <h1 class="text-sm font-bold text-marino truncate">Bitácora ${_id}</h1>
-          <p class="text-xs truncate" style="color:var(--text-muted);">${_formatFechaLarga(fecha)}</p>
+          <p class="rp-header-name">Pool<span>Balance</span></p>
+          <p class="rp-header-sub">Reporte de servicio</p>
         </div>
-        <span class="badge ${est.css} ml-auto flex-shrink-0">
-          <i class="fa-solid ${est.icon} fa-xs" aria-hidden="true"></i>
-          ${est.label}
-        </span>
       </div>
+      <button onclick="Router.navigate('portal')" class="rp-back" aria-label="Volver al portal">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
     </header>
 
-    <!-- ── HERO RESUMEN ── -->
-    <div class="bitacora-hero px-5 pt-5 pb-3">
-      <div class="card" style="background: var(--color-marino); border-radius: var(--radius-2xl); overflow:hidden; position:relative;">
-        <!-- Decoración -->
-        <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(111,184,198,0.1);pointer-events:none;"></div>
-        <div style="position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(201,122,79,0.08);pointer-events:none;"></div>
-
-        <div class="card-body relative z-10">
-          <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color:rgba(255,255,255,0.5);">
-            <i class="fa-solid fa-user mr-1" aria-hidden="true"></i>
-            ${clienteNombre || 'Tu alberca'}
-          </p>
-          <p class="text-sm font-semibold mb-4" style="color:rgba(255,255,255,0.75);">
-            Técnico: ${tecnico}
-          </p>
-
-          <!-- Score visual del agua -->
-          <div class="flex items-center gap-4 mb-4">
-            <div class="water-score-ring" id="score-ring" aria-label="Puntuación del agua">
-              ${_renderScoreRing(_calcScore(lecturas))}
-            </div>
-            <div>
-              <p class="text-3xl font-extrabold text-white leading-none">${_calcScore(lecturas)}<span class="text-lg font-normal opacity-60">/100</span></p>
-              <p class="text-sm font-semibold mt-1" style="color:var(--color-cristal);">Salud del Agua</p>
-              <p class="text-xs mt-1" style="color:rgba(255,255,255,0.55);">${_scoreLabel(_calcScore(lecturas))}</p>
-            </div>
-          </div>
-
-          <!-- Mini stats -->
-          <div class="grid grid-cols-3 gap-2">
-            ${litros_retrolav !== undefined ? `
-            <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px;text-align:center;">
-              <p class="text-base font-bold text-white">${litros_retrolav}L</p>
-              <p style="font-size:0.62rem;color:rgba(255,255,255,0.5);line-height:1.2;">Retrolav.</p>
-            </div>` : ''}
-            ${litros_evap !== undefined ? `
-            <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px;text-align:center;">
-              <p class="text-base font-bold text-white">${litros_evap}L</p>
-              <p style="font-size:0.62rem;color:rgba(255,255,255,0.5);line-height:1.2;">Evaporac.</p>
-            </div>` : ''}
-            ${acciones?.length ? `
-            <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px;text-align:center;">
-              <p class="text-base font-bold text-white">${acciones.length}</p>
-              <p style="font-size:0.62rem;color:rgba(255,255,255,0.5);line-height:1.2;">Acciones</p>
-            </div>` : ''}
-          </div>
+    <!-- ── HERO SCORE ── -->
+    <section class="rp-hero">
+      <div class="rp-hero-ring" aria-label="Salud del agua: ${score} de 100">
+        ${_renderScoreRingBig(score)}
+        <div class="rp-hero-ring-num">
+          <span class="rp-hero-score">${score}</span>
+          <span class="rp-hero-of">DE 100</span>
         </div>
       </div>
-    </div>
+      <h1 class="rp-hero-title">${_scoreLabel(score)}</h1>
+      <p class="rp-hero-desc">${_heroDesc(score)}</p>
+    </section>
 
-    <!-- ── PARÁMETROS CON BARRAS DE RANGO ── -->
-    <section class="px-5 py-4" aria-labelledby="params-title">
-      <h2 id="params-title" class="text-xs font-bold uppercase tracking-widest text-marino mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-chart-bar text-cristal" aria-hidden="true"></i>
-        Análisis de Parámetros
-      </h2>
-
-      <div class="flex flex-col gap-4">
+    <!-- ── PARÁMETROS DEL AGUA ── -->
+    <h2 class="rp-section-title">
+      <i class="fa-solid fa-chart-bar" aria-hidden="true"></i>
+      Parámetros del agua
+    </h2>
+    <section class="rp-params" aria-label="Análisis de parámetros">
+      <div class="rp-params-grid">
         ${parametrosAMostrar.map(key => {
           const cfg = PARAMETROS[key];
           const val = lecturas[key];
           if (val === undefined || val === null || !cfg) return '';
-          return _renderParametroCard(key, cfg, val);
+          return _renderParametroCardDark(key, cfg, val);
         }).join('')}
       </div>
     </section>
 
     <!-- ── QUÍMICOS UTILIZADOS ── -->
     ${quimicos_usados ? `
-    <section class="px-5 py-4" aria-labelledby="quimicos-title">
-      <h2 id="quimicos-title" class="text-xs font-bold uppercase tracking-widest text-marino mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-flask text-arcilla" aria-hidden="true"></i>
-        Químicos Aplicados
-      </h2>
-      <div class="card card-body-sm">
-        <div class="grid grid-cols-3 gap-3">
+    <h2 class="rp-section-title">
+      <i class="fa-solid fa-flask" aria-hidden="true"></i>
+      Químicos aplicados
+    </h2>
+    <section class="rp-block-wrap">
+      <div class="rp-block">
+        <div class="rp-chem-grid">
           ${quimicos_usados.acido_mur_lt !== undefined ? `
-          <div class="text-center p-3 rounded-xl" style="background:var(--color-danger-bg);">
-            <p class="text-lg font-extrabold" style="color:var(--color-danger);">${quimicos_usados.acido_mur_lt}L</p>
-            <p class="text-xs mt-1" style="color:var(--text-muted);line-height:1.3;">Ácido<br>Muriático</p>
+          <div class="rp-chem">
+            <p class="rp-chem-val" style="color:#ef6b6b;">${quimicos_usados.acido_mur_lt}L</p>
+            <p class="rp-chem-lbl">Ácido<br>Muriático</p>
           </div>` : ''}
           ${quimicos_usados.cloro_kg !== undefined ? `
-          <div class="text-center p-3 rounded-xl" style="background:var(--color-success-bg);">
-            <p class="text-lg font-extrabold" style="color:var(--color-success);">${quimicos_usados.cloro_kg}kg</p>
-            <p class="text-xs mt-1" style="color:var(--text-muted);line-height:1.3;">Cloro<br>Granular</p>
+          <div class="rp-chem">
+            <p class="rp-chem-val" style="color:#46c98a;">${quimicos_usados.cloro_kg}kg</p>
+            <p class="rp-chem-lbl">Cloro<br>Granular</p>
           </div>` : ''}
           ${quimicos_usados.bicarbonato_kg !== undefined ? `
-          <div class="text-center p-3 rounded-xl" style="background:var(--color-marino-xlight);">
-            <p class="text-lg font-extrabold text-marino">${quimicos_usados.bicarbonato_kg}kg</p>
-            <p class="text-xs mt-1" style="color:var(--text-muted);line-height:1.3;">Bicarb.<br>Sodio</p>
+          <div class="rp-chem">
+            <p class="rp-chem-val" style="color:var(--color-cristal);">${quimicos_usados.bicarbonato_kg}kg</p>
+            <p class="rp-chem-lbl">Bicarb.<br>Sodio</p>
           </div>` : ''}
         </div>
       </div>
@@ -346,91 +309,94 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 
     <!-- ── ACCIONES REALIZADAS ── -->
     ${acciones?.length ? `
-    <section class="px-5 py-4" aria-labelledby="acciones-title">
-      <h2 id="acciones-title" class="text-xs font-bold uppercase tracking-widest text-marino mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-list-check text-success" aria-hidden="true"></i>
-        Acciones Realizadas
-      </h2>
-      <div class="card card-body-sm flex flex-col gap-2">
+    <h2 class="rp-section-title">
+      <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+      Acciones realizadas
+    </h2>
+    <section class="rp-block-wrap">
+      <div class="rp-block">
         ${acciones.map(acc => `
-          <div class="flex items-start gap-3 py-1">
-            <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                 style="background:var(--color-success-bg);">
-              <i class="fa-solid fa-check text-success" style="font-size:0.55rem;" aria-hidden="true"></i>
-            </div>
-            <span class="text-sm" style="color:var(--text-secondary);">${acc}</span>
+          <div class="rp-action-item">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span>${acc}</span>
           </div>
         `).join('')}
       </div>
     </section>` : ''}
 
-    <!-- ── NOTAS DEL TÉCNICO ── -->
-    ${notas ? `
-    <section class="px-5 py-2" aria-labelledby="notas-title">
-      <h2 id="notas-title" class="text-xs font-bold uppercase tracking-widest text-marino mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-comment-dots text-cristal" aria-hidden="true"></i>
-        Nota del Técnico
-      </h2>
-      <div class="card card-body-sm">
-        <p class="text-sm leading-relaxed italic" style="color:var(--text-secondary);">
+    <!-- ── NOTA DEL TÉCNICO (si no hay fotos para el caption) ── -->
+    ${notas && !tieneFotos ? `
+    <h2 class="rp-section-title">
+      <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+      Nota del técnico
+    </h2>
+    <section class="rp-block-wrap">
+      <div class="rp-block">
+        <p class="rp-note-text">
           <i class="fa-solid fa-quote-left text-xs mr-2 opacity-40" aria-hidden="true"></i>
           ${notas}
         </p>
-        <p class="text-xs mt-3 text-right font-semibold" style="color:var(--text-muted);">— ${tecnico}</p>
+        <p class="rp-note-author">— ${tecnico}</p>
       </div>
     </section>` : ''}
 
-    <!-- ── GALERÍA DE FOTOS ── -->
-    ${fotos?.length ? `
-    <section class="px-5 py-4" aria-labelledby="fotos-title">
-      <h2 id="fotos-title" class="text-xs font-bold uppercase tracking-widest text-marino mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-camera text-arcilla" aria-hidden="true"></i>
-        Fotos del Servicio
-        <span class="badge badge-marino ml-1">${fotos.length}</span>
-      </h2>
-      <div class="gallery-grid" role="list" aria-label="Galería de fotos del servicio">
-        ${fotos.map((foto, i) => {
-          const fotoUrl = _fotoToUrl(foto);
-          return `
-          <div
-            class="gallery-thumb"
-            role="listitem"
-            onclick="BitacoraUI.openGallery(${i})"
-            tabindex="0"
-            onkeypress="if(event.key==='Enter')BitacoraUI.openGallery(${i})"
-            aria-label="Ver foto ${i + 1} de ${fotos.length}"
-          >
-            <img src="${fotoUrl}" alt="Foto ${i + 1} del servicio" loading="lazy" />
-            <div class="gallery-thumb-overlay" aria-hidden="true">
-              <i class="fa-solid fa-expand text-white text-sm"></i>
-            </div>
-          </div>
-          `;
-        }).join('')}
+    <!-- ── CARRUSEL DE FOTOS ── -->
+    ${tieneFotos ? `
+    <section class="rp-photos" aria-label="Fotos del servicio">
+      <div class="rp-photos-head">
+        <span class="rp-photos-date">${_formatFechaLarga(fecha)} · ${tecnico}</span>
       </div>
+      <div class="rp-carousel" id="rp-carousel">
+        <div class="rp-carousel-track" id="rp-carousel-track">
+          ${fotos.map((foto, i) => {
+            const fotoUrl = _fotoToUrl(foto);
+            return `
+            <button class="rp-slide" data-slide onclick="BitacoraUI.openGallery(${i})"
+                    aria-label="Ampliar foto ${i + 1} de ${fotos.length}">
+              <img src="${fotoUrl}" alt="Foto ${i + 1} del servicio" loading="lazy" />
+              <span class="rp-slide-zoom">
+                <i class="fa-solid fa-up-right-and-down-left-from-center" aria-hidden="true"></i>
+                Ampliar
+              </span>
+            </button>`;
+          }).join('')}
+        </div>
+        ${fotos.length > 1 ? `
+        <button class="rp-carousel-arrow prev" onclick="BitacoraUI.carouselScroll(-1)" aria-label="Foto anterior">
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button class="rp-carousel-arrow next" onclick="BitacoraUI.carouselScroll(1)" aria-label="Foto siguiente">
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
+        <div class="rp-carousel-dots" id="rp-carousel-dots">
+          ${fotos.map((_, i) => `<span class="rp-dot ${i === 0 ? 'active' : ''}" data-dot="${i}"></span>`).join('')}
+        </div>` : ''}
+      </div>
+      ${notas ? `<p class="rp-photo-caption">"${notas}"</p>` : ''}
     </section>` : ''}
 
     <!-- ── BOTONES DE ACCIÓN ── -->
-    <section class="px-5 pt-2 pb-8">
-      <div class="flex flex-col gap-3">
-        <button
-          class="btn btn-primary btn-full"
-          onclick="PDFGenerator.generate(window._currentBitacora, window._currentClientProfile)"
-          aria-label="Descargar reporte PDF"
-        >
-          <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
-          Descargar Reporte PDF
-        </button>
-        <button
-          class="btn btn-secondary btn-full"
-          onclick="BitacoraUI.shareWhatsApp()"
-          aria-label="Compartir por WhatsApp"
-        >
-          <i class="fa-brands fa-whatsapp text-green-500" aria-hidden="true"></i>
-          Compartir por WhatsApp
-        </button>
-      </div>
+    <section class="rp-actions">
+      <button class="rp-btn rp-btn-primary"
+        onclick="PDFGenerator.generate(window._currentBitacora, window._currentClientProfile)"
+        aria-label="Descargar reporte PDF">
+        <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i>
+        Descargar reporte PDF
+      </button>
+      <button class="rp-btn rp-btn-ghost"
+        onclick="BitacoraUI.contactTecnico()"
+        aria-label="Contactar a mi técnico por WhatsApp">
+        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+        Contactar a mi técnico por WhatsApp
+      </button>
     </section>
+
+    <!-- ── FOOTER ── -->
+    <footer class="rp-footer">
+      <img src="images/logo.png" class="rp-footer-logo" alt="Pool Balance" width="40" height="40" />
+      <p class="rp-footer-brand">Pool Balance™ · Veracruz, México</p>
+      <p class="rp-footer-date">Servicio del ${_formatFechaLarga(fecha)}</p>
+    </footer>
 
     <!-- Lightbox galería -->
     <div id="gallery-modal" class="photo-modal hidden" role="dialog" aria-modal="true" aria-label="Galería de fotos">
@@ -456,101 +422,70 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 }
 
 // ─────────────────────────────────────────
-//  RENDER DE TARJETA DE PARÁMETRO
+//  RENDER DE TARJETA DE PARÁMETRO (DARK)
 // ─────────────────────────────────────────
 
-function _renderParametroCard(key, cfg, val) {
+function _renderParametroCardDark(key, cfg, val) {
   const exp       = cfg.explicacion(val);
   const pct       = _valToPct(val, cfg);
   const optMinPct = _valToPct(cfg.optMin, cfg);
   const optMaxPct = _valToPct(cfg.optMax, cfg);
   const estado    = _getEstadoParam(val, cfg);
-  const estadoCSS = { optimo:'optimal', alerta:'warning', critico:'danger' }[estado];
+  const st        = ESTADO_DARK[estado] || ESTADO_DARK.optimo;
   const valStr    = val.toFixed(cfg.decimales);
+  const dotPct    = Math.min(Math.max(pct, 2), 98);
 
   return `
-  <div class="card anim-fade-in-up" style="overflow:visible;">
-    <div class="card-body-sm">
-
-      <!-- Header del parámetro -->
-      <div class="flex items-start justify-between mb-3 gap-2">
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-               style="background:${cfg.color}18; color:${cfg.color};">
-            <i class="fa-solid ${cfg.icon} text-sm" aria-hidden="true"></i>
-          </div>
-          <div>
-            <p class="text-sm font-bold text-marino leading-tight">${cfg.label}</p>
-            <p class="text-xs" style="color:var(--text-muted);">
-              Óptimo: ${cfg.optMin}–${cfg.optMax} ${cfg.unidad}
-            </p>
-          </div>
-        </div>
-        <div class="text-right flex-shrink-0">
-          <p class="text-xl font-extrabold leading-none" style="color:${cfg.color};">
-            ${valStr}<span class="text-xs font-normal ml-0.5" style="color:var(--text-muted);">${cfg.unidad}</span>
-          </p>
-          <span class="param-chip ${estadoCSS} inline-flex mt-1" style="min-width:auto;padding:2px 8px;">
-            <span class="param-chip-label" style="font-size:0.6rem;">${estado.toUpperCase()}</span>
-          </span>
-        </div>
+  <div class="rp-card rp-card--${estado} anim-fade-in-up">
+    <div class="rp-card-top">
+      <div class="rp-card-icon" style="background:${cfg.color}26; color:${cfg.color};">
+        <i class="fa-solid ${cfg.icon}" aria-hidden="true"></i>
       </div>
-
-      <!-- Barra de rango -->
-      <div class="range-bar-container mb-3" aria-label="${cfg.label}: ${valStr} ${cfg.unidad}">
-        <div class="range-bar-track">
-          <!-- Zona óptima sombreada -->
-          <div class="range-bar-optimal"
-               style="left:${optMinPct}%;width:${optMaxPct - optMinPct}%;"
-               aria-hidden="true"></div>
-          <!-- Indicador del valor actual -->
-          <div class="range-bar-thumb ${estadoCSS}"
-               style="left:${Math.min(Math.max(pct, 2), 98)}%;"
-               role="presentation">
-          </div>
-        </div>
-        <!-- Etiquetas Min / Óptimo / Max -->
-        <div class="range-bar-labels">
-          <span>${cfg.min}${cfg.unidad}</span>
-          <span style="color:var(--color-success);font-weight:600;">
-            ✓ ${cfg.optMin}–${cfg.optMax}
-          </span>
-          <span>${cfg.max}${cfg.unidad}</span>
-        </div>
+      <div class="min-w-0">
+        <p class="rp-card-label">${cfg.label}</p>
+        <p class="rp-card-range">Óptimo: ${cfg.optMin}–${cfg.optMax} ${cfg.unidad}</p>
       </div>
-
-      <!-- Explicación didáctica colapsable -->
-      <div class="param-explanation">
-        <p class="text-xs leading-relaxed" style="color:var(--text-secondary);">
-          ${exp.emoji} ${exp.texto}
-        </p>
-      </div>
-
     </div>
+
+    <div class="rp-card-value" style="color:${st.color};">
+      ${valStr}<span class="rp-card-unit">${cfg.unidad}</span>
+    </div>
+
+    <div class="rp-slider" aria-hidden="true">
+      <div class="rp-slider-optimal" style="left:${optMinPct}%;width:${Math.max(optMaxPct - optMinPct, 2)}%;"></div>
+      <div class="rp-slider-dot" style="left:${dotPct}%; --dot:${st.color};"></div>
+    </div>
+    <div class="rp-slider-scale">
+      <span>${cfg.min}${cfg.unidad}</span>
+      <span class="rp-slider-ok">✓ ${cfg.optMin}–${cfg.optMax}</span>
+      <span>${cfg.max}${cfg.unidad}</span>
+    </div>
+
+    <p class="rp-card-note">${exp.emoji} ${exp.texto}</p>
   </div>
   `;
 }
 
 // ─────────────────────────────────────────
-//  SCORE RING SVG
+//  SCORE RING SVG (grande, con glow)
 // ─────────────────────────────────────────
 
-function _renderScoreRing(score) {
-  const radius = 28;
+function _renderScoreRingBig(score) {
+  const radius = 64;
   const circ   = 2 * Math.PI * radius;
   const offset = circ - (score / 100) * circ;
-  const color  = score >= 80 ? '#2D9E6B' : score >= 60 ? '#E8A838' : '#D95C5C';
+  const color  = score >= 80 ? '#46c98a' : score >= 60 ? '#f0b94e' : '#ef6b6b';
 
   return `
-  <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
-    <circle cx="40" cy="40" r="${radius}" fill="none"
-            stroke="rgba(255,255,255,0.1)" stroke-width="7"/>
-    <circle cx="40" cy="40" r="${radius}" fill="none"
-            stroke="${color}" stroke-width="7"
+  <svg width="170" height="170" viewBox="0 0 160 160" aria-hidden="true">
+    <circle cx="80" cy="80" r="${radius}" fill="none"
+            stroke="rgba(255,255,255,0.08)" stroke-width="11"/>
+    <circle cx="80" cy="80" r="${radius}" fill="none"
+            stroke="${color}" stroke-width="11"
             stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
             stroke-linecap="round"
-            transform="rotate(-90 40 40)"
-            style="transition: stroke-dashoffset 1s ease;"/>
+            transform="rotate(-90 80 80)"
+            style="filter: drop-shadow(0 0 6px ${color}aa); transition: stroke-dashoffset 1.2s ease;"/>
   </svg>`;
 }
 
@@ -607,6 +542,14 @@ function _scoreLabel(score) {
   return 'Intervención intensiva realizada';
 }
 
+function _heroDesc(score) {
+  if (score >= 90) return 'Todos los parámetros químicos están en perfecto equilibrio. El agua es completamente confortable y segura para nadar.';
+  if (score >= 75) return 'El agua está segura y estable. Los parámetros se mantienen dentro de rango con ajustes mínimos.';
+  if (score >= 60) return 'Tu agua requirió correcciones este servicio. Ya quedó balanceada y segura para su uso.';
+  if (score >= 40) return 'Se corrigieron varios parámetros durante la visita. El agua ya está dentro de condiciones seguras.';
+  return 'Se realizó una intervención intensiva para restablecer el equilibrio del agua. Revisa las acciones aplicadas.';
+}
+
 // ─────────────────────────────────────────
 //  HELPERS
 // ─────────────────────────────────────────
@@ -622,7 +565,7 @@ function _getEstadoParam(val, cfg) {
     return 'critico';
   }
   if (val >= cfg.optMin && val <= cfg.optMax) return 'optimo';
-  // Zona de alerta: 20% fuera del rango óptimo
+  // Zona de alerta: 50% fuera del rango óptimo
   const margen = (cfg.optMax - cfg.optMin) * 0.5;
   if (val >= cfg.optMin - margen && val <= cfg.optMax + margen) return 'alerta';
   return 'critico';
@@ -637,7 +580,7 @@ function _formatFechaLarga(dateStr) {
 }
 
 // ─────────────────────────────────────────
-//  UI CONTROLLER (galería + WhatsApp share)
+//  UI CONTROLLER (galería + carrusel + WhatsApp)
 // ─────────────────────────────────────────
 
 const BitacoraUI = {
@@ -689,6 +632,47 @@ const BitacoraUI = {
     if (counter) counter.textContent = `${this._currentIndex + 1} / ${this._fotos.length}`;
   },
 
+  // ── Carrusel de la vista de detalle ──
+  carouselScroll(dir) {
+    const track = document.getElementById('rp-carousel-track');
+    if (!track) return;
+    const slide = track.querySelector('[data-slide]');
+    const w = slide ? slide.offsetWidth + 14 : track.clientWidth;
+    track.scrollBy({ left: dir * w, behavior: 'smooth' });
+  },
+
+  _initCarousel() {
+    const track = document.getElementById('rp-carousel-track');
+    if (!track) return;
+    const dots  = Array.from(document.querySelectorAll('#rp-carousel-dots .rp-dot'));
+    const slide = track.querySelector('[data-slide]');
+    if (!dots.length) return;
+
+    const widthOf = () => (slide ? slide.offsetWidth + 14 : track.clientWidth);
+
+    track.addEventListener('scroll', () => {
+      const i = Math.round(track.scrollLeft / widthOf());
+      dots.forEach((d, di) => d.classList.toggle('active', di === i));
+    }, { passive: true });
+
+    dots.forEach((d, di) => {
+      d.addEventListener('click', () => {
+        track.scrollTo({ left: di * widthOf(), behavior: 'smooth' });
+      });
+    });
+  },
+
+  contactTecnico() {
+    const bit  = window._currentBitacora;
+    const prof = window._currentClientProfile;
+    const wa   = APP_CONFIG.company.whatsapp;
+    const nombre = prof?.nombre ? prof.nombre.split(' ')[0] : '';
+    const fechaTxt = bit?.fecha ? _formatFechaLarga(bit.fecha) : '';
+    const msg = `Hola Pool Balance${nombre ? ', soy ' + nombre : ''}. Tengo una consulta sobre mi reporte de servicio${fechaTxt ? ' del ' + fechaTxt : ''}.`;
+    const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank', 'noopener');
+  },
+
   shareWhatsApp() {
     const bit  = window._currentBitacora;
     const prof = window._currentClientProfile;
@@ -734,6 +718,7 @@ window.PostRender = window.PostRender || {}; // <-- ESTA ES LA LÍNEA SALVAVIDAS
 
 window.PostRender.bitacora = function() {
   window.BitacoraUI = BitacoraUI;
+  BitacoraUI._initCarousel();
   document.addEventListener('keydown', function onKey(e) {
     if (e.key === 'Escape') BitacoraUI.closeGallery();
     if (e.key === 'ArrowLeft')  BitacoraUI.galleryPrev();

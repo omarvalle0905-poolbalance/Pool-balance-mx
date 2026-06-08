@@ -13,6 +13,19 @@
 const APP_CONFIG = {
 
   // ─────────────────────────────────────────────
+  //  BANDERAS DE FUNCIONALIDAD (FEATURE FLAGS)
+  // ─────────────────────────────────────────────
+  //  portalOnly: cuando es true, la aplicación arranca y se
+  //  mantiene SIEMPRE en el Portal del Cliente. Los módulos
+  //  Inicio, Servicios y Biblioteca quedan ocultos (siguen en
+  //  el código pero sin acceso) hasta que estén terminados.
+  //  Para reactivar toda la app, cambia esto a false.
+  // ─────────────────────────────────────────────
+  features: {
+    portalOnly: true,
+  },
+
+  // ─────────────────────────────────────────────
   //  INFORMACIÓN GENERAL DE LA EMPRESA
   // ─────────────────────────────────────────────
   company: {

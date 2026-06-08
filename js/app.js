@@ -327,10 +327,22 @@ async function initApp() {
   }
 
   // 5. Registrar rutas en el Router
-  Router.register('home',       () => renderHome());
-  Router.register('servicios',  () => renderServicios());
-  Router.register('biblioteca', () => renderBiblioteca());
-  Router.register('portal',     () => renderPortal());
+  //    En modo "solo portal" únicamente se registra el portal del cliente;
+  //    cualquier otra ruta (o un enlace compartido con #servicios, etc.)
+  //    cae automáticamente en el portal, manteniendo ocultos los módulos
+  //    aún no terminados.
+  const portalOnly = APP_CONFIG.features?.portalOnly === true;
+
+  Router.register('portal', () => renderPortal());
+
+  if (!portalOnly) {
+    Router.register('home',       () => renderHome());
+    Router.register('servicios',  () => renderServicios());
+    Router.register('biblioteca', () => renderBiblioteca());
+  } else {
+    Router.setDefaultView('portal');
+    document.body.classList.add('portal-only');
+  }
 
   // 6. Inicializar navegación
   Nav.init();

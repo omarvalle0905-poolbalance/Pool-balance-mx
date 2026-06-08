@@ -18,6 +18,16 @@ const Router = (() => {
   const routes = {};
   let currentView = null;
   let isNavigating = false;
+  let defaultView = 'home';
+
+  /**
+   * Define la vista por defecto (fallback de rutas no registradas
+   * y vista inicial cuando no hay hash válido en la URL).
+   * @param {string} name
+   */
+  function setDefaultView(name) {
+    if (name) defaultView = name;
+  }
 
   /**
    * Registra una ruta con su función de render
@@ -37,7 +47,7 @@ const Router = (() => {
     if (isNavigating || viewName === currentView) return;
     if (!routes[viewName]) {
       console.warn(`[Router] Vista "${viewName}" no registrada.`);
-      viewName = 'home';
+      viewName = defaultView;
     }
 
     isNavigating = true;
@@ -128,7 +138,7 @@ const Router = (() => {
    */
   function getViewFromHash() {
     const hash = window.location.hash.replace('#', '').trim();
-    return routes[hash] ? hash : 'home';
+    return routes[hash] ? hash : defaultView;
   }
 
   /**
@@ -155,7 +165,7 @@ const Router = (() => {
   /** Obtener la vista actual */
   function getCurrent() { return currentView; }
 
-  return { register, navigate, init, getCurrent };
+  return { register, navigate, init, getCurrent, setDefaultView };
 
 })();
 

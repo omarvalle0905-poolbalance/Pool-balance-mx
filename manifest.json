@@ -1,8 +1,8 @@
 {
   "name": "Pool Balance",
   "short_name": "Pool Balance",
-  "description": "Gestoría técnica y monitoreo de albercas en Veracruz. Agua segura, no solo cristalina.",
-  "start_url": "./",
+  "description": "Portal del cliente Pool Balance: consulta el historial y análisis del agua de tu alberca en Veracruz.",
+  "start_url": "./#portal",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0E4569",
@@ -43,13 +43,6 @@
     }
   ],
   "shortcuts": [
-    {
-      "name": "Servicios",
-      "short_name": "Servicios",
-      "description": "Ver paquetes y precios",
-      "url": "./#servicios",
-      "icons": [{ "src": "images/logo.png", "sizes": "any" }]
-    },
     {
       "name": "Mi Portal",
       "short_name": "Mi Portal",

@@ -371,6 +371,28 @@
 }
 
 /* ═══════════════════════════════════════════
+   MODO SOLO PORTAL (portal-only)
+   Oculta la navegación de los módulos aún no
+   terminados (Inicio, Servicios, Biblioteca) y
+   deja la app dedicada al Portal del Cliente.
+═══════════════════════════════════════════ */
+
+/* Móvil / tablet: sin barra inferior → recuperar el espacio */
+body.portal-only .bottom-nav {
+  display: none !important;
+}
+
+body.portal-only .main-content {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Escritorio: ocultar los enlaces de módulos del sidebar.
+   Se conserva el logo y el CTA de WhatsApp. */
+body.portal-only .sidebar-nav {
+  display: none !important;
+}
+
+/* ═══════════════════════════════════════════
    PAGE / VIEW CONTAINERS
 ═══════════════════════════════════════════ */
 

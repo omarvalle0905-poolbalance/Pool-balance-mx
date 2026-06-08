@@ -267,15 +267,21 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       background-color: #0A0E14 !important;
       color: #EEF1F5 !important;
       font-family: 'Bricolage Grotesque', sans-serif !important;
-      padding: 16px;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
       width: 100%;
       max-width: 100%;
       margin: 0;
       overflow-x: hidden;
+    }
+    /* Lienzo de "ancho de diseño" — se escala con zoom (JS) para
+       llenar siempre el ancho real de la pantalla, igual que un
+       WebView nativo, sin importar el navegador o su zoom. */
+    #view-bitacora-detalle #rp-fit {
+      width: 412px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
     #view-bitacora-detalle .premium-dark-card {
       background-color: #11161F !important;
@@ -347,7 +353,8 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
   </style>
 
   <article id="view-bitacora-detalle">
-    
+    <div id="rp-fit">
+
     <!-- ── TOPBAR PREMIUM ── -->
     <div style="position: relative; height: 64px; margin: -16px -16px 8px; background-color: #0A0E14; border-bottom: 2px solid #E8664A; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
       <div style="display: flex; align-items: center; gap: 12px;">
@@ -570,6 +577,8 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
         <p style="color: #8B95A7; font-size: 10px; font-weight: 400; margin: 2px 0 0 0;">Servicio del ${_formatFechaLarga(fecha)}</p>
       </div>
     </footer>
+
+    </div><!-- /#rp-fit -->
 
     <!-- Lightbox galería -->
     <div id="gallery-modal" class="photo-modal hidden" role="dialog" aria-modal="true" aria-label="Galería de fotos" style="z-index: 1000;">
@@ -1009,7 +1018,32 @@ window.PostRender = window.PostRender || {}; // <-- ESTA ES LA LÍNEA SALVAVIDAS
 
 window.PostRender.bitacora = function() {
   window.BitacoraUI = BitacoraUI;
-  
+
+  // ── ESCALADO "FILL-WIDTH" (imita el WebView nativo) ──
+  // El contenido se diseña a un ancho fijo (412px) y se escala con
+  // zoom para llenar SIEMPRE el ancho real de la pantalla, sin importar
+  // el navegador ni su nivel de zoom. Así se ve grande y a pantalla
+  // completa tanto en pestaña como instalada como PWA.
+  const _fitReport = function() {
+    const fit = document.getElementById('rp-fit');
+    if (!fit) return;
+    const DESIGN = 412;
+    const vw = document.documentElement.clientWidth || window.innerWidth;
+    const scale = Math.max(0.5, vw / DESIGN);
+    fit.style.zoom = scale.toFixed(4);
+  };
+  _fitReport();
+  setTimeout(_fitReport, 60);
+  setTimeout(_fitReport, 300);
+  if (window._bitacoraFitHandler) {
+    window.removeEventListener('resize', window._bitacoraFitHandler);
+    if (window.visualViewport) window.visualViewport.removeEventListener('resize', window._bitacoraFitHandler);
+  }
+  window._bitacoraFitHandler = _fitReport;
+  window.addEventListener('resize', window._bitacoraFitHandler);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', window._bitacoraFitHandler);
+
+
   // Clear any existing keyboard handlers to prevent duplicates
   if (window._bitacoraKeyHandler) {
     document.removeEventListener('keydown', window._bitacoraKeyHandler);

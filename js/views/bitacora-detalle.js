@@ -225,24 +225,24 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
   if (quimicos_usados) {
     const chips = [];
     if (quimicos_usados.cloro_kg > 0) {
-      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 13px; font-weight: 500; border-radius: 9999px; padding: 8px 14px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">🧪 Hipoclorito · ${quimicos_usados.cloro_kg} kg</div>`);
+      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">🧪 Hipoclorito · ${quimicos_usados.cloro_kg} kg</div>`);
     }
     if (quimicos_usados.acido_mur_lt > 0) {
-      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 13px; font-weight: 500; border-radius: 9999px; padding: 8px 14px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">⚗️ Ácido muriático · ${quimicos_usados.acido_mur_lt} L</div>`);
+      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">⚗️ Ácido muriático · ${quimicos_usados.acido_mur_lt} L</div>`);
     }
     if (quimicos_usados.bicarbonato_kg > 0) {
-      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 13px; font-weight: 500; border-radius: 9999px; padding: 8px 14px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">🧂 Bicarbonato · ${quimicos_usados.bicarbonato_kg} kg</div>`);
+      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">🧂 Bicarbonato · ${quimicos_usados.bicarbonato_kg} kg</div>`);
     }
     if (chips.length === 0) {
-       chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 13px; font-weight: 500; border-radius: 9999px; padding: 8px 14px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">✨ Ningún químico requerido</div>`);
+       chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">✨ Ningún químico requerido</div>`);
     }
     chipsHTML = chips.join('');
   } else {
     // Falls back to prompt's default demo values
     chipsHTML = `
-      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 13px; font-weight: 500; border-radius: 9999px; padding: 8px 14px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">🧪 Hipoclorito · 250 ml</div>
-      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 13px; font-weight: 500; border-radius: 9999px; padding: 8px 14px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">⚗️ Ácido muriático · 100 ml</div>
-      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 13px; font-weight: 500; border-radius: 9999px; padding: 8px 14px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">🧂 Cianúrico · 200 g</div>
+      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">🧪 Hipoclorito · 250 ml</div>
+      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">⚗️ Ácido muriático · 100 ml</div>
+      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">🧂 Cianúrico · 200 g</div>
     `;
   }
 
@@ -381,15 +381,15 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     </div>
 
     <!-- ── HERO DE SALUD DEL AGUA ── -->
-    <div class="premium-dark-card" style="background: linear-gradient(180deg, #0E4569 0%, #0a3350 60%, #0A0E14 100%) !important; padding: 32px 16px; display: flex; flex-direction: column; align-items: center; gap: 20px; border: none !important;">
+    <div class="premium-dark-card" style="background: linear-gradient(180deg, #0E4569 0%, #0a3350 60%, #0A0E14 100%) !important; padding: 36px 22px; display: flex; flex-direction: column; align-items: center; gap: 22px; border: none !important;">
       <div>
         ${_renderScoreRing(score)}
       </div>
       <div style="text-align: center;">
-        <h1 style="color: #EEF1F5; font-size: 22px; font-weight: 700; margin-bottom: 4px; font-family: 'Bricolage Grotesque', sans-serif;">
+        <h1 style="color: #EEF1F5; font-size: 28px; font-weight: 700; margin-bottom: 8px; line-height: 1.2; font-family: 'Bricolage Grotesque', sans-serif;">
           ${_scoreLabel(score)}
         </h1>
-        <p style="color: #d8eff3; font-size: 14px; font-weight: 400; line-height: 1.5; font-family: 'Bricolage Grotesque', sans-serif; max-width: 290px; margin: 0 auto; opacity: 0.9;">
+        <p style="color: #d8eff3; font-size: 16px; font-weight: 400; line-height: 1.6; font-family: 'Bricolage Grotesque', sans-serif; max-width: 340px; margin: 0 auto; opacity: 0.9;">
           ${_getScoreHint(score)}
         </p>
       </div>
@@ -397,7 +397,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 
     <!-- ── SECCIÓN PARÁMETROS DEL AGUA (GRID ESTRICTO DE 2 COLUMNAS) ── -->
     <div>
-      <h2 style="color: #6FB8C6; font-size: 11px; font-weight: 600; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
+      <h2 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
         PARÁMETROS DEL AGUA
       </h2>
       <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
@@ -412,12 +412,12 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 
     <!-- ── VISITA TÉCNICA ── -->
     <div class="premium-dark-card" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
-      <div style="font-size: 12px; font-weight: 500; color: #6FB8C6; font-family: 'Bricolage Grotesque', sans-serif;">
+      <div style="font-size: 14px; font-weight: 500; color: #6FB8C6; font-family: 'Bricolage Grotesque', sans-serif;">
         ${_formatFechaLarga(fecha)} · ${tecnico || 'Omar Valle'}
       </div>
       
       <!-- Photo placeholder / real photo with carousel callback trigger -->
-      <div style="position: relative; width: 100%; height: 200px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
+      <div style="position: relative; width: 100%; height: 230px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
         <img 
           src="${fotos?.length ? _fotoToUrl(fotos[0]) : 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800'}" 
           alt="Fotografía de servicio" 
@@ -435,14 +435,14 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
         </div>
       </div>
       
-      <div style="color: #EEF1F5; font-size: 14px; font-weight: 400; line-height: 1.6; font-family: 'Bricolage Grotesque', sans-serif;">
+      <div style="color: #EEF1F5; font-size: 16px; font-weight: 400; line-height: 1.65; font-family: 'Bricolage Grotesque', sans-serif;">
         "${notas || 'Servicio periódico realizado. Filtro limpio, fondo aspirado y parámetros equilibrados. El agua es completamente confortable.'}"
       </div>
       
       <!-- Signature Line -->
       <div style="height: 1px; background-color: #1A2030; width: 100%;"></div>
       
-      <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-family: 'Bricolage Grotesque', sans-serif;">
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 15px; font-family: 'Bricolage Grotesque', sans-serif;">
         <span style="color: #E8664A; font-weight: 700;">✓</span>
         <span style="color: #E8664A; font-weight: 700;">Omar Valle</span>
         <span style="color: #6FB8C6;">· Pool Balance Veracruz</span>
@@ -451,7 +451,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 
     <!-- ── PRODUCTOS APLICADOS (HORIZONTAL SCROLL CHIPS) ── -->
     <div>
-      <h2 style="color: #6FB8C6; font-size: 11px; font-weight: 600; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
+      <h2 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
         PRODUCTOS APLICADOS
       </h2>
       <div class="custom-scrollbar" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;">
@@ -461,9 +461,9 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 
     <!-- ── BANNER DE ALERTA DINÁMICO ── -->
     ${hasAlertBanner ? `
-    <div style="background-color: rgba(232, 168, 56, 0.12); border-left: 3px solid #E8A838; border-radius: 12px; padding: 14px; display: flex; gap: 10px; align-items: start;">
-      <span style="color: #E8A838; font-size: 16px;">⚠️</span>
-      <div style="color: #EEF1F5; font-size: 13px; font-weight: 500; font-family: 'Bricolage Grotesque', sans-serif; line-height: 1.4;">
+    <div style="background-color: rgba(232, 168, 56, 0.12); border-left: 3px solid #E8A838; border-radius: 12px; padding: 16px; display: flex; gap: 12px; align-items: start;">
+      <span style="color: #E8A838; font-size: 18px;">⚠️</span>
+      <div style="color: #EEF1F5; font-size: 15px; font-weight: 500; font-family: 'Bricolage Grotesque', sans-serif; line-height: 1.5;">
         ${alertBannerMsg}
       </div>
     </div>` : ''}
@@ -471,12 +471,12 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     <!-- ── ACCIONES REALIZADAS (Adicional si existen en bítacora real) ── -->
     ${acciones?.length ? `
     <div class="premium-dark-card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-      <h3 style="color: #6FB8C6; font-size: 11px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif;">ACCIONES REALIZADAS</h3>
+      <h3 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif;">ACCIONES REALIZADAS</h3>
       <div style="display: flex; flex-direction: column; gap: 8px;">
         ${acciones.map(acc => `
-          <div style="display: flex; align-items: start; gap: 8px; font-size: 13px;">
+          <div style="display: flex; align-items: start; gap: 10px; font-size: 15px;">
             <span style="color: #2D9E6B; font-weight: bold;">✓</span>
-            <span style="color: #EEF1F5;">${acc}</span>
+            <span style="color: #EEF1F5; line-height: 1.45;">${acc}</span>
           </div>
         `).join('')}
       </div>
@@ -485,7 +485,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     <!-- ── GALERÍA 3D CAROUSEL (Si existe más de una foto en la bitácora) ── -->
     ${fotos?.length > 1 ? `
     <section aria-labelledby="fotos-title" style="overflow:hidden; display: flex; flex-direction: column; gap: 12px;">
-      <h2 id="fotos-title" style="color: #6FB8C6; font-size: 11px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
+      <h2 id="fotos-title" style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
         RECHAZO DE SÓLIDOS Y MEJORAS (${fotos.length} fotos)
       </h2>
       
@@ -663,29 +663,29 @@ function _renderParametroCard(key, cfg, val) {
   const valStr = val.toFixed(cfg.decimales);
 
   return `
-  <div class="premium-dark-card p-3 flex flex-col justify-between" style="min-height: 142px; gap: 8px;">
+  <div class="premium-dark-card flex flex-col justify-between" style="min-height: 176px; gap: 12px; padding: 16px;">
     <div>
       <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
         <span style="color: #6FB8C6; display: flex; align-items: center;" class="flex-shrink-0">
           ${svgIcon}
         </span>
-        <span style="color: #6FB8C6; font-size: 11px; font-weight: 500; font-family: 'Bricolage Grotesque', sans-serif;" class="truncate">${cfg.label}</span>
+        <span style="color: #6FB8C6; font-size: 14px; font-weight: 500; font-family: 'Bricolage Grotesque', sans-serif;" class="truncate">${cfg.label}</span>
       </div>
       
-      <div style="display: flex; align-items: baseline; margin-top: 4px;">
-        <span style="color: #EEF1F5; font-size: 20px; font-weight: 700; font-family: 'Bricolage Grotesque', sans-serif;">${valStr}</span>
-        <span style="color: #8B95A7; font-size: 11px; margin-left: 2px; font-family: 'Bricolage Grotesque', sans-serif;">${cfg.unidad}</span>
+      <div style="display: flex; align-items: baseline; margin-top: 8px;">
+        <span style="color: #EEF1F5; font-size: 28px; font-weight: 700; line-height: 1; font-family: 'Bricolage Grotesque', sans-serif;">${valStr}</span>
+        <span style="color: #8B95A7; font-size: 13px; margin-left: 3px; font-family: 'Bricolage Grotesque', sans-serif;">${cfg.unidad}</span>
       </div>
     </div>
 
     <div>
       <!-- Range bar visual indicator with glow -->
-      <div style="height: 4px; background-color: #1A2030; border-radius: 9999px; position: relative; width: 100%; margin-bottom: 6px;">
-        <div style="position: absolute; top: -3px; left: ${pct}%; width: 10px; height: 10px; border-radius: 50%; background-color: ${color}; filter: drop-shadow(0 0 6px ${color}); transform: translateX(-50%);"></div>
+      <div style="height: 6px; background-color: #1A2030; border-radius: 9999px; position: relative; width: 100%; margin-bottom: 12px;">
+        <div style="position: absolute; top: -4px; left: ${pct}%; width: 14px; height: 14px; border-radius: 50%; background-color: ${color}; filter: drop-shadow(0 0 7px ${color}); transform: translateX(-50%);"></div>
       </div>
-      
+
       <!-- Didactic Commentary -->
-      <p style="color: ${textColor}; font-size: 11px; font-weight: 400; line-height: 1.3; font-family: 'Bricolage Grotesque', sans-serif; margin: 0;">
+      <p style="color: ${textColor}; font-size: 13px; font-weight: 400; line-height: 1.5; font-family: 'Bricolage Grotesque', sans-serif; margin: 0;">
         ${exp.emoji} ${exp.texto}
       </p>
     </div>
@@ -922,7 +922,7 @@ const BitacoraUI = {
         rotateY = diff < 0 ? 30 : -30;
         translateZ = -90;
         // Shift factor is dynamic to allow card visibility on various screens
-        translateX = diff * 75; 
+        translateX = diff * 120;
         scale = 0.82;
         opacity = 0.65;
         if (Math.abs(diff) > 1) {

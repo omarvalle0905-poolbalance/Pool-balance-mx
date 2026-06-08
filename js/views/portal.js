@@ -1,11 +1,13 @@
 /**
  * ============================================================
- *  POOL BALANCE — PORTAL DEL CLIENTE (REFACTORIZADO)
+ *  POOL BALANCE — PORTAL DEL CLIENTE (v4.0.0)
  *  Conectado a Firebase Authentication + Firestore
  *
- *  Pantalla A: Login  →  Firebase Auth
- *  Pantalla B: Dashboard  →  Firestore listener en tiempo real
- *  Pantalla C: Bitácora Detallada  →  renderBitacoraDetalle()
+ *  Cambios:
+ *  - v4.0.0 (Omar Alberto Valle Mercado | VAMO870509HW3):
+ *    Añadido botón de Acceso Rápido (Modo Demo) directo para 
+ *    desbloqueo instantáneo con datos reales/mock simulados.
+ *  - Estructuración robusta de vistas.
  * ============================================================
  */
 
@@ -107,6 +109,15 @@ function renderLogin() {
           ${loginCta}
         </button>
       </form>
+
+      <div class="mt-3">
+        <button type="button" onclick="PortalAuth.loginAsDemoDirect()" class="btn btn-lg btn-full"
+                style="background:var(--color-cristal);color:var(--color-marino);border:none;font-weight:bold;width:100%;"
+                id="btn-demo-direct">
+          <i class="fa-solid fa-flask-vial mr-1" aria-hidden="true"></i>
+          Acceso Rápido (Modo Demo)
+        </button>
+      </div>
 
       <div class="mt-4 p-3 rounded-xl text-center" style="background:var(--color-cristal-light);">
         <p class="text-xs font-medium" style="color:var(--color-cristal-dark);">
@@ -347,7 +358,44 @@ function _renderBitacoraRow(bit) {
 //  AUTH CONTROLLER
 // ─────────────────────────────────────────
 
-const PortalAuth = {
+const PortalAuth = {Overlay: null,
+
+  async loginAsDemoDirect() {
+    const idEl   = document.getElementById('client-id');
+    const pinEl  = document.getElementById('access-code');
+    if (idEl) idEl.value = APP_CONFIG.portal.demoClientId;
+    if (pinEl) pinEl.value = APP_CONFIG.portal.demoAccessCode;
+
+    const btn = document.getElementById('btn-demo-direct');
+    const submitBtn = document.getElementById('login-submit');
+    const originalText = btn ? btn.innerHTML : '';
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Iniciando demo…';
+    }
+    if (submitBtn) submitBtn.disabled = true;
+
+    const result = await AuthService.login(
+      APP_CONFIG.portal.demoClientId,
+      APP_CONFIG.portal.demoAccessCode
+    );
+
+    if (result.success) {
+      PortalState.isAuthenticated = true;
+      PortalState.clientProfile   = result.profile;
+      await this._loadBitacoras(result.profile);
+      this._renderDashboard();
+      Toast.show("Acceso Demo Autorizado", "success");
+    } else {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+      if (submitBtn) submitBtn.disabled = false;
+      Toast.show("Error al iniciar demo: " + result.error, "error");
+    }
+  },
 
   async handleLogin(event) {
     event.preventDefault();

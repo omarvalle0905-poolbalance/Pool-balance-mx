@@ -411,25 +411,75 @@ function _initCarousel() {
   carousel.addEventListener('mouseenter', stopTimer);
   carousel.addEventListener('mouseleave', startTimer);
 
-  // Limpiar audio si el usuario navega a otra vista
+  // Limpiar audio y scroll listeners si el usuario navega a otra vista
   document.addEventListener('viewRendered', (e) => {
-    if (e.detail?.view !== 'home') _stopAudio();
+    if (e.detail?.view !== 'home') {
+      _stopAudio();
+      if (window._homeScrollHandler) {
+        window.removeEventListener('scroll', window._homeScrollHandler);
+        window._homeScrollHandler = null;
+      }
+    }
   }, { once: false });
 
   startTimer();
+}
+
+// ── Parallax scroll effect driver ────────────────────────────
+function _initHomeParallax() {
+  const container = document.getElementById('view-home');
+  if (!container) return;
+
+  if (window._homeScrollHandler) {
+    window.removeEventListener('scroll', window._homeScrollHandler);
+  }
+
+  window._homeScrollHandler = function() {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    
+    // Parallax background on hero slides
+    const bgs = document.querySelectorAll('.hero-bg');
+    bgs.forEach(bg => {
+      bg.style.transform = `translateY(${scrollTop * 0.35}px)`;
+    });
+
+    // Parallax dynamic relative motion on didactic icons
+    const cards = document.querySelectorAll('.didactic-card');
+    cards.forEach((card, index) => {
+      const rect = card.getBoundingClientRect();
+      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inViewport) {
+        const offset = (window.innerHeight - rect.top) * 0.04 * (1 + (index % 2) * 0.2);
+        const icon = card.querySelector('.didactic-icon');
+        if (icon) {
+          icon.style.transform = `translateY(${offset - 10}px)`;
+        }
+      }
+    });
+  };
+
+  window.addEventListener('scroll', window._homeScrollHandler, { passive: true });
 }
 
 // ── Escuchar el evento del router → siempre que se renderice 'home' ──
 document.addEventListener('viewRendered', (e) => {
   if (e.detail?.view === 'home') {
     // Dos frames de margen para asegurarnos que el DOM está pintado
-    requestAnimationFrame(() => requestAnimationFrame(_initCarousel));
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        _initCarousel();
+        _initHomeParallax();
+      });
+    });
   }
 });
 
 // ── PostRender como respaldo adicional (doble seguro) ──
 if (typeof PostRender !== 'undefined') {
   PostRender.home = function() {
-    setTimeout(_initCarousel, 60);
+    setTimeout(() => {
+      _initCarousel();
+      _initHomeParallax();
+    }, 60);
   };
 }

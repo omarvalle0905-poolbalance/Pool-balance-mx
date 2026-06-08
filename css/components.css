@@ -2008,3 +2008,123 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ═══════════════════════════════════════════
+   PORTAL — MODO OSCURO PREMIUM (login + dashboard)
+   Mismo lenguaje visual que el reporte de servicio.
+   El contenido vive en .fit-canvas (ancho de diseño
+   fijo) que se escala con zoom por JS para llenar
+   siempre el ancho real de la pantalla (estilo WebView).
+═══════════════════════════════════════════ */
+
+.portal-dark {
+  min-height: 100dvh;
+  color: #EEF1F5;
+  background:
+    radial-gradient(130% 55% at 50% -12%, rgba(111,184,198,0.12), transparent 60%),
+    radial-gradient(90% 40% at 95% 8%, rgba(232,102,74,0.06), transparent 55%),
+    linear-gradient(180deg, #0E4569 0%, #0a2740 42%, #07121d 100%);
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+/* Lienzo de ancho de diseño (zoom dinámico por JS) */
+.fit-canvas { width: 412px; }
+
+.pd-card {
+  background: linear-gradient(165deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+}
+
+/* ── LOGIN ── */
+.pd-login-wrap { padding: 46px 16px 40px; }
+.pd-login-card {
+  width: 100%;
+  max-width: 384px;
+  margin: 0 auto;
+  padding: 30px 24px;
+  border-radius: 24px;
+  background: linear-gradient(165deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025));
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+}
+.pd-login-logo { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 22px; }
+.pd-login-logo img { width: 66px; height: 66px; border-radius: 18px; object-fit: contain; background: rgba(255,255,255,0.06); padding: 6px; }
+.pd-login-name { font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+.pd-login-name span { color: var(--color-arcilla); }
+.pd-badge { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-cristal); background: rgba(111,184,198,0.14); border: 1px solid rgba(111,184,198,0.3); padding: 4px 12px; border-radius: 99px; }
+.pd-login-sub { text-align: center; font-size: 0.92rem; color: rgba(220,230,238,0.7); line-height: 1.55; margin-bottom: 22px; }
+.pd-field { margin-bottom: 16px; }
+.pd-label { display: block; font-size: 0.8rem; font-weight: 600; color: rgba(220,230,238,0.85); margin-bottom: 7px; }
+.pd-input-wrap { position: relative; }
+.pd-input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-cristal); font-size: 0.9rem; pointer-events: none; }
+.pd-input { width: 100%; padding: 14px 16px 14px 42px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12); color: #fff; font-family: inherit; font-size: 1rem; outline: none; transition: border-color .2s, box-shadow .2s; }
+.pd-input::placeholder { color: rgba(220,230,238,0.4); }
+.pd-input:focus { border-color: var(--color-cristal); box-shadow: 0 0 0 3px rgba(111,184,198,0.18); }
+.pd-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(220,230,238,0.5); cursor: pointer; padding: 6px; }
+.pd-hint { font-size: 0.72rem; color: rgba(220,230,238,0.45); margin-top: 6px; }
+.pd-error { display: flex; align-items: center; gap: 8px; background: rgba(217,92,92,0.14); border: 1px solid rgba(217,92,92,0.3); color: #f3a6a6; font-size: 0.85rem; padding: 11px 13px; border-radius: 12px; margin-bottom: 14px; }
+.pd-error.hidden { display: none !important; }
+.pd-btn-coral { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; padding: 15px; border: none; border-radius: 14px; background: var(--color-arcilla); color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 8px 22px rgba(232,102,74,0.32); transition: background .2s, transform .15s; }
+.pd-btn-coral:hover { background: var(--color-arcilla-dark); }
+.pd-btn-coral:active { transform: scale(.98); }
+.pd-btn-ghost { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; padding: 14px; border-radius: 14px; background: rgba(111,184,198,0.10); border: 1.5px solid rgba(111,184,198,0.4); color: #bfe0e8; font-family: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 12px; transition: background .2s; }
+.pd-btn-ghost:hover { background: rgba(111,184,198,0.18); }
+.pd-demo-hint { text-align: center; font-size: 0.74rem; color: rgba(220,230,238,0.55); background: rgba(255,255,255,0.04); border: 1px dashed rgba(111,184,198,0.3); border-radius: 12px; padding: 9px; margin-top: 16px; }
+.pd-demo-hint code { color: var(--color-cristal); font-weight: 700; }
+.pd-help { text-align: center; margin-top: 16px; font-size: 0.8rem; }
+.pd-help a { color: var(--color-arcilla); font-weight: 600; text-decoration: none; }
+
+/* ── DASHBOARD ── */
+.pd-hero { padding: 22px 20px 18px; position: relative; }
+.pd-hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.pd-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 8px; }
+.pd-live { color: var(--color-cristal); display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0; text-transform: none; font-weight: 500; }
+.pd-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-cristal); display: inline-block; animation: pulse-soft 2s infinite; }
+.pd-logout { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: rgba(255,255,255,0.75); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 7px 12px; cursor: pointer; font-family: inherit; }
+.pd-logout:hover { background: rgba(255,255,255,0.14); }
+.pd-client { font-size: 1.75rem; font-weight: 800; color: #fff; line-height: 1.15; margin-bottom: 10px; }
+.pd-hero-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pd-plan { display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 700; color: var(--color-cristal); background: rgba(111,184,198,0.14); border: 1px solid rgba(111,184,198,0.3); padding: 5px 12px; border-radius: 99px; }
+.pd-loc { font-size: 0.76rem; color: rgba(255,255,255,0.5); }
+.pd-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px; margin-bottom: 18px; }
+.pd-stat { text-align: center; padding: 16px 8px; border-radius: 16px; background: linear-gradient(165deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.08); }
+.pd-stat-val { font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; margin-bottom: 5px; }
+.pd-stat-lbl { font-size: 0.64rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+.pd-info { margin: 0 16px 20px; padding: 16px; }
+.pd-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.pd-info-item { display: flex; align-items: flex-start; gap: 9px; }
+.pd-info-ico { width: 30px; height: 30px; border-radius: 9px; background: rgba(111,184,198,0.14); color: var(--color-cristal); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; flex-shrink: 0; }
+.pd-info-lbl { font-size: 0.68rem; color: rgba(255,255,255,0.45); }
+.pd-info-val { font-size: 0.92rem; font-weight: 700; color: #fff; }
+.pd-history { padding: 0 16px 28px; }
+.pd-history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.pd-history-head h2 { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 8px; }
+.pd-history-head h2 i { color: var(--color-cristal); }
+.pd-count { font-size: 0.74rem; font-weight: 700; color: var(--color-cristal); background: rgba(111,184,198,0.14); border-radius: 99px; padding: 2px 10px; }
+.pd-list { display: flex; flex-direction: column; gap: 14px; }
+
+/* Fila de bitácora (dark) */
+.pd-bita { border-radius: 18px; overflow: hidden; background: linear-gradient(165deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.08); }
+.pd-bita-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 16px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.pd-bita-id { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+.pd-bita-date { font-size: 0.95rem; font-weight: 700; color: #fff; margin-top: 2px; }
+.pd-bita-tech { font-size: 0.76rem; color: rgba(255,255,255,0.55); margin-top: 2px; }
+.pd-bita-badge { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 9px; border-radius: 99px; }
+.pd-chips { display: flex; gap: 8px; padding: 13px 16px; overflow-x: auto; scrollbar-width: none; }
+.pd-chips::-webkit-scrollbar { display: none; }
+.pd-chip { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; min-width: 62px; padding: 9px 11px; border-radius: 12px; background: rgba(255,255,255,0.04); }
+.pd-chip-val { font-size: 1.05rem; font-weight: 800; line-height: 1; }
+.pd-chip-lbl { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(255,255,255,0.45); margin-top: 4px; }
+.pd-bita-action { padding: 0 16px 8px; font-size: 0.76rem; color: rgba(255,255,255,0.6); }
+.pd-bita-btns { display: flex; gap: 8px; padding: 8px 16px 16px; flex-wrap: wrap; }
+.pd-bita-btn { display: inline-flex; align-items: center; gap: 7px; font-size: 0.8rem; font-weight: 700; padding: 9px 14px; border-radius: 11px; border: none; cursor: pointer; font-family: inherit; transition: filter .2s; }
+.pd-bita-btn:hover { filter: brightness(1.1); }
+.pd-bita-btn.primary { background: var(--color-arcilla); color: #fff; }
+.pd-bita-btn.soft { background: rgba(111,184,198,0.14); color: var(--color-cristal); }
+.pd-bita-btn.pdf { background: rgba(217,92,92,0.16); color: #ef9a9a; }
+.pd-empty { text-align: center; padding: 36px 18px; border-radius: 18px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.12); }
+.pd-empty-emoji { font-size: 2rem; margin-bottom: 10px; }
+.pd-empty-title { font-weight: 700; color: #fff; margin-bottom: 4px; }
+.pd-empty-sub { font-size: 0.84rem; color: rgba(255,255,255,0.5); }
+.pd-demo-note { margin-top: 18px; padding: 14px; border-radius: 14px; text-align: center; font-size: 0.74rem; color: rgba(220,230,238,0.6); background: rgba(255,255,255,0.04); border: 1px dashed rgba(111,184,198,0.3); }

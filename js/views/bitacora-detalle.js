@@ -376,7 +376,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       
       <!-- Back Button to return to view-cliente / client portal -->
       <button
-        onclick="Router.navigate('portal')"
+        onclick="(window.PortalNav && PortalNav.backToDashboard) ? PortalNav.backToDashboard() : Router.navigate('portal')"
         style="width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background-color: #11161F; color: #6FB8C6; border: 1px solid rgba(111,184,198,0.15); transition: background-color 0.2s; cursor:pointer;"
         aria-label="Volver al portal"
       >
@@ -412,7 +412,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
           const cfg = PARAMETROS[key];
           const val = lecturas[key];
           if (val === undefined || val === null || !cfg) return '';
-          return _renderParametroCard(key, cfg, val);
+          return _renderParametroCard(key, cfg, val, bitacora);
         }).join('')}
       </div>
     </div>
@@ -607,8 +607,38 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 //  RENDER DE TARJETA DE PARÁMETRO
 // ─────────────────────────────────────────
 
-function _renderParametroCard(key, cfg, val) {
-  const exp       = cfg.explicacion(val);
+// ─────────────────────────────────────────
+//  EXPLICACIONES — LISTO PARA FIRESTORE
+//  Origen del texto explicativo de cada tarjeta, por prioridad:
+//   1) El documento de la bitácora (Firestore) puede traer textos
+//      personalizados escritos por el técnico desde la app de bitácora:
+//        bitacora.explicaciones = {
+//          ph:              { emoji: '✅', texto: '...' },
+//          cloro_libre:     { emoji: '⚠️', texto: '...' },
+//          cloro_combinado: { emoji: '✅', texto: '...' },
+//          alcalinidad:     { ... }, dureza_calcica: { ... },
+//          lsi: { ... }, temperatura: { ... }, estabilizador: { ... }
+//        }
+//      (También se acepta el alias  bitacora.textos[key]  y, si el valor
+//       es un string simple, se usa como texto sin emoji.)
+//   2) Si Firestore no trae texto para ese parámetro, se usa la
+//      explicación calculada localmente por rango (fallback).
+// ─────────────────────────────────────────
+
+function _explicacionParam(key, cfg, val, bitacora) {
+  const src    = bitacora && (bitacora.explicaciones || bitacora.textos);
+  const custom = src && src[key];
+  if (custom && typeof custom === 'object' && custom.texto) {
+    return { emoji: custom.emoji || '', texto: custom.texto };
+  }
+  if (typeof custom === 'string' && custom.trim()) {
+    return { emoji: '', texto: custom };
+  }
+  return cfg.explicacion(val);
+}
+
+function _renderParametroCard(key, cfg, val, bitacora) {
+  const exp       = _explicacionParam(key, cfg, val, bitacora);
   const pct       = _valToPct(val, cfg);
   const estado    = _getEstadoParam(val, cfg);
   

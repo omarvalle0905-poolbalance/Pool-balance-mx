@@ -28,7 +28,26 @@ function renderPortal() {
   if (PortalState.isAuthenticated && PortalState.clientProfile) {
     return renderDashboard();
   }
+  // Sesión recordada: si el cliente ya inició sesión antes en este
+  // dispositivo, restaurar automáticamente sin volver a pedir datos.
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('pb_session')) {
+    PortalAuth.restoreSession();
+    return _renderRestoring();
+  }
   return renderLogin();
+}
+
+function _renderRestoring() {
+  return `
+  <article class="view-page portal-dark" id="view-portal-restoring">
+    <div style="min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;">
+      <img src="images/logo.png" alt="Pool Balance" width="74" height="74"
+           style="border-radius:20px;object-fit:contain;background:rgba(255,255,255,0.06);padding:8px;" />
+      <div style="display:flex;align-items:center;gap:10px;color:var(--color-cristal);font-weight:600;">
+        <i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Cargando tu portal…
+      </div>
+    </div>
+  </article>`;
 }
 
 // ─────────────────────────────────────────
@@ -97,17 +116,6 @@ function renderLogin() {
               ${loginCta}
             </button>
           </form>
-
-          <button type="button" onclick="PortalAuth.loginAsDemoDirect()" class="pd-btn-ghost" id="btn-demo-direct">
-            <i class="fa-solid fa-flask-vial" aria-hidden="true"></i>
-            Acceso Rápido (Modo Demo)
-          </button>
-
-          <div class="pd-demo-hint">
-            <i class="fa-solid fa-flask-vial mr-1" aria-hidden="true"></i>
-            <strong>Demo:</strong>&nbsp; ID <code>${APP_CONFIG.portal.demoClientId}</code>
-            &nbsp;·&nbsp; Código <code>${APP_CONFIG.portal.demoAccessCode}</code>
-          </div>
 
           <p class="pd-help">
             <a href="${waUrl}" target="_blank" rel="noopener">
@@ -346,6 +354,7 @@ const PortalAuth = {
     if (result.success) {
       PortalState.isAuthenticated = true;
       PortalState.clientProfile   = result.profile;
+      this._saveSession(APP_CONFIG.portal.demoClientId, APP_CONFIG.portal.demoAccessCode);
       await this._loadBitacoras(result.profile);
       this._renderDashboard();
       Toast.show("Acceso Demo Autorizado", "success");
@@ -379,6 +388,7 @@ const PortalAuth = {
     if (result.success) {
       PortalState.isAuthenticated = true;
       PortalState.clientProfile   = result.profile;
+      this._saveSession(idEl.value.trim().toUpperCase(), pinEl.value.trim());
       await this._loadBitacoras(result.profile);
       this._renderDashboard();
       Toast.show(`Bienvenido${result.profile?.nombre ? ', ' + result.profile.nombre.split(' ')[0] : ''}`, 'success');
@@ -428,7 +438,41 @@ const PortalAuth = {
     }, 180);
   },
 
+  // ── Sesión recordada (persistencia local) ──
+  _saveSession(id, code) {
+    try { localStorage.setItem('pb_session', JSON.stringify({ id, code })); } catch (e) {}
+  },
+
+  async restoreSession() {
+    let creds = null;
+    try { creds = JSON.parse(localStorage.getItem('pb_session') || 'null'); } catch (e) { creds = null; }
+    if (!creds || !creds.id) { this._failRestore(); return; }
+
+    const result = await AuthService.login(creds.id, creds.code);
+    if (result.success) {
+      PortalState.isAuthenticated = true;
+      PortalState.clientProfile   = result.profile;
+      await this._loadBitacoras(result.profile);
+      const c = document.getElementById('view-container');
+      if (c) {
+        c.innerHTML = renderDashboard();
+        document.getElementById('main-content')?.scrollTo({ top: 0 });
+        Nav.setActive('portal');
+        PostRender.portal();
+      }
+    } else {
+      try { localStorage.removeItem('pb_session'); } catch (e) {}
+      this._failRestore();
+    }
+  },
+
+  _failRestore() {
+    const c = document.getElementById('view-container');
+    if (c) { c.innerHTML = renderLogin(); PostRender.portal(); }
+  },
+
   async logout() {
+    try { localStorage.removeItem('pb_session'); } catch (e) {}
     if (PortalState.unsubscribe) { PortalState.unsubscribe(); PortalState.unsubscribe = null; }
     FirestoreService.unsubscribeAll();
     await AuthService.logout();
@@ -474,6 +518,10 @@ const PortalNav = {
     window._currentBitacora      = bit;
     window._currentClientProfile = PortalState.clientProfile;
 
+    // Entrada de historial: el botón "atrás" del teléfono regresa al
+    // dashboard en lugar de salir de la aplicación.
+    try { history.pushState({ pbView: 'servicio', id: bitacoraId }, '', '#servicio'); } catch (e) {}
+
     const container = document.getElementById('view-container');
     container.style.opacity = '0';
     setTimeout(() => {
@@ -482,6 +530,28 @@ const PortalNav = {
       document.getElementById('main-content')?.scrollTo({ top:0, behavior:'instant' });
       PostRender.bitacora();
     }, 180);
+  },
+
+  // Regresa del reporte al dashboard (flecha del portal).
+  backToDashboard() {
+    if (window.history.state && window.history.state.pbView === 'servicio') {
+      window.history.back();            // dispara popstate → muestra dashboard
+    } else {
+      this._showDashboard();
+    }
+  },
+
+  _showDashboard() {
+    const container = document.getElementById('view-container');
+    if (!container) return;
+    container.style.opacity = '0';
+    setTimeout(() => {
+      container.innerHTML = renderDashboard();
+      container.style.opacity = '1';
+      document.getElementById('main-content')?.scrollTo({ top:0 });
+      Nav.setActive('portal');
+      PostRender.portal();
+    }, 150);
   },
 
   async downloadPDFFromList(bitacoraId) {
@@ -547,5 +617,16 @@ PostRender.portal = function() {
   }
   window._portalFitHandler = _fitPortalCanvas;
   window.addEventListener('resize', window._portalFitHandler);
+
+  // Botón "atrás" del teléfono: si el cliente está viendo un reporte,
+  // regresa al dashboard en vez de salir de la aplicación.
+  if (!window._pbPopstateBound) {
+    window._pbPopstateBound = true;
+    window.addEventListener('popstate', function () {
+      if (document.getElementById('view-bitacora-detalle') && PortalState.isAuthenticated) {
+        PortalNav._showDashboard();
+      }
+    });
+  }
 };
 window.PostRender = PostRender;

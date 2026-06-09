@@ -61,6 +61,7 @@ const PDFGenerator = (() => {
       _drawTopBand(ctx);
       _drawClientStrip(ctx);
       _drawScore(ctx);
+      _drawBanner(ctx);
       _drawParameters(ctx);
       _drawAcciones(ctx);
       _drawQuimicos(ctx);
@@ -179,7 +180,9 @@ const PDFGenerator = (() => {
     const { doc } = ctx;
     const y = ctx.y;
     const h = 24;
-    const score = _calcScorePDF(ctx.bitacora.lecturas);
+    const score = (typeof _scoreMostrado === 'function')
+      ? _scoreMostrado(ctx.bitacora)
+      : _calcScorePDF(ctx.bitacora.lecturas);
     const estado = (ctx.bitacora.estado || 'optimo').toLowerCase();
     const sCol = score >= 80 ? C.success : score >= 60 ? C.warning : C.danger;
 
@@ -231,6 +234,40 @@ const PDFGenerator = (() => {
   }
 
   // ─────────────────────────────────────────
+  //  BANNER DE CONTEXTO (tratamiento / seguro nadar)
+  // ─────────────────────────────────────────
+
+  function _drawBanner(ctx) {
+    const { doc } = ctx;
+    const b = ctx.bitacora || {};
+    const ctxSrv = b.contexto_servicio || {};
+    let msg = '';
+    if (ctxSrv.banner) msg = ctxSrv.banner;
+    else if (b.seguro_banarse === false) msg = 'El agua está en tratamiento. El técnico le avisará cuando sea seguro nadar.';
+    if (!msg) return;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    const lines = doc.splitTextToSize(msg, CW - 16);
+    const h = lines.length * 4.4 + 9;
+    _need(ctx, h + 3);
+    const y = ctx.y;
+    doc.setFillColor(...LIGHT.warning);
+    doc.roundedRect(M, y, CW, h, 2.5, 2.5, 'F');
+    doc.setFillColor(...C.warning);
+    doc.rect(M, y, 1.5, h, 'F');
+    doc.setTextColor(...C.darkText);
+    doc.text(lines, M + 7, y + 6.5);
+    if (ctxSrv.etiqueta) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7);
+      doc.setTextColor(...C.warning);
+      doc.text(String(ctxSrv.etiqueta).toUpperCase(), ctx.W - M - 5, y + 5, { align: 'right' });
+    }
+    ctx.y = y + h + 5;
+  }
+
+  // ─────────────────────────────────────────
   //  ANÁLISIS DE PARÁMETROS
   // ─────────────────────────────────────────
 
@@ -254,11 +291,20 @@ const PDFGenerator = (() => {
       const cfg = PARAMETROS[key];
       if (val === undefined || val === null || !cfg) return;
 
-      const estado = _getEstadoPDF(val, cfg);
+      const estado = (typeof _estadoParamCtx === 'function')
+        ? _estadoParamCtx(key, cfg, val, bitacora)
+        : _getEstadoPDF(val, cfg);
       const stCol  = estado === 'optimo' ? C.success : estado === 'alerta' ? C.warning : C.danger;
       const stLbl  = estado === 'optimo' ? 'ÓPTIMO' : estado === 'alerta' ? 'ATENCIÓN' : 'CRÍTICO';
       const valStr = val.toFixed(cfg.decimales) + (cfg.unidad ? ' ' + cfg.unidad : '');
       const texto  = _explicacionPDF(key, cfg, val, bitacora);
+
+      // Rango mostrado: si el cloro trae rango dinámico (según CYA/modo), úsalo.
+      let rangoTxt = `Rango óptimo: ${cfg.optMin} – ${cfg.optMax} ${cfg.unidad}`.trim();
+      const _rd = bitacora.rangos_dinamicos && bitacora.rangos_dinamicos.cloro_libre;
+      if (key === 'cloro_libre' && _rd && typeof _rd.min === 'number' && typeof _rd.alto === 'number') {
+        rangoTxt = `Rango para este servicio: ${_rd.min} – ${_rd.alto} ${cfg.unidad}`.trim();
+      }
 
       const expLines = doc.splitTextToSize(texto, CW - 10);
       const blockH = 13 + expLines.length * 4 + 5;
@@ -281,7 +327,7 @@ const PDFGenerator = (() => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7.2);
       doc.setTextColor(...C.grayText);
-      doc.text(`Rango óptimo: ${cfg.optMin} – ${cfg.optMax} ${cfg.unidad}`.trim(), M + 6, y + 11.5);
+      doc.text(rangoTxt, M + 6, y + 11.5);
 
       // Valor
       doc.setFont('helvetica', 'bold');

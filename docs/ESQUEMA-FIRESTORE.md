@@ -325,3 +325,43 @@ service cloud.firestore {
 
 Con eso, el portal del cliente muestra todo automáticamente: dashboard,
 historial, reporte de servicio con score y el PDF descargable. ✅
+
+---
+
+## 11. Contexto de servicio (CYA-aware) — IMPLEMENTADO en el portal
+
+El portal ya **lee y respeta** estos campos opcionales/aditivos de la bitácora
+(para que el color y el score no contradigan el texto en tratamientos como
+choque, sarro, metales, etc.). Si no vienen, todo funciona como siempre.
+
+```jsonc
+{
+  "contexto_servicio": {
+    "modo": "post_choque",
+    "etiqueta": "Tratamiento de choque",   // chip en el reporte / PDF
+    "es_tratamiento": true,                 // muestra el banner
+    "banner": "Servicio de choque: el cloro está elevado a propósito y de forma temporal."
+  },
+  "rangos_dinamicos": {
+    "cloro_libre": { "min": 3.75, "objetivo": 15, "alto": 25, "max_seguro": 10 }
+  },
+  "seguro_banarse": false,   // true | false | null
+  "salud_tope": 70           // cap del score para este modo
+}
+```
+
+Comportamiento en el portal y el PDF:
+
+- **Color del cloro libre:** si viene `rangos_dinamicos.cloro_libre`, se colorea
+  con esos rangos en vez del fijo 1.0–3.0:
+  `min ≤ FC ≤ alto` → verde · `FC < min` → ámbar · `FC > alto` → ámbar si
+  `seguro_banarse !== false`, rojo si `seguro_banarse === false`.
+  En el PDF, además, la línea de rango cambia a "Rango para este servicio: min – alto".
+- **Score:** se aplica `min(scoreCalculado, salud_tope)` en el aro del reporte,
+  en el historial del dashboard y en el PDF.
+- **Banner + chip:** si hay `contexto_servicio.banner` (o `seguro_banarse === false`)
+  se muestra el aviso; si `etiqueta` existe se muestra como chip.
+- **Indicador de nadar:** `seguro_banarse` → "Lista para nadar" (true) /
+  "En tratamiento — espera a que te avisemos" (false) / nada (null).
+
+> Estos campos son **solo de lectura** en el portal; los escribe la app del técnico.

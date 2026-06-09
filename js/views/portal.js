@@ -117,11 +117,6 @@ function renderLogin() {
             </button>
           </form>
 
-          <button type="button" onclick="PortalAuth.loginAsDemoDirect()" class="pd-btn-ghost" id="btn-demo-direct">
-            <i class="fa-solid fa-flask-vial" aria-hidden="true"></i>
-            Acceso Rápido (Modo Demo)
-          </button>
-
           <p class="pd-help">
             <a href="${waUrl}" target="_blank" rel="noopener">
               <i class="fa-brands fa-whatsapp mr-1" aria-hidden="true"></i>

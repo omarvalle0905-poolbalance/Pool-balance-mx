@@ -6,7 +6,7 @@
  * ============================================================
  */
 
-const CACHE_NAME = 'pool-balance-v11';
+const CACHE_NAME = 'pool-balance-v12';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

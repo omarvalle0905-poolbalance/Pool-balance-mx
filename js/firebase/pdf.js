@@ -346,7 +346,7 @@ const PDFGenerator = (() => {
     doc.text('Pool Balance · Gestoría Técnica de Albercas · Veracruz, México', W / 2, H - 9, { align: 'center' });
     doc.setTextColor(200, 220, 235);
     doc.setFontSize(6.5);
-    doc.text(`${APP_CONFIG.company.phone}  ·  ${APP_CONFIG.company.email}  ·  ${APP_CONFIG.company.canonicalUrl || 'poolbalance.mx'}`, W / 2, H - 4, { align: 'center' });
+    doc.text(`${APP_CONFIG.company.phone}  ·  ${APP_CONFIG.company.email}  ·  ${APP_CONFIG.seo?.canonicalUrl || 'poolbalance.com.mx'}`, W / 2, H - 4, { align: 'center' });
 
     // Número de página
     doc.setTextColor(...C.white);

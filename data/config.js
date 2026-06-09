@@ -50,7 +50,7 @@ const APP_CONFIG = {
       "Una alberca cristalina no siempre es una alberca segura. Pool Balance usa fotómetros digitales profesionales para garantizar el equilibrio químico real del agua de tu alberca en Veracruz. Servicio técnico certificado, bitácoras digitales y monitoreo continuo.",
     ogImage: "https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?w=1200&h=630&fit=crop",
     ogType: "website",
-    canonicalUrl: "https://poolbalance.mx",
+    canonicalUrl: "https://poolbalance.com.mx",
     keywords: "mantenimiento de albercas Veracruz, química de agua piscinas, monitoreo albercas, gestoría hídrica, Pool Balance Veracruz",
   },
 

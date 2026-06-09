@@ -218,7 +218,29 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     ...paramOpcionales.filter(p => lecturas[p] !== undefined && lecturas[p] !== null),
   ];
 
-  const score = _calcScore(lecturas);
+  const score = _scoreMostrado(bitacora);
+
+  // ── Contexto de servicio (addendum CYA-aware) · campos opcionales/aditivos ──
+  const ctxSrv   = bitacora.contexto_servicio || {};
+  const seguro   = bitacora.seguro_banarse;
+  const tieneCtx = !!(bitacora.rangos_dinamicos || bitacora.contexto_servicio ||
+                      bitacora.salud_tope !== undefined || bitacora.seguro_banarse !== undefined);
+
+  // Pills de contexto: etiqueta del modo + estado para nadar
+  const _pills = [];
+  if (ctxSrv.etiqueta) {
+    const trat = ctxSrv.es_tratamiento;
+    const pc  = trat ? '#f0b94e' : '#6FB8C6';
+    const pb  = trat ? 'rgba(240,185,78,0.16)' : 'rgba(111,184,198,0.16)';
+    const pbd = trat ? 'rgba(240,185,78,0.35)' : 'rgba(111,184,198,0.35)';
+    _pills.push(`<span style="display:inline-flex;align-items:center;gap:6px;background:${pb};color:${pc};border:1px solid ${pbd};font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:9999px;font-family:'Bricolage Grotesque',sans-serif;">${trat ? '🧪 ' : ''}${ctxSrv.etiqueta}</span>`);
+  }
+  if (seguro === true) {
+    _pills.push(`<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(70,201,138,0.16);color:#5fcf97;border:1px solid rgba(70,201,138,0.35);font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:9999px;font-family:'Bricolage Grotesque',sans-serif;">✅ Lista para nadar</span>`);
+  } else if (seguro === false) {
+    _pills.push(`<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,168,56,0.16);color:#f0b94e;border:1px solid rgba(232,168,56,0.35);font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:9999px;font-family:'Bricolage Grotesque',sans-serif;">⏳ En tratamiento — espera a que te avisemos</span>`);
+  }
+  const pillsHTML = _pills.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;">${_pills.join('')}</div>` : '';
 
   // Dynamic chemical chips
   let chipsHTML = '';
@@ -246,18 +268,27 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     `;
   }
 
-  // Dynamic alert validation
+  // ── Banner ── Prioriza el aviso que escribe el técnico (contexto_servicio).
   let hasAlertBanner = false;
-  let alertBannerMsg = "Espera 2 horas antes de usar la alberca. El cloro bajará a rango seguro solo.";
-  if (lecturas.cloro_libre > 3.0) {
+  let alertBannerMsg = '';
+  if (ctxSrv.banner) {
     hasAlertBanner = true;
-    alertBannerMsg = "Espera 2 horas antes de usar la alberca. El cloro libre está elevado y bajará a rango seguro en unas horas.";
-  } else if (lecturas.ph < 7.1 || lecturas.ph > 7.7) {
+    alertBannerMsg = ctxSrv.banner;
+  } else if (seguro === false) {
     hasAlertBanner = true;
-    alertBannerMsg = "Se realizó un ajuste preventivo del pH en este servicio. Espera 1 hora antes de ingresar a nadar.";
-  } else if (score < 75) {
-    hasAlertBanner = true;
-    alertBannerMsg = "Se aplicaron adiciones químicas correctoras en esta visita. Espera 1 hora para una dilución completa del tratamiento.";
+    alertBannerMsg = "El agua está en tratamiento. El técnico te avisará cuando sea seguro nadar.";
+  } else if (!tieneCtx) {
+    // Bitácoras antiguas (sin contexto): heurística previa
+    if (lecturas.cloro_libre > 3.0) {
+      hasAlertBanner = true;
+      alertBannerMsg = "Espera 2 horas antes de usar la alberca. El cloro libre está elevado y bajará a rango seguro en unas horas.";
+    } else if (lecturas.ph < 7.1 || lecturas.ph > 7.7) {
+      hasAlertBanner = true;
+      alertBannerMsg = "Se realizó un ajuste preventivo del pH en este servicio. Espera 1 hora antes de ingresar a nadar.";
+    } else if (score < 75) {
+      hasAlertBanner = true;
+      alertBannerMsg = "Se aplicaron adiciones químicas correctoras en esta visita. Espera 1 hora para una dilución completa del tratamiento.";
+    }
   }
 
   return `
@@ -399,6 +430,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
         <p style="color: #d8eff3; font-size: 16px; font-weight: 400; line-height: 1.6; font-family: 'Bricolage Grotesque', sans-serif; max-width: 340px; margin: 0 auto; opacity: 0.9;">
           ${_getScoreHint(score)}
         </p>
+        ${pillsHTML}
       </div>
     </div>
 
@@ -637,10 +669,34 @@ function _explicacionParam(key, cfg, val, bitacora) {
   return cfg.explicacion(val);
 }
 
+// ── Estado de un parámetro considerando el contexto del técnico ──
+//    (rangos dinámicos de cloro según CYA/modo). Aditivo: sin estos
+//    campos, cae al cálculo por rango fijo de siempre.
+function _estadoParamCtx(key, cfg, val, bitacora) {
+  if (key === 'cloro_libre' && bitacora) {
+    const rd = bitacora.rangos_dinamicos && bitacora.rangos_dinamicos.cloro_libre;
+    if (rd && val != null && typeof rd.min === 'number' && typeof rd.alto === 'number') {
+      if (val >= rd.min && val <= rd.alto) return 'optimo';
+      if (val < rd.min) return 'alerta';
+      return bitacora.seguro_banarse === false ? 'critico' : 'alerta';
+    }
+  }
+  return (typeof _getEstadoParam === 'function') ? _getEstadoParam(val, cfg) : 'optimo';
+}
+
+// ── Score mostrado: cap con salud_tope del modo (rutina 100, choque 70…) ──
+function _scoreMostrado(bitacora) {
+  const base = (typeof _calcScore === 'function') ? _calcScore((bitacora && bitacora.lecturas) || {}) : 85;
+  const tope = (bitacora && typeof bitacora.salud_tope === 'number') ? bitacora.salud_tope : 100;
+  return Math.min(base, tope);
+}
+window._estadoParamCtx = _estadoParamCtx;
+window._scoreMostrado   = _scoreMostrado;
+
 function _renderParametroCard(key, cfg, val, bitacora) {
   const exp       = _explicacionParam(key, cfg, val, bitacora);
   const pct       = _valToPct(val, cfg);
-  const estado    = _getEstadoParam(val, cfg);
+  const estado    = _estadoParamCtx(key, cfg, val, bitacora);
   
   // M3 status color
   const color = estado === 'optimo' ? '#2D9E6B' : estado === 'alerta' ? '#E8A838' : '#D95C5C';

@@ -244,7 +244,8 @@ function _emptyHistory() {
 // ─────────────────────────────────────────
 
 function _renderBitacoraRow(bit) {
-  const score      = (typeof _calcScore === 'function') ? _calcScore(bit.lecturas) : 85;
+  const score      = (typeof _scoreMostrado === 'function') ? _scoreMostrado(bit)
+                   : (typeof _calcScore === 'function') ? _calcScore(bit.lecturas) : 85;
   const estado     = bit.estado || 'optimo';
   const stMap      = {
     optimo:    { bg:'rgba(70,201,138,0.16)',  c:'#5fcf97', label:'Óptimo' },
@@ -256,13 +257,14 @@ function _renderBitacoraRow(bit) {
   const fotosCount = bit.fotos?.length || 0;
 
   const chips = [
-    { label:'pH',      val: bit.lecturas?.ph,             cfg: window.PARAMETROS?.ph },
-    { label:'Cl Lib.', val: bit.lecturas?.cloro_libre,    cfg: window.PARAMETROS?.cloro_libre },
-    { label:'LSI',     val: bit.lecturas?.lsi,            cfg: window.PARAMETROS?.lsi },
-    { label:'Alcal.',  val: bit.lecturas?.alcalinidad,    cfg: window.PARAMETROS?.alcalinidad },
-    { label:'Dureza',  val: bit.lecturas?.dureza_calcica, cfg: window.PARAMETROS?.dureza_calcica },
+    { key:'ph',             label:'pH',      val: bit.lecturas?.ph,             cfg: window.PARAMETROS?.ph },
+    { key:'cloro_libre',    label:'Cl Lib.', val: bit.lecturas?.cloro_libre,    cfg: window.PARAMETROS?.cloro_libre },
+    { key:'lsi',            label:'LSI',     val: bit.lecturas?.lsi,            cfg: window.PARAMETROS?.lsi },
+    { key:'alcalinidad',    label:'Alcal.',  val: bit.lecturas?.alcalinidad,    cfg: window.PARAMETROS?.alcalinidad },
+    { key:'dureza_calcica', label:'Dureza',  val: bit.lecturas?.dureza_calcica, cfg: window.PARAMETROS?.dureza_calcica },
   ].filter(p => p.val !== null && p.val !== undefined).map(p => {
-    const est = (p.cfg && typeof _getEstadoParam === 'function') ? _getEstadoParam(p.val, p.cfg) : 'optimo';
+    const est = (typeof _estadoParamCtx === 'function') ? _estadoParamCtx(p.key, p.cfg, p.val, bit)
+              : (p.cfg && typeof _getEstadoParam === 'function') ? _getEstadoParam(p.val, p.cfg) : 'optimo';
     const c   = est === 'optimo' ? '#5fcf97' : est === 'alerta' ? '#f0b94e' : '#ef6b6b';
     return `
       <div class="pd-chip" aria-label="${p.label}: ${p.val}">

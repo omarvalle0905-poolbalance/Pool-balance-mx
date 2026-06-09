@@ -2129,23 +2129,32 @@
 .pd-empty-sub { font-size: 0.84rem; color: rgba(255,255,255,0.5); }
 .pd-demo-note { margin-top: 18px; padding: 14px; border-radius: 14px; text-align: center; font-size: 0.74rem; color: rgba(220,230,238,0.6); background: rgba(255,255,255,0.04); border: 1px dashed rgba(111,184,198,0.3); }
 
-/* Aura de colores de marca alrededor de la tarjeta de login */
-.pd-login-card { position: relative; isolation: isolate; }
+/* Aura acuática + lift 3D alrededor de la tarjeta de login.
+   Tonos de agua (cristal → teal → marino), contorno tenue por debajo
+   para dar profundidad, sin saturar el frente de la tarjeta. */
+.pd-login-card {
+  position: relative;
+  isolation: isolate;
+  box-shadow:
+    0 26px 60px rgba(3, 18, 32, 0.55),       /* sombra base — lift 3D */
+    0 10px 34px rgba(111, 184, 198, 0.20);   /* halo acuático inferior */
+}
 .pd-login-card::before {
   content: '';
   position: absolute;
-  inset: -3px;
-  border-radius: 27px;
+  inset: -2px;
+  border-radius: 26px;
   z-index: -1;
-  background: linear-gradient(125deg,
-    var(--color-cristal) 0%,
-    var(--color-arcilla) 35%,
-    var(--color-marino-light) 65%,
-    var(--color-cristal) 100%);
-  background-size: 280% 280%;
-  filter: blur(13px);
-  opacity: 0.65;
-  animation: pd-aura 8s ease-in-out infinite;
+  background: linear-gradient(130deg,
+    #8ecbd7 0%,
+    #6FB8C6 26%,
+    #2f93b6 50%,
+    #1a5a82 74%,
+    #6FB8C6 100%);
+  background-size: 240% 240%;
+  filter: blur(12px);
+  opacity: 0.55;
+  animation: pd-aura 9s ease-in-out infinite;
 }
 @keyframes pd-aura {
   0%, 100% { background-position: 0% 50%; }

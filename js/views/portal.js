@@ -519,6 +519,7 @@ const PortalNav = {
 
     window._currentBitacora      = bit;
     window._currentClientProfile = PortalState.clientProfile;
+    document.body.style.overflow = '';
 
     // Entrada de historial: el botón "atrás" del teléfono regresa al
     // dashboard en lugar de salir de la aplicación.
@@ -544,6 +545,7 @@ const PortalNav = {
   },
 
   _showDashboard() {
+    document.body.style.overflow = ''; // por si quedó el candado del visor
     const container = document.getElementById('view-container');
     if (!container) return;
     container.style.opacity = '0';
@@ -625,6 +627,22 @@ PostRender.portal = function() {
   if (!window._pbPopstateBound) {
     window._pbPopstateBound = true;
     window.addEventListener('popstate', function () {
+      const ui = window.BitacoraUI;
+      // Retroceso sintético al cerrar la foto con la X: solo consumir.
+      if (ui && ui._suppressPop) {
+        ui._suppressPop = false;
+        document.body.style.overflow = '';
+        return;
+      }
+      // SIEMPRE liberar el candado de scroll del visor de fotos: si la
+      // navegación ocurre con el modal abierto y no se libera, la app
+      // queda "congelada" (no se puede hacer scroll en ninguna vista).
+      document.body.style.overflow = '';
+      // Foto abierta → este "atrás" cierra la foto, no navega.
+      if (ui && typeof ui.isGalleryOpen === 'function' && ui.isGalleryOpen()) {
+        ui.closeGallery(true);
+        return;
+      }
       if (document.getElementById('view-bitacora-detalle') && PortalState.isAuthenticated) {
         PortalNav._showDashboard();
       }

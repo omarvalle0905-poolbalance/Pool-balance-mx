@@ -613,9 +613,10 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     </div><!-- /#rp-fit -->
 
     <!-- Lightbox galería -->
-    <div id="gallery-modal" class="photo-modal hidden" role="dialog" aria-modal="true" aria-label="Galería de fotos" style="z-index: 1000;">
-      <div style="position:relative;max-width:92vw;max-height:88dvh;">
-        <img id="gallery-modal-img" src="" alt="" style="max-width:92vw;max-height:80dvh;border-radius:16px;object-fit:contain;display:block;" />
+    <div id="gallery-modal" class="photo-modal hidden" role="dialog" aria-modal="true" aria-label="Galería de fotos" style="z-index: 1000;"
+         onclick="if(event.target===this)BitacoraUI.closeGallery()">
+      <div style="position:relative;max-width:92vw;max-height:88dvh;min-width:250px;">
+        <img id="gallery-modal-img" src="" alt="" style="max-width:92vw;max-height:80dvh;min-height:150px;border-radius:16px;object-fit:contain;display:block;background:rgba(255,255,255,0.05);" />
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px;">
           <button onclick="BitacoraUI.galleryPrev()" class="btn btn-ghost btn-sm" aria-label="Foto anterior">
             <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
@@ -625,7 +626,8 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
           </button>
         </div>
-        <button onclick="BitacoraUI.closeGallery()" class="photo-modal-close" aria-label="Cerrar galería">
+        <button onclick="BitacoraUI.closeGallery()" class="photo-modal-close" aria-label="Cerrar galería"
+                style="position:fixed;top:16px;right:16px;z-index:1001;width:42px;height:42px;">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         </button>
       </div>
@@ -926,18 +928,36 @@ const BitacoraUI = {
     this._fotos = fotosRaw.map(_fotoToUrl).filter(Boolean);
     if (!this._fotos.length) return;
     this._currentIndex = index;
-    this._showPhoto();
+
     const modal = document.getElementById('gallery-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // Entrada de historial: el botón "atrás" del teléfono cierra la foto
+    // en lugar de navegar (el popstate del portal libera el scroll).
+    if (!(window.history.state && window.history.state.pbView === 'foto')) {
+      try { history.pushState({ pbView: 'foto' }, '', '#foto'); } catch (e) {}
     }
+
+    this._showPhoto();
   },
 
-  closeGallery() {
+  isGalleryOpen() {
+    const modal = document.getElementById('gallery-modal');
+    return !!(modal && !modal.classList.contains('hidden'));
+  },
+
+  closeGallery(fromPopstate = false) {
     const modal = document.getElementById('gallery-modal');
     if (modal) modal.classList.add('hidden');
     document.body.style.overflow = '';
+    // Si se cerró con la X / el fondo / Escape, retirar la entrada "#foto"
+    // del historial sin volver a navegar (el popstate queda suprimido).
+    if (!fromPopstate && window.history.state && window.history.state.pbView === 'foto') {
+      this._suppressPop = true;
+      try { history.back(); } catch (e) { this._suppressPop = false; }
+    }
   },
 
   galleryPrev() {
@@ -953,16 +973,25 @@ const BitacoraUI = {
   _showPhoto() {
     const img     = document.getElementById('gallery-modal-img');
     const counter = document.getElementById('gallery-counter');
-    if (img) {
-      img.style.opacity = '0';
-      setTimeout(() => {
-        img.src = this._fotos[this._currentIndex];
-        img.alt = `Foto ${this._currentIndex + 1}`;
-        img.style.opacity = '1';
-        img.style.transition = 'opacity 0.2s ease';
-      }, 100);
-    }
-    if (counter) counter.textContent = `${this._currentIndex + 1} / ${this._fotos.length}`;
+    if (!img) return;
+    const total = this._fotos.length;
+    const n     = this._currentIndex + 1;
+
+    // Indicador de carga: las fotos reales (Firebase Storage) pueden
+    // tardar; sin esto el visor se ve negro y parece congelado.
+    if (counter) counter.textContent = `Cargando foto ${n} / ${total}…`;
+    img.style.transition = 'opacity 0.2s ease';
+    img.style.opacity = '0.3';
+    img.onload = () => {
+      img.style.opacity = '1';
+      if (counter) counter.textContent = `${n} / ${total}`;
+    };
+    img.onerror = () => {
+      img.style.opacity = '1';
+      if (counter) counter.textContent = `No se pudo cargar la foto ${n} / ${total}`;
+    };
+    img.alt = `Foto ${n}`;
+    img.src = this._fotos[this._currentIndex];
   },
 
   // Métodos del carrusel 3D Coverflow
@@ -1175,3 +1204,4 @@ window.PostRender.bitacora = function() {
 
 window.renderBitacoraDetalle = renderBitacoraDetalle;
 window.PARAMETROS = PARAMETROS;
+window.BitacoraUI = BitacoraUI;

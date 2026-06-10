@@ -365,3 +365,35 @@ Comportamiento en el portal y el PDF:
   "En tratamiento — espera a que te avisemos" (false) / nada (null).
 
 > Estos campos son **solo de lectura** en el portal; los escribe la app del técnico.
+
+---
+
+## 12. Llegada → resultado y reporte mensual de agua — IMPLEMENTADO
+
+### 12.1 `lecturas_llegada` (antes → después)
+- `lecturas` = cómo se **dejó** el agua (resultado, lo que se puntúa/colorea).
+- `lecturas_llegada` = cómo se **encontró** (medición de llegada), **mismas llaves**.
+  Un valor `null` = no se midió.
+
+El portal muestra, en cada tarjeta de parámetro del reporte y en el PDF, una
+línea discreta **"Al llegar: X → resultado"** cuando `lecturas_llegada[param]`
+es un número distinto al resultado. Si no viene, o es `null`, o es igual, no se
+muestra nada.
+
+```jsonc
+{
+  "lecturas":         { "ph": 7.4, "cloro_libre": 2.1 },   // resultado
+  "lecturas_llegada": { "ph": 6.9, "cloro_libre": 0.4 }    // llegada (null = no medido)
+}
+```
+
+### 12.2 Reporte mensual de pérdidas de agua
+El portal **suma en vivo** `litros_retrolav` (medido) y `litros_evap` (estimado,
+`null` cuenta como 0) de **todas las bitácoras del mes en curso** y muestra una
+tarjeta en el dashboard:
+
+> **Junio 2026** · Retrolavado **2,000 L** · Evaporación **≈ 896 L** · Total **2,896 L**
+
+No se manda ningún total desde la app del técnico: la fuente son las bitácoras.
+Basta con que cada bitácora traiga `litros_retrolav` y `litros_evap`. La
+evaporación se rotula siempre como **estimada (≈)**.

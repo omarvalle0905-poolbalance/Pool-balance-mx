@@ -30,11 +30,11 @@ const PARAMETROS = {
     color:    '#6FB8C6',
     decimales: 1,
     explicacion: (val) => {
-      if (val < 7.0)  return { emoji: '⚠️', texto: 'El agua está muy ácida. Puede irritar ojos y piel, corroer superficies metálicas y reducir la eficiencia del cloro hasta un 90%. Se aplicó corrección con carbonato de sodio.' };
-      if (val < 7.2)  return { emoji: '🔶', texto: 'Ligeramente ácido. El cloro funciona bien pero el agua puede causar leve irritación. Se realizó ajuste preventivo.' };
-      if (val <= 7.6) return { emoji: '✅', texto: '¡Perfecto! El pH está en el rango ideal. El cloro trabaja con máxima eficiencia y el agua es completamente segura y confortable.' };
-      if (val <= 7.8) return { emoji: '🔶', texto: 'Ligeramente alcalino. El cloro pierde algo de efectividad y puede aparecer turbidez. Se ajustó con ácido muriático.' };
-      return               { emoji: '⚠️', texto: 'Muy alcalino. El cloro apenas funciona (solo 10-20% de efectividad), riesgo de formación de sarro y agua turbia. Corrección inmediata aplicada.' };
+      if (val < 7.0)  return { emoji: '🚨', texto: 'Tu pH está bajo y el agua se vuelve ácida: puede irritar ojos y piel y desgastar superficies y equipos. Ya lo corregimos para devolverlo a su punto.' };
+      if (val < 7.2)  return { emoji: '🔶', texto: 'Tu pH va un poco por debajo del ideal. Lo dejamos ajustado para que el agua quede suave y el cloro rinda mejor.' };
+      if (val <= 7.6) return { emoji: '✅', texto: 'Tu pH está justo en su punto. El agua queda suave para la piel y los ojos, y el cloro trabaja con toda su eficiencia.' };
+      if (val <= 7.8) return { emoji: '🔶', texto: 'Tu pH va ligeramente alto. Lo ajustamos para que el cloro no pierda fuerza y el agua se mantenga cristalina.' };
+      return               { emoji: '⚠️', texto: 'Tu pH está alto. A este nivel el cloro rinde poco y puede aparecer turbidez o sarro. Ya aplicamos la corrección.' };
     },
   },
 
@@ -51,11 +51,11 @@ const PARAMETROS = {
     color:    '#2D9E6B',
     decimales: 1,
     explicacion: (val) => {
-      if (val < 0.5)  return { emoji: '🚨', texto: 'SIN PROTECCIÓN. El agua no tiene suficiente cloro activo para desinfectar. Riesgo real de bacterias, algas y patógenos. No se recomienda uso hasta corrección.' };
-      if (val < 1.0)  return { emoji: '⚠️', texto: 'Cloro insuficiente. La alberca tiene protección mínima. Se realizó adición de cloro granular para restablecer el nivel de seguridad.' };
-      if (val <= 3.0) return { emoji: '✅', texto: '¡Excelente! Tienes el nivel de desinfectante correcto para agua completamente segura. Sin riesgo de bacteria ni algas.' };
-      if (val <= 5.0) return { emoji: '🔶', texto: 'Cloro elevado. El agua es segura pero puede irritar ligeramente. Se dejará estabilizar con el sol y el uso normal.' };
-      return               { emoji: '⚠️', texto: 'Cloro muy alto. No se recomienda uso hasta que baje a 3 ppm o menos. Puede causar irritación en ojos, piel y decoloración de trajes de baño.' };
+      if (val < 0.5)  return { emoji: '🚨', texto: 'El desinfectante está muy bajo y el agua queda desprotegida frente a bacterias y algas. Reforzamos el cloro para dejarla segura.' };
+      if (val < 1.0)  return { emoji: '🔶', texto: 'El cloro va un poco bajo. Lo reforzamos para mantener el agua protegida hasta la próxima visita.' };
+      if (val <= 3.0) return { emoji: '✅', texto: 'Tienes el nivel de desinfectante ideal: el agua está protegida y es completamente segura para nadar.' };
+      if (val <= 5.0) return { emoji: '🔶', texto: 'El cloro está en la parte alta. Es seguro; con el sol y el uso normal bajará solo a su rango habitual.' };
+      return               { emoji: '🔶', texto: 'El cloro está elevado. Si fue parte de un tratamiento, es temporal y a propósito; en cuanto baje, el agua queda lista.' };
     },
   },
 
@@ -73,9 +73,9 @@ const PARAMETROS = {
     decimales: 2,
     invertido: true, // menor = mejor
     explicacion: (val) => {
-      if (val <= 0.2) return { emoji: '✅', texto: 'Sin cloraminas detectables. Esto significa que el cloro está trabajando libremente para desinfectar, no desperdiciándose en combatir contaminantes.' };
-      if (val <= 0.5) return { emoji: '🔶', texto: 'Cloraminas detectadas. Estas son el verdadero responsable del olor a cloro y la irritación ocular. Se realizó superchoque preventivo.' };
-      return               { emoji: '⚠️', texto: 'Nivel alto de cloraminas. Este es el compuesto que produce el olor fuerte, irrita ojos y piel. Se aplicó superchoque con cloro granular para eliminarlas.' };
+      if (val <= 0.2) return { emoji: '✅', texto: 'El cloro "ya gastado" (el que huele fuerte e irrita los ojos) está en su mínimo. Por eso el agua se siente fresca y sin olor.' };
+      if (val <= 0.5) return { emoji: '🔶', texto: 'Aparecieron algunas cloraminas, que son el origen del olor a cloro. Aplicamos un tratamiento para eliminarlas.' };
+      return               { emoji: '⚠️', texto: 'Hay cloraminas elevadas: son las que provocan el olor fuerte y la irritación en los ojos. Realizamos un superchoque para limpiarlas.' };
     },
   },
 
@@ -92,11 +92,11 @@ const PARAMETROS = {
     color:    '#0E4569',
     decimales: 0,
     explicacion: (val) => {
-      if (val < 60)   return { emoji: '⚠️', texto: 'Alcalinidad muy baja. El pH se vuelve inestable y fluctúa drásticamente con cualquier cambio. Se agregó bicarbonato de sodio para estabilizar el sistema tampón del agua.' };
-      if (val < 80)   return { emoji: '🔶', texto: 'Alcalinidad baja. El pH puede saltar mucho entre servicios. Se aplicó corrección con bicarbonato para mejorar la estabilidad.' };
-      if (val <= 120) return { emoji: '✅', texto: 'Perfecto. La alcalinidad actúa como "amortiguador" del pH, manteniendo el agua estable entre visitas y haciendo que los ajustes de pH sean más predecibles.' };
-      if (val <= 180) return { emoji: '🔶', texto: 'Alcalinidad elevada. El pH tenderá a subir y el agua puede verse turbia. Se aplicó ácido muriático para reducirla.' };
-      return               { emoji: '⚠️', texto: 'Alcalinidad muy alta. El pH sube constantemente, el cloro pierde efectividad y puede aparecer sarro. Se realizó tratamiento de reducción con ácido.' };
+      if (val < 60)   return { emoji: '⚠️', texto: 'La alcalinidad está baja, así el pH se vuelve inestable y brinca con facilidad. La subimos para estabilizar el agua.' };
+      if (val < 80)   return { emoji: '🔶', texto: 'La alcalinidad va un poco baja. La reforzamos para que el pH se mantenga firme entre una visita y otra.' };
+      if (val <= 120) return { emoji: '✅', texto: 'La alcalinidad está en rango. Funciona como un amortiguador que mantiene firme el pH y conserva el agua equilibrada entre visitas.' };
+      if (val <= 180) return { emoji: '🔶', texto: 'La alcalinidad va algo alta y el pH tiende a subir. La ajustamos para mantener el equilibrio.' };
+      return               { emoji: '⚠️', texto: 'La alcalinidad está alta: empuja el pH hacia arriba y le resta fuerza al cloro. Ya iniciamos su corrección.' };
     },
   },
 
@@ -113,11 +113,11 @@ const PARAMETROS = {
     color:    '#C97A4F',
     decimales: 0,
     explicacion: (val) => {
-      if (val < 150)  return { emoji: '⚠️', texto: 'Agua muy blanda. El agua "hambrienta" de calcio lo extraerá de las superficies de tu alberca (azulejos, acabado, equipos). Corrosiva silenciosa. Se agregó cloruro de calcio.' };
-      if (val < 200)  return { emoji: '🔶', texto: 'Dureza un poco baja. Puede haber leve ataque a superficies. Se realizó corrección preventiva.' };
-      if (val <= 400) return { emoji: '✅', texto: 'Excelente. El agua tiene el contenido de calcio correcto: ni agresiva con las superficies ni incrustante. Tu acabado y equipos están protegidos.' };
-      if (val <= 550) return { emoji: '🔶', texto: 'Dureza elevada. Puede aparecer sarro (escala blanca) en la línea de flotación y equipos. Se monitorea de cerca.' };
-      return               { emoji: '⚠️', texto: 'Dureza muy alta. Sarro en formación activa. Los equipos y superficies están en riesgo. Se evaluará dilución parcial con agua fresca.' };
+      if (val < 150)  return { emoji: '⚠️', texto: 'El calcio está bajo y el agua "busca" minerales: puede desgastar acabados y equipos. Lo corregimos para protegerlos.' };
+      if (val < 200)  return { emoji: '🔶', texto: 'El calcio va un poco bajo. Lo ajustamos de forma preventiva para cuidar las superficies de tu alberca.' };
+      if (val <= 400) return { emoji: '✅', texto: 'El calcio está en su punto: ni tan bajo que desgaste los acabados, ni tan alto que forme sarro. El equilibrio que cuida tu alberca a largo plazo.' };
+      if (val <= 550) return { emoji: '🔶', texto: 'El calcio va algo alto y puede aparecer sarro en la línea de flotación. Lo vigilamos de cerca.' };
+      return               { emoji: '⚠️', texto: 'El calcio está alto y favorece el sarro en superficies y equipos. Evaluamos un recambio parcial de agua para regularlo.' };
     },
   },
 
@@ -134,11 +134,11 @@ const PARAMETROS = {
     color:    '#8B5CF6',
     decimales: 2,
     explicacion: (val) => {
-      if (val < -0.5) return { emoji: '🚨', texto: 'Agua AGRESIVA. El LSI negativo indica que el agua está atacando activamente las superficies de tu alberca para "robar" minerales. Daño silencioso al acabado y equipos.' };
-      if (val < -0.3) return { emoji: '⚠️', texto: 'Agua ligeramente agresiva. Hay riesgo de corrosión progresiva. Se ajustaron múltiples parámetros para llevar el LSI al rango neutro.' };
-      if (val <= 0.3) return { emoji: '✅', texto: '¡Equilibrio perfecto! El LSI es el indicador maestro que integra pH, temperatura, alcalinidad y dureza. Estar en rango neutro significa que tu agua no ataca ni deposita: condición ideal.' };
-      if (val <= 0.5) return { emoji: '⚠️', texto: 'Agua ligeramente incrustante. Puede empezar a depositar sarro. Se corrigieron los parámetros para bajar el LSI al rango óptimo.' };
-      return               { emoji: '🚨', texto: 'Agua MUY INCRUSTANTE. Formación activa de sarro en tuberías, equipos y superficies. Puede obstruir el filtro y reducir la vida útil del equipo. Tratamiento aplicado.' };
+      if (val < -0.5) return { emoji: '🚨', texto: 'El agua tiende a ser agresiva y "roba" minerales de las superficies. Ajustamos los parámetros para llevarla a su punto neutro.' };
+      if (val < -0.3) return { emoji: '🔶', texto: 'El agua va ligeramente agresiva. Corregimos varios parámetros para devolverla al equilibrio.' };
+      if (val <= 0.3) return { emoji: '✅', texto: '¡Equilibrio perfecto! Este índice integra pH, temperatura, alcalinidad y dureza. En este punto el agua ni ataca ni deposita: cuida tu alberca y sus equipos.' };
+      if (val <= 0.5) return { emoji: '🔶', texto: 'El agua tiende a depositar (formar sarro). Ajustamos los parámetros para regresarla al equilibrio.' };
+      return               { emoji: '🚨', texto: 'El agua está incrustante y puede formar sarro en equipos y tuberías. Aplicamos tratamiento para corregirlo.' };
     },
   },
 
@@ -156,9 +156,9 @@ const PARAMETROS = {
     decimales: 0,
     opcional:  true,
     explicacion: (val) => {
-      if (val < 20) return { emoji: '🥶', texto: 'Agua fría. La temperatura baja ralentiza el crecimiento de algas (bueno), pero también reduce la efectividad del cloro. Ideal para natación de resistencia.' };
-      if (val <= 32) return { emoji: '✅', texto: 'Temperatura confortable para uso recreativo. A este rango el cloro funciona correctamente y el riesgo de proliferación de algas es manejable.' };
-      return              { emoji: '🔥', texto: 'Temperatura alta. Las altas temperaturas aceleran el consumo de cloro y favorecen el crecimiento de algas y bacterias. Se requiere monitoreo más frecuente.' };
+      if (val < 20) return { emoji: '🥶', texto: 'El agua está fresca. A esta temperatura el cloro rinde un poco menos, aunque el riesgo de algas también baja. Ideal para nado de resistencia.' };
+      if (val <= 32) return { emoji: '✅', texto: 'El agua está a una temperatura muy agradable para nadar y el cloro trabaja correctamente.' };
+      return              { emoji: '🔥', texto: 'El agua está cálida. El calor acelera el consumo de cloro y favorece las algas, por eso la monitoreamos más seguido.' };
     },
   },
 
@@ -176,10 +176,10 @@ const PARAMETROS = {
     decimales: 0,
     opcional:  true,
     explicacion: (val) => {
-      if (val < 20)  return { emoji: '⚠️', texto: 'Sin protección solar del cloro. El sol de Veracruz puede degradar hasta el 90% del cloro libre en pocas horas. Se agregó ácido cianúrico (estabilizador).' };
-      if (val <= 50) return { emoji: '✅', texto: 'Nivel correcto de estabilizador. El cloro está protegido de la degradación UV del sol sin que el estabilizador lo "bloquee" (efecto lock-out).' };
-      if (val <= 80) return { emoji: '🔶', texto: 'Estabilizador elevado. A este nivel el cloro empieza a perder efectividad (necesitas mantener más ppm de cloro libre para compensar).' };
-      return               { emoji: '🚨', texto: 'Estabilizador muy alto (CYA lock-out). El cloro queda casi inactivo por el exceso de estabilizador. La única solución real es dilución parcial del agua.' };
+      if (val < 20)  return { emoji: '🔶', texto: 'El estabilizador está bajo y el sol de Veracruz consume el cloro rápido. Lo reforzamos para proteger el desinfectante.' };
+      if (val <= 50) return { emoji: '✅', texto: 'El estabilizador está en su nivel correcto: protege al cloro del sol sin restarle fuerza.' };
+      if (val <= 80) return { emoji: '🔶', texto: 'El estabilizador está un poco alto. Le resta algo de fuerza al cloro; lo regulamos poco a poco con los recambios de agua.' };
+      return               { emoji: '🚨', texto: 'El estabilizador está muy alto y "bloquea" al cloro (efecto lock-out). La solución es diluir parte del agua; ya lo tenemos contemplado.' };
     },
   },
 };
@@ -242,31 +242,12 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
   }
   const pillsHTML = _pills.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px;">${_pills.join('')}</div>` : '';
 
-  // Dynamic chemical chips
-  let chipsHTML = '';
-  if (quimicos_usados) {
-    const chips = [];
-    if (quimicos_usados.cloro_kg > 0) {
-      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">🧪 Hipoclorito · ${quimicos_usados.cloro_kg} kg</div>`);
-    }
-    if (quimicos_usados.acido_mur_lt > 0) {
-      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">⚗️ Ácido muriático · ${quimicos_usados.acido_mur_lt} L</div>`);
-    }
-    if (quimicos_usados.bicarbonato_kg > 0) {
-      chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">🧂 Bicarbonato · ${quimicos_usados.bicarbonato_kg} kg</div>`);
-    }
-    if (chips.length === 0) {
-       chips.push(`<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">✨ Ningún químico requerido</div>`);
-    }
-    chipsHTML = chips.join('');
-  } else {
-    // Falls back to prompt's default demo values
-    chipsHTML = `
-      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">🧪 Hipoclorito · 250 ml</div>
-      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">⚗️ Ácido muriático · 100 ml</div>
-      <div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif;">🧂 Cianúrico · 200 g</div>
-    `;
-  }
+  // ── Productos / dosificación REALMENTE aplicados ──
+  // Soporta el array flexible `productos: [{nombre, cantidad, unidad, emoji}]`
+  // (recomendado) y, por compatibilidad, el viejo `quimicos_usados`.
+  // SIN valores demo: si no hay nada, la sección no se muestra.
+  const _prod = _productosAplicados(bitacora);
+  const chipsHTML = _prod.map(p => `<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">${p.emoji} ${p.label}</div>`).join('');
 
   // ── Banner ── Prioriza el aviso que escribe el técnico (contexto_servicio).
   let hasAlertBanner = false;
@@ -488,7 +469,8 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       </div>
     </div>
 
-    <!-- ── PRODUCTOS APLICADOS (HORIZONTAL SCROLL CHIPS) ── -->
+    <!-- ── PRODUCTOS APLICADOS (solo si realmente se aplicaron) ── -->
+    ${chipsHTML ? `
     <div>
       <h2 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
         PRODUCTOS APLICADOS
@@ -496,7 +478,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       <div class="custom-scrollbar" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;">
         ${chipsHTML}
       </div>
-    </div>
+    </div>` : ''}
 
     <!-- ── BANNER DE ALERTA DINÁMICO ── -->
     ${hasAlertBanner ? `
@@ -674,7 +656,19 @@ function _explicacionParam(key, cfg, val, bitacora) {
 // ── Estado de un parámetro considerando el contexto del técnico ──
 //    (rangos dinámicos de cloro según CYA/modo). Aditivo: sin estos
 //    campos, cae al cálculo por rango fijo de siempre.
+// ── Estado a partir del emoji de la explicación (única fuente de verdad
+//    del mensaje → garantiza que color y texto NUNCA se contradigan). ──
+function _estadoDeEmoji(emoji) {
+  if (!emoji) return null;
+  if (emoji.indexOf('✅') !== -1) return 'optimo';
+  if (emoji.indexOf('🚨') !== -1) return 'critico';
+  if (emoji.indexOf('⚠️') !== -1 || emoji.indexOf('🔶') !== -1 ||
+      emoji.indexOf('🔥') !== -1 || emoji.indexOf('🥶') !== -1) return 'alerta';
+  return null;
+}
+
 function _estadoParamCtx(key, cfg, val, bitacora) {
+  // 1) Cloro libre con rangos dinámicos (CYA-aware): manda la doctrina química.
   if (key === 'cloro_libre' && bitacora) {
     const rd = bitacora.rangos_dinamicos && bitacora.rangos_dinamicos.cloro_libre;
     if (rd && val != null && typeof rd.min === 'number' && typeof rd.alto === 'number') {
@@ -683,7 +677,57 @@ function _estadoParamCtx(key, cfg, val, bitacora) {
       return bitacora.seguro_banarse === false ? 'critico' : 'alerta';
     }
   }
+  // 2) Seguir el emoji de la explicación: primero la del técnico (Firestore),
+  //    luego la local por rango. Así el color SIEMPRE coincide con el texto.
+  let e = null;
+  if (typeof _explicacionParam === 'function') {
+    e = _estadoDeEmoji((_explicacionParam(key, cfg, val, bitacora) || {}).emoji);
+  }
+  if (!e && cfg && typeof cfg.explicacion === 'function') {
+    e = _estadoDeEmoji((cfg.explicacion(val) || {}).emoji);
+  }
+  if (e) return e;
+  // 3) Último recurso: clasificación numérica.
   return (typeof _getEstadoParam === 'function') ? _getEstadoParam(val, cfg) : 'optimo';
+}
+
+// ── Productos realmente aplicados en el servicio ──
+function _emojiProducto(nombre) {
+  const n = (nombre || '').toLowerCase();
+  if (/(alguicid|algen|alga)/.test(n))                 return '🦠';
+  if (/(clarific|floc|blue|klaren|brillo)/.test(n))    return '✨';
+  if (/(ácido|acido|muri)/.test(n))                    return '⚗️';
+  if (/(cloro|hipoclor|triclor|pastilla)/.test(n))     return '🧪';
+  if (/(bicarbon|alcalin)/.test(n))                    return '🧂';
+  if (/(cianúr|cianur|estabiliz|cya)/.test(n))         return '☀️';
+  if (/(calcio|dureza)/.test(n))                       return '💎';
+  if (/(sal)/.test(n))                                 return '🧂';
+  return '🧴';
+}
+
+function _productosAplicados(bitacora) {
+  const out = [];
+  // 1) Array flexible (recomendado): productos: [{nombre, cantidad, unidad, emoji}]
+  if (bitacora && Array.isArray(bitacora.productos)) {
+    bitacora.productos.forEach(p => {
+      if (!p) return;
+      const nombre = (typeof p === 'string') ? p : (p.nombre || p.producto || '');
+      if (!nombre) return;
+      const cantidad = (typeof p === 'object' && p.cantidad !== undefined && p.cantidad !== null) ? p.cantidad : '';
+      const unidad   = (typeof p === 'object' && p.unidad) ? p.unidad : '';
+      const dosis    = cantidad !== '' ? ` · ${cantidad}${unidad ? ' ' + unidad : ''}` : '';
+      const emoji    = (typeof p === 'object' && p.emoji) ? p.emoji : _emojiProducto(nombre);
+      out.push({ emoji, label: `${nombre}${dosis}` });
+    });
+  }
+  // 2) Compatibilidad: quimicos_usados con llaves fijas
+  const q = bitacora && bitacora.quimicos_usados;
+  if (!out.length && q) {
+    if (q.cloro_kg > 0)        out.push({ emoji:'🧪', label:`Hipoclorito · ${q.cloro_kg} kg` });
+    if (q.acido_mur_lt > 0)    out.push({ emoji:'⚗️', label:`Ácido muriático · ${q.acido_mur_lt} L` });
+    if (q.bicarbonato_kg > 0)  out.push({ emoji:'🧂', label:`Bicarbonato · ${q.bicarbonato_kg} kg` });
+  }
+  return out;
 }
 
 // ── Score mostrado: cap con salud_tope del modo (rutina 100, choque 70…) ──

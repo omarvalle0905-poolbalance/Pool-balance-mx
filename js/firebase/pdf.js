@@ -305,6 +305,11 @@ const PDFGenerator = (() => {
       if (key === 'cloro_libre' && _rd && typeof _rd.min === 'number' && typeof _rd.alto === 'number') {
         rangoTxt = `Rango para este servicio: ${_rd.min} – ${_rd.alto} ${cfg.unidad}`.trim();
       }
+      // Llegada → resultado (antes/después) si la bitácora lo trae
+      const _lleg = bitacora.lecturas_llegada ? bitacora.lecturas_llegada[key] : undefined;
+      if (typeof _lleg === 'number' && _lleg !== val) {
+        rangoTxt += `   ·   Al llegar: ${_lleg.toFixed(cfg.decimales)}${cfg.unidad ? ' ' + cfg.unidad : ''}`;
+      }
 
       const expLines = doc.splitTextToSize(texto, CW - 10);
       const blockH = 13 + expLines.length * 4 + 5;

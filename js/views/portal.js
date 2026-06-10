@@ -202,6 +202,10 @@ function renderDashboard() {
         </div>
       </div>
 
+      <div class="pd-card pd-month" id="pd-month">
+        ${_resumenMes(bits)}
+      </div>
+
       <section class="pd-history" aria-labelledby="bitacoras-title">
         <div class="pd-history-head">
           <h2 id="bitacoras-title">
@@ -237,6 +241,50 @@ function _emptyHistory() {
       <p class="pd-empty-title">Sin servicios registrados aún</p>
       <p class="pd-empty-sub">Aquí aparecerán tus bitácoras después de cada visita.</p>
     </div>`;
+}
+
+// ── Reporte mensual de pérdidas de agua ──
+// Suma litros_retrolav (medido) y litros_evap (estimado) de las
+// bitácoras del mes en curso. La fuente son las bitácoras en vivo.
+function _resumenMes(bitacoras) {
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const titulo = `${meses[now.getMonth()]} ${now.getFullYear()}`;
+
+  const delMes = (bitacoras || []).filter(b => typeof b.fecha === 'string' && b.fecha.startsWith(ym));
+  const totalRetro = delMes.reduce((s, b) => s + (Number(b.litros_retrolav) || 0), 0);
+  const totalEvap  = delMes.reduce((s, b) => s + (Number(b.litros_evap)     || 0), 0);
+  const total = totalRetro + totalEvap;
+  const fmt = n => Math.round(n).toLocaleString('es-MX');
+
+  const sinDatos = delMes.length === 0;
+
+  return `
+    <div class="pd-month-head">
+      <i class="fa-solid fa-droplet" aria-hidden="true"></i>
+      Pérdidas de agua · ${titulo}
+    </div>
+    ${sinDatos ? `
+      <p class="pd-month-empty">Aún sin servicios este mes. Aquí verás el resumen al cierre del mes.</p>
+    ` : `
+      <div class="pd-month-grid">
+        <div class="pd-month-item">
+          <span class="pd-month-val">${fmt(totalRetro)} L</span>
+          <span class="pd-month-lbl">Retrolavado (medido)</span>
+        </div>
+        <div class="pd-month-item">
+          <span class="pd-month-val">≈ ${fmt(totalEvap)} L</span>
+          <span class="pd-month-lbl">Evaporación (estimada)</span>
+        </div>
+        <div class="pd-month-item pd-month-total">
+          <span class="pd-month-val">${fmt(total)} L</span>
+          <span class="pd-month-lbl">Total del mes</span>
+        </div>
+      </div>
+      <p class="pd-month-foot">${delMes.length} servicio${delMes.length > 1 ? 's' : ''} este mes · la evaporación es una estimación.</p>
+    `}
+  `;
 }
 
 // ─────────────────────────────────────────
@@ -423,6 +471,8 @@ const PortalAuth = {
         }
         if (countEl) countEl.textContent = bitacoras.length;
         if (statEl)  statEl.textContent  = bitacoras.length;
+        const monthEl = document.getElementById('pd-month');
+        if (monthEl) monthEl.innerHTML = _resumenMes(bitacoras);
       },
       albercaId
     );

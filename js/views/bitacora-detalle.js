@@ -759,6 +759,18 @@ function _renderParametroCard(key, cfg, val, bitacora) {
 
   const valStr = val.toFixed(cfg.decimales);
 
+  // Llegada → resultado (antes/después). Solo si la bitácora trae
+  // lecturas_llegada con un valor numérico distinto al resultado.
+  const u = cfg.unidad ? ' ' + cfg.unidad : '';
+  const llegada = (bitacora && bitacora.lecturas_llegada) ? bitacora.lecturas_llegada[key] : undefined;
+  const llegadaHTML = (typeof llegada === 'number' && llegada !== val)
+    ? `<div style="display:flex;align-items:center;gap:5px;margin-top:7px;font-size:11.5px;font-family:'Bricolage Grotesque',sans-serif;">
+         <span style="color:#8B95A7;">Al llegar: ${llegada.toFixed(cfg.decimales)}${u}</span>
+         <span style="color:#6FB8C6;">→</span>
+         <span style="color:#cfe0ea;font-weight:600;">${valStr}${u}</span>
+       </div>`
+    : '';
+
   return `
   <div class="premium-dark-card flex flex-col justify-between" style="min-height: 176px; gap: 12px; padding: 16px;">
     <div>
@@ -768,11 +780,12 @@ function _renderParametroCard(key, cfg, val, bitacora) {
         </span>
         <span style="color: #6FB8C6; font-size: 14px; font-weight: 500; font-family: 'Bricolage Grotesque', sans-serif;" class="truncate">${cfg.label}</span>
       </div>
-      
+
       <div style="display: flex; align-items: baseline; margin-top: 8px;">
         <span style="color: #EEF1F5; font-size: 28px; font-weight: 700; line-height: 1; font-family: 'Bricolage Grotesque', sans-serif;">${valStr}</span>
         <span style="color: #8B95A7; font-size: 13px; margin-left: 3px; font-family: 'Bricolage Grotesque', sans-serif;">${cfg.unidad}</span>
       </div>
+      ${llegadaHTML}
     </div>
 
     <div>

@@ -754,13 +754,33 @@ function _productosAplicados(bitacora) {
   return out;
 }
 
-// ── Score mostrado: cap con salud_tope del modo (rutina 100, choque 70…) ──
+// ── Score CYA-aware: usa los MISMOS estados que pintan los chips, así el
+//    número de salud nunca contradice los colores. Si el cloro está alto
+//    pero correcto para su CYA (chip verde), suma como óptimo. ──
+function _calcScoreCtx(bitacora) {
+  const lecturas = (bitacora && bitacora.lecturas) || {};
+  const pesos = { ph: 25, cloro_libre: 25, cloro_combinado: 15, alcalinidad: 15, dureza_calcica: 10, lsi: 10 };
+  const pts   = { optimo: 100, alerta: 60, critico: 25 };
+  let total = 0, peso = 0;
+  Object.keys(pesos).forEach(key => {
+    const val = lecturas[key];
+    const cfg = PARAMETROS[key];
+    if (val === undefined || val === null || !cfg) return;
+    const est = (typeof _estadoParamCtx === 'function') ? _estadoParamCtx(key, cfg, val, bitacora) : 'optimo';
+    total += (pts[est] != null ? pts[est] : 60) * pesos[key];
+    peso  += pesos[key];
+  });
+  return peso ? Math.round(total / peso) : 0;
+}
+
+// ── Score mostrado: CYA-aware + cap con salud_tope del modo (choque 70…) ──
 function _scoreMostrado(bitacora) {
-  const base = (typeof _calcScore === 'function') ? _calcScore((bitacora && bitacora.lecturas) || {}) : 85;
+  const base = _calcScoreCtx(bitacora);
   const tope = (bitacora && typeof bitacora.salud_tope === 'number') ? bitacora.salud_tope : 100;
   return Math.min(base, tope);
 }
 window._estadoParamCtx = _estadoParamCtx;
+window._calcScoreCtx    = _calcScoreCtx;
 window._scoreMostrado   = _scoreMostrado;
 
 function _renderParametroCard(key, cfg, val, bitacora) {

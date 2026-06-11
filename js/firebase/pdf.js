@@ -366,12 +366,17 @@ const PDFGenerator = (() => {
 
   function _drawAcciones(ctx) {
     const { doc, bitacora } = ctx;
-    if (!bitacora.acciones?.length) return;
+    // Checklist mecánico (cepillado, canastillas…) + acciones de la bitácora
+    const items = [
+      ...((typeof _checklistItems === 'function') ? _checklistItems(bitacora) : []),
+      ...(bitacora.acciones || []),
+    ];
+    if (!items.length) return;
 
     _need(ctx, 16);
-    _sectionTitle(ctx, 'ACCIONES REALIZADAS');
+    _sectionTitle(ctx, 'TRABAJO REALIZADO EN LA VISITA');
 
-    bitacora.acciones.forEach(acc => {
+    items.forEach(acc => {
       const lines = doc.splitTextToSize(acc, CW - 10);
       _need(ctx, lines.length * 4.4 + 3);
       doc.setFillColor(...C.success);
@@ -392,36 +397,27 @@ const PDFGenerator = (() => {
 
   function _drawQuimicos(ctx) {
     const { doc, bitacora } = ctx;
-    const q = bitacora.quimicos_usados;
-    if (!q) return;
+    // Productos REALMENTE aplicados (array `productos` o, por
+    // compatibilidad, `quimicos_usados`). Sin datos no se dibuja nada.
+    const prods = (typeof _productosAplicados === 'function') ? _productosAplicados(bitacora) : [];
+    if (!prods.length) return;
 
-    const items = [
-      { label: 'Ácido Muriático', val: q.acido_mur_lt,   unit: 'L',  col: C.danger,  light: LIGHT.danger  },
-      { label: 'Cloro Granular',  val: q.cloro_kg,       unit: 'kg', col: C.success, light: LIGHT.success },
-      { label: 'Bicarbonato',     val: q.bicarbonato_kg, unit: 'kg', col: C.marino,  light: LIGHT.marino  },
-    ].filter(i => i.val !== undefined && i.val !== null);
-    if (!items.length) return;
+    _need(ctx, 16);
+    _sectionTitle(ctx, 'PRODUCTOS APLICADOS');
 
-    _need(ctx, 26);
-    _sectionTitle(ctx, 'QUÍMICOS APLICADOS');
-
-    const boxW = 56, gap = 7;
-    let x = M;
-    const y = ctx.y;
-    items.forEach(item => {
-      doc.setFillColor(...item.light);
-      doc.roundedRect(x, y, boxW, 16, 2.5, 2.5, 'F');
-      doc.setTextColor(...item.col);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.text(`${item.val} ${item.unit}`, x + boxW / 2, y + 8, { align: 'center' });
+    prods.forEach(p => {
+      const lines = doc.splitTextToSize(p.label, CW - 12);
+      _need(ctx, lines.length * 4.4 + 3);
+      doc.setFillColor(...C.cristal);
+      doc.circle(M + 2.2, ctx.y - 1, 1.4, 'F');
+      doc.setTextColor(...C.darkText);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(...C.grayText);
-      doc.text(item.label, x + boxW / 2, y + 13, { align: 'center' });
-      x += boxW + gap;
+      doc.setFontSize(8.6);
+      doc.text(lines, M + 7, ctx.y);
+      ctx.y += lines.length * 4.4 + 2.5;
     });
-    ctx.y = y + 22;
+
+    ctx.y += 4;
   }
 
   // ─────────────────────────────────────────

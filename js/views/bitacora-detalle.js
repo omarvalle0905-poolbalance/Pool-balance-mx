@@ -249,6 +249,10 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
   const _prod = _productosAplicados(bitacora);
   const chipsHTML = _prod.map(p => `<div style="background-color: #1A2030; color: #EEF1F5; font-size: 14.5px; font-weight: 500; border-radius: 9999px; padding: 10px 16px; white-space: nowrap; font-family: 'Bricolage Grotesque', sans-serif; display: flex; align-items: center; gap: 6px;">${p.emoji} ${p.label}</div>`).join('');
 
+  // ── Trabajo realizado: checklist mecánico (cepillado, canastillas…)
+  //    + acciones de la bitácora, en una sola lista con palomitas. ──
+  const trabajoRealizado = [..._checklistItems(bitacora), ...(acciones || [])];
+
   // ── Banner ── Prioriza el aviso que escribe el técnico (contexto_servicio).
   let hasAlertBanner = false;
   let alertBannerMsg = '';
@@ -490,11 +494,11 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     </div>` : ''}
 
     <!-- ── ACCIONES REALIZADAS (Adicional si existen en bítacora real) ── -->
-    ${acciones?.length ? `
+    ${trabajoRealizado.length ? `
     <div class="premium-dark-card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-      <h3 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif;">ACCIONES REALIZADAS</h3>
+      <h3 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif;">TRABAJO REALIZADO EN LA VISITA</h3>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${acciones.map(acc => `
+        ${trabajoRealizado.map(acc => `
           <div style="display: flex; align-items: start; gap: 10px; font-size: 15px;">
             <span style="color: #2D9E6B; font-weight: bold;">✓</span>
             <span style="color: #EEF1F5; line-height: 1.45;">${acc}</span>
@@ -691,17 +695,37 @@ function _estadoParamCtx(key, cfg, val, bitacora) {
   return (typeof _getEstadoParam === 'function') ? _getEstadoParam(val, cfg) : 'optimo';
 }
 
+// ── Checklist mecánico de la visita (trabajo físico realizado) ──
+const CHECKLIST_LABELS = {
+  cepillado:      'Cepillado de paredes y piso',
+  aspirado:       'Aspirado de fondo',
+  canastillas:    'Limpieza de canastillas (skimmer y bomba)',
+  red_hojas:      'Retiro de hojas con red',
+  filtro_presion: 'Revisión de filtro y presión',
+  nivel_agua:     'Revisión de nivel de agua',
+};
+
+function _checklistItems(bitacora) {
+  const ch = bitacora && bitacora.checklist_mecanico;
+  if (!ch || typeof ch !== 'object') return [];
+  return Object.keys(ch)
+    .filter(k => ch[k] === true)
+    .map(k => CHECKLIST_LABELS[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' '));
+}
+window._checklistItems = _checklistItems;
+
 // ── Productos realmente aplicados en el servicio ──
 function _emojiProducto(nombre) {
+  // Nota: "Klaren" es marca (aparece en muchos productos), no es señal de tipo.
   const n = (nombre || '').toLowerCase();
-  if (/(alguicid|algen|alga)/.test(n))                 return '🦠';
-  if (/(clarific|floc|blue|klaren|brillo)/.test(n))    return '✨';
-  if (/(ácido|acido|muri)/.test(n))                    return '⚗️';
-  if (/(cloro|hipoclor|triclor|pastilla)/.test(n))     return '🧪';
-  if (/(bicarbon|alcalin)/.test(n))                    return '🧂';
-  if (/(cianúr|cianur|estabiliz|cya)/.test(n))         return '☀️';
-  if (/(calcio|dureza)/.test(n))                       return '💎';
-  if (/(sal)/.test(n))                                 return '🧂';
+  if (/(alguicid|algen|alga)/.test(n))                     return '🦠';
+  if (/(ácido|acido|muri|bisulfato|ph menos|ph-)/.test(n)) return '⚗️';
+  if (/(cloro|hipoclor|triclor|naclo|pastilla)/.test(n))   return '🧪';
+  if (/(clarific|floc|clear|brillo)/.test(n))              return '✨';
+  if (/(bicarbon|alcalin|ph m[aá]s)/.test(n))              return '🧂';
+  if (/(cianúr|cianur|estabiliz|cya)/.test(n))             return '☀️';
+  if (/(calcio|dureza)/.test(n))                           return '💎';
+  if (/(sal)/.test(n))                                     return '🧂';
   return '🧴';
 }
 

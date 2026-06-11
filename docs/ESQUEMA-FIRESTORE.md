@@ -397,3 +397,38 @@ tarjeta en el dashboard:
 No se manda ningún total desde la app del técnico: la fuente son las bitácoras.
 Basta con que cada bitácora traiga `litros_retrolav` y `litros_evap`. La
 evaporación se rotula siempre como **estimada (≈)**.
+
+---
+
+## 13. Productos y checklist mecánico (técnica V1.1.5) — IMPLEMENTADO
+
+### 13.1 `productos` — lo realmente dosificado
+```jsonc
+"productos": [
+  { "nombre": "pH Menos Klaren (Bisulfato de Sodio)", "cantidad": 1000, "unidad": "g" },
+  { "nombre": "Cloro Líquido (NaClO 10%)",            "cantidad": 1.5,  "unidad": "L" }
+]
+```
+- El portal pinta **este arreglo** en "Productos aplicados" (reporte y PDF) con
+  emoji automático por tipo. **Ya no existe ninguna lista demo hardcodeada.**
+- Si viene vacío o no viene, la sección **no se muestra**.
+- Compatibilidad: sin `productos`, se lee el viejo `quimicos_usados`.
+
+### 13.2 `checklist_mecanico` — el trabajo físico de la visita
+```jsonc
+"checklist_mecanico": {
+  "cepillado": true, "aspirado": true, "canastillas": true,
+  "red_hojas": false, "filtro_presion": true, "nivel_agua": true
+}
+```
+El portal pinta los `true` como tareas con palomita en la sección **"Trabajo
+realizado en la visita"** (reporte y PDF), junto con `acciones`:
+✓ Cepillado de paredes y piso · ✓ Aspirado de fondo · ✓ Limpieza de canastillas
+(skimmer y bomba) · ✓ Retiro de hojas con red · ✓ Revisión de filtro y presión ·
+✓ Revisión de nivel de agua. Las llaves desconocidas se humanizan
+(`tarea_nueva` → "Tarea nueva"), así pueden agregar tareas sin avisarnos.
+
+### 13.3 Nota V1.1.4 (cloro)
+El portal colorea el cloro con `rangos_dinamicos.cloro_libre.min/alto` +
+`seguro_banarse`; **no** usa `max_seguro`, así que el cambio del techo
+(eliminar el tope absoluto de 10 ppm) no requiere nada del lado del portal.

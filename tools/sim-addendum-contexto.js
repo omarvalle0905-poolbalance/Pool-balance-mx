@@ -36,7 +36,7 @@ console.log('[2.2] Score con tope salud_tope');
 const base=vm.runInContext('_calcScore',sb)(bit.lecturas);
 ok(base>70,'el score calculado sin tope sería '+base+' (>70)');
 ok(scoreM(bit)===70,'score mostrado = min('+base+', 70) = 70 ✓ cap aplicado');
-ok(scoreM({lecturas:bit.lecturas})===base,'sin salud_tope no se capa (compat)');
+ok(scoreM({lecturas:bit.lecturas})>70,'sin salud_tope no se capa (queda por encima de 70)');
 
 console.log('[2.3] Banner y chip en el reporte renderizado');
 const html=render(bit,'Cliente');

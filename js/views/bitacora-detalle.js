@@ -278,6 +278,22 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
 
   const scoreColor = score >= 80 ? '#2D9E6B' : score >= 60 ? '#E8A838' : '#D95C5C';
 
+  // Tarjetas del carrusel 3D de detalles: parámetros + trabajo + dosificación + nota
+  const _detailCards = [
+    ...parametrosAMostrar.map(key => {
+      const cfg = PARAMETROS[key];
+      const val = lecturas[key];
+      if (val === undefined || val === null || !cfg) return '';
+      return _paramSlideHTML(key, cfg, val, bitacora);
+    }),
+    trabajoRealizado.length ? _workSlideHTML(trabajoRealizado) : '',
+    _prod.length ? _doseSlideHTML(_prod) : '',
+    notas ? _noteSlideHTML(notas, fecha, tecnico) : '',
+  ].filter(Boolean);
+
+  const _dcarSlides = _detailCards.map((html, i) => `<div class="dcar-slide" data-dindex="${i}">${html}</div>`).join('');
+  const _dcarDots = _detailCards.map((_, i) => `<button class="dcar-dot ${i === 0 ? 'active' : ''}" data-ddot="${i}" type="button" aria-label="Tarjeta ${i + 1}"></button>`).join('');
+
   return `
   <!-- Scoped style overrides for Premium Dark Theme -->
   <style>
@@ -436,34 +452,21 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       </div>
     </div>` : ''}
 
-    <!-- ── CARRUSEL DESLIZABLE DE DETALLES (parámetros + trabajo + dosificación) ── -->
+    <!-- ── CARRUSEL 3D DE DETALLES (parámetros + trabajo + dosificación) ── -->
     <div>
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-        <h2 style="color:#6FB8C6; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase;">
-          Detalle del servicio
-        </h2>
-        <div style="display:flex; gap:8px;">
-          <button class="bslide-arrow" onclick="BitacoraUI.slideDetails(-1)" aria-label="Anterior" type="button">
-            <i class="fa-solid fa-chevron-left"></i>
-          </button>
-          <button class="bslide-arrow" onclick="BitacoraUI.slideDetails(1)" aria-label="Siguiente" type="button">
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
-        </div>
-      </div>
+      <h2 style="color:#6FB8C6; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px;">
+        Detalle del servicio
+      </h2>
 
-      <div class="bslide-track custom-scrollbar" id="bslide-track" role="list">
-        ${parametrosAMostrar.map(key => {
-          const cfg = PARAMETROS[key];
-          const val = lecturas[key];
-          if (val === undefined || val === null || !cfg) return '';
-          return _paramSlideHTML(key, cfg, val, bitacora);
-        }).join('')}
-        ${trabajoRealizado.length ? _workSlideHTML(trabajoRealizado) : ''}
-        ${_prod.length ? _doseSlideHTML(_prod) : ''}
-        ${notas ? _noteSlideHTML(notas, fecha, tecnico) : ''}
+      <div class="dcar" id="dcar" role="region" aria-roledescription="carrusel" aria-label="Detalle del servicio">
+        <div class="dcar-stage" id="dcar-stage" role="list">
+          ${_dcarSlides}
+        </div>
+        <button class="dcar-arrow prev" id="dcar-prev" type="button" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="dcar-arrow next" id="dcar-next" type="button" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
       </div>
-      <p style="text-align:center; color:rgba(255,255,255,0.3); font-size:11px; margin-top:10px;">Desliza para ver cada parámetro</p>
+      <div class="dcar-dots" id="dcar-dots">${_dcarDots}</div>
+      <p style="text-align:center; color:rgba(255,255,255,0.3); font-size:11px; margin-top:4px;">Desliza para ver cada parámetro</p>
     </div>
 
     <!-- ── ACCIONES BOTONES ── -->
@@ -511,27 +514,6 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     </footer>
 
     </div><!-- /#rp-fit -->
-
-    <!-- Lightbox galería -->
-    <div id="gallery-modal" class="photo-modal hidden" role="dialog" aria-modal="true" aria-label="Galería de fotos" style="z-index: 1000;"
-         onclick="if(event.target===this)BitacoraUI.closeGallery()">
-      <div style="position:relative;max-width:92vw;max-height:88dvh;min-width:250px;">
-        <img id="gallery-modal-img" src="" alt="" style="max-width:92vw;max-height:80dvh;min-height:150px;border-radius:16px;object-fit:contain;display:block;background:rgba(255,255,255,0.05);" />
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:12px;">
-          <button onclick="BitacoraUI.galleryPrev()" class="btn btn-ghost btn-sm" aria-label="Foto anterior">
-            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-          </button>
-          <span id="gallery-counter" style="color:rgba(255,255,255,0.6);font-size:0.8rem;"></span>
-          <button onclick="BitacoraUI.galleryNext()" class="btn btn-ghost btn-sm" aria-label="Foto siguiente">
-            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-          </button>
-        </div>
-        <button onclick="BitacoraUI.closeGallery()" class="photo-modal-close" aria-label="Cerrar galería"
-                style="position:fixed;top:16px;right:16px;z-index:1001;width:42px;height:42px;">
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
 
   </article>
   `;
@@ -942,7 +924,7 @@ function _paramSlideHTML(key, cfg, val, bitacora) {
     : '';
 
   return `
-  <article class="bslide-card" role="listitem">
+  <article class="dcar-card" role="listitem">
     <div class="bslide-head">
       <span class="bslide-ico"><i class="fa-solid ${cfg.icon}" aria-hidden="true"></i></span>
       <span class="bslide-title">${cfg.label}</span>
@@ -960,7 +942,7 @@ function _paramSlideHTML(key, cfg, val, bitacora) {
 function _workSlideHTML(items) {
   const pills = items.map(t => `<span class="bslide-pill"><i class="fa-solid fa-check" style="color:#5fcf97;" aria-hidden="true"></i> ${t}</span>`).join('');
   return `
-  <article class="bslide-card" role="listitem">
+  <article class="dcar-card" role="listitem">
     <div class="bslide-head">
       <span class="bslide-ico"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
       <span class="bslide-title">Trabajo realizado</span>
@@ -972,7 +954,7 @@ function _workSlideHTML(items) {
 function _doseSlideHTML(prods) {
   const pills = prods.map(p => `<span class="bslide-pill">${p.emoji} ${p.label}</span>`).join('');
   return `
-  <article class="bslide-card" role="listitem">
+  <article class="dcar-card" role="listitem">
     <div class="bslide-head">
       <span class="bslide-ico"><i class="fa-solid fa-flask-vial" aria-hidden="true"></i></span>
       <span class="bslide-title">Dosificación aplicada</span>
@@ -983,7 +965,7 @@ function _doseSlideHTML(prods) {
 
 function _noteSlideHTML(notas, fecha, tecnico) {
   return `
-  <article class="bslide-card" role="listitem">
+  <article class="dcar-card" role="listitem">
     <div class="bslide-head">
       <span class="bslide-ico"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i></span>
       <span class="bslide-title">Nota del técnico</span>
@@ -1129,6 +1111,41 @@ const BitacoraUI = {
   _current3DIndex: 0,
   _fotos: [],
 
+  // Visor de foto a pantalla completa: vive como singleton en <body> para
+  // que NUNCA herede el transform/zoom de un ancestro (eso hacía que la
+  // foto apareciera recortada en la parte inferior de la pantalla).
+  _ensureLightbox() {
+    let modal = document.getElementById('gallery-modal');
+    if (modal && modal.parentElement !== document.body) { modal.remove(); modal = null; }
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'gallery-modal';
+      modal.className = 'photo-modal hidden';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-label', 'Galería de fotos');
+      modal.style.zIndex = '2000';
+      modal.innerHTML = `
+        <button onclick="BitacoraUI.closeGallery()" class="photo-modal-close" aria-label="Cerrar galería"
+                style="position:fixed;top:max(16px,env(safe-area-inset-top));right:16px;z-index:2002;width:44px;height:44px;">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+        <button onclick="BitacoraUI.galleryPrev()" class="gallery-nav prev" aria-label="Foto anterior" type="button">
+          <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <div class="gallery-stage">
+          <img id="gallery-modal-img" src="" alt="" />
+          <span id="gallery-counter" class="gallery-counter"></span>
+        </div>
+        <button onclick="BitacoraUI.galleryNext()" class="gallery-nav next" aria-label="Foto siguiente" type="button">
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>`;
+      modal.addEventListener('click', (e) => { if (e.target === modal) BitacoraUI.closeGallery(); });
+      document.body.appendChild(modal);
+    }
+    return modal;
+  },
+
   openGallery(index) {
     // Normaliza las fotos a array de URLs strings (soporta formato objeto y string)
     const fotosRaw = window._currentBitacora?.fotos || [];
@@ -1136,8 +1153,7 @@ const BitacoraUI = {
     if (!this._fotos.length) return;
     this._currentIndex = index;
 
-    const modal = document.getElementById('gallery-modal');
-    if (!modal) return;
+    const modal = this._ensureLightbox();
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
@@ -1199,15 +1215,6 @@ const BitacoraUI = {
     };
     img.alt = `Foto ${n}`;
     img.src = this._fotos[this._currentIndex];
-  },
-
-  // Carrusel deslizable de detalles (scroll-snap nativo)
-  slideDetails(dir) {
-    const track = document.getElementById('bslide-track');
-    if (!track) return;
-    const card = track.querySelector('.bslide-card');
-    const w = card ? card.offsetWidth + 12 : 260;
-    track.scrollBy({ left: dir * w, behavior: 'smooth' });
   },
 
   // Métodos del carrusel 3D Coverflow
@@ -1344,6 +1351,107 @@ function _iconEstado(val, cfg) {
   return est === 'optimo' ? '✅' : est === 'alerta' ? '🔶' : '⚠️';
 }
 
+// ─────────────────────────────────────────
+//  CARRUSEL 3D DE DETALLES (coverflow) — mismo efecto que los otros
+// ─────────────────────────────────────────
+
+const DetailCarousel = {
+  active: 0,
+  total: 0,
+  _onUp: null,
+
+  init() {
+    const stage = document.getElementById('dcar-stage');
+    if (!stage) return;
+    this.total = stage.querySelectorAll('.dcar-slide').length;
+    this.active = 0;
+    this.layout();
+
+    const prev = document.getElementById('dcar-prev');
+    const next = document.getElementById('dcar-next');
+    prev && (prev.onclick = () => this.go(this.active - 1));
+    next && (next.onclick = () => this.go(this.active + 1));
+
+    document.querySelectorAll('[data-ddot]').forEach(d => {
+      d.onclick = () => this.go(parseInt(d.dataset.ddot, 10));
+    });
+
+    stage.querySelectorAll('.dcar-slide').forEach(sl => {
+      sl.addEventListener('click', (e) => {
+        const idx = parseInt(sl.dataset.dindex, 10);
+        if (idx !== this.active && !e.target.closest('button, a')) {
+          e.stopPropagation();
+          this.go(idx);
+        }
+      });
+    });
+
+    // Swipe táctil
+    let sx = null;
+    stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener('touchend', (e) => {
+      if (sx == null) return;
+      const dx = e.changedTouches[0].clientX - sx;
+      if (dx > 40) this.go(this.active - 1);
+      else if (dx < -40) this.go(this.active + 1);
+      sx = null;
+    }, { passive: true });
+
+    // Arrastre con mouse (desktop)
+    let mx = null;
+    stage.addEventListener('pointerdown', (e) => { mx = e.clientX; });
+    if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+    this._onUp = (e) => {
+      if (mx == null) return;
+      const dx = e.clientX - mx;
+      if (dx > 50) this.go(this.active - 1);
+      else if (dx < -50) this.go(this.active + 1);
+      mx = null;
+    };
+    window.addEventListener('pointerup', this._onUp);
+  },
+
+  go(i) {
+    if (!this.total) return;
+    this.active = ((i % this.total) + this.total) % this.total;
+    this.layout();
+  },
+
+  layout() {
+    const slides = Array.from(document.querySelectorAll('#dcar-stage .dcar-slide'));
+    const total = slides.length;
+    slides.forEach((sl, i) => {
+      let off = i - this.active;
+      if (off > total / 2) off -= total;
+      if (off < -total / 2) off += total;
+
+      let transform, opacity, z, pe = 'auto';
+      if (off === 0) {
+        transform = 'translateX(-50%) rotateY(0deg) scale(1)';
+        opacity = 1; z = 30;
+      } else if (Math.abs(off) === 1) {
+        const d = off > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${d * 64}%)) rotateY(${d * -32}deg) scale(0.84)`;
+        opacity = 1; z = 20;
+      } else {
+        const d = off > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${d * 78}%)) rotateY(${d * -32}deg) scale(0.8)`;
+        opacity = 0; z = 10; pe = 'none';
+      }
+      sl.style.transform = transform;
+      sl.style.opacity = opacity;
+      sl.style.zIndex = z;
+      sl.style.pointerEvents = pe;
+      sl.classList.toggle('is-active', off === 0);
+    });
+
+    document.querySelectorAll('[data-ddot]').forEach((d, i) => {
+      d.classList.toggle('active', i === this.active);
+    });
+  },
+};
+window.DetailCarousel = DetailCarousel;
+
 // Post-render
 window.PostRender = window.PostRender || {}; // <-- ESTA ES LA LÍNEA SALVAVIDAS
 
@@ -1402,22 +1510,27 @@ window.PostRender.bitacora = function() {
   
   document.addEventListener('keydown', window._bitacoraKeyHandler);
 
-  // Inicializar galería 3D Coverflow (robusto: rAF + fallback + resize)
+  // Inicializar carruseles 3D Coverflow (fotos + detalles) — robusto: rAF + fallback
   BitacoraUI._current3DIndex = 0;
-  requestAnimationFrame(() => requestAnimationFrame(() => BitacoraUI.update3DGallery()));
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    BitacoraUI.update3DGallery();
+    DetailCarousel.init();
+  }));
   setTimeout(() => {
     BitacoraUI.update3DGallery();
     BitacoraUI.init3DSwipe();
+    DetailCarousel.init();
   }, 120);
 
-  // Re-acomodar el carrusel al rotar / cambiar tamaño de pantalla
+  // Re-acomodar los carruseles al rotar / cambiar tamaño de pantalla
   if (window._bitacoraResizeHandler) {
     window.removeEventListener('resize', window._bitacoraResizeHandler);
   }
-  window._bitacoraResizeHandler = () => BitacoraUI.update3DGallery();
+  window._bitacoraResizeHandler = () => { BitacoraUI.update3DGallery(); DetailCarousel.layout(); };
   window.addEventListener('resize', window._bitacoraResizeHandler);
 };
 
 window.renderBitacoraDetalle = renderBitacoraDetalle;
 window.PARAMETROS = PARAMETROS;
 window.BitacoraUI = BitacoraUI;
+window.DetailCarousel = DetailCarousel;

@@ -384,8 +384,14 @@ body.portal-only .bottom-nav {
 
 body.portal-only .main-content {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Sin topbar global en el portal → recuperar el espacio superior */
+  padding-top: env(safe-area-inset-top, 0px);
   background: transparent;
 }
+
+/* El portal tiene su propia marca en cada vista (login, dashboard, reporte),
+   así que ocultamos el topbar global para evitar el doble logo. */
+body.portal-only .brand-topbar { display: none !important; }
 
 /* ── FONDO GLOBAL (page gradient) ──
    Fijo al viewport mediante un pseudo-elemento: cubre toda la pantalla
@@ -422,15 +428,6 @@ body.portal-only #view-portal-login,
 body.portal-only #view-portal-restoring { background: transparent; }
 body.portal-only #view-bitacora-detalle { background: transparent !important; }
 
-/* Topbar: se funde con el fondo marino (sin caja ni borde) en el portal */
-body.portal-only .brand-topbar {
-  background: linear-gradient(180deg, rgba(8,40,64,0.55) 0%, rgba(8,40,64,0) 100%);
-  border-bottom: none;
-  box-shadow: none;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-body.portal-only .brand-topbar::after { display: none; }
 
 /* Escritorio: ocultar los enlaces de módulos del sidebar.
    Se conserva el logo y el CTA de WhatsApp. */

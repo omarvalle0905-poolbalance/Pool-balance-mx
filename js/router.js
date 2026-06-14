@@ -81,6 +81,12 @@ const Router = (() => {
       container.style.opacity = '1';
       container.style.transform = 'translateY(0)';
 
+      // Al terminar la animación, quitar el transform: un transform distinto
+      // de "none" convierte al contenedor en bloque contenedor de los hijos
+      // position:fixed (modales, visor de fotos), descolocándolos. Limpiarlo
+      // garantiza que los overlays se anclen al viewport real.
+      setTimeout(() => { if (container) container.style.transform = 'none'; }, 360);
+
     } catch (err) {
       console.error('[Router] Error al renderizar vista:', err);
       container.innerHTML = renderErrorView(viewName, err);

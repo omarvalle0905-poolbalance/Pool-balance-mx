@@ -435,12 +435,12 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       ${pillsHTML}
     </div>
 
-    <!-- ── GRÁFICO 3D DE SALUD DEL AGUA (RADAR) ── -->
+    <!-- ── LECTURAS DEL FOTÓMETRO (TUBOS 3D) ── -->
     <div>
       <h2 style="color:#6FB8C6; font-size:13px; font-weight:700; letter-spacing:2px; margin-bottom:12px; text-transform:uppercase;">
-        Balance del agua
+        Lecturas del fotómetro
       </h2>
-      ${_renderWaterRadar(bitacora, scoreColor)}
+      ${_renderTubes(bitacora)}
     </div>
 
     <!-- ── BANNER DE ALERTA DINÁMICO ── -->
@@ -787,120 +787,90 @@ function _renderParametroCard(key, cfg, val, bitacora) {
 }
 
 // ─────────────────────────────────────────
-//  HERO: CARRUSEL 3D DE FOTOS + SCORE SUPERPUESTO
+//  HERO: CARRUSEL 3D DE FOTOS (coverflow unificado) + SCORE
 // ─────────────────────────────────────────
 
 function _renderPhotoHero(fotos, score, scoreColor) {
   const list = (fotos && fotos.length) ? fotos : [null];
 
-  const cards = list.map((foto, i) => {
+  const slides = list.map((foto, i) => {
     const url = foto ? _fotoToUrl(foto) : 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800';
     return `
-      <div class="gallery-3d-card" role="listitem" data-index="${i}"
-           onclick="BitacoraUI.handleCardClick(${i})" tabindex="0"
-           aria-label="Ver foto ${i + 1} de ${list.length}">
-        <img src="${url}" alt="Foto ${i + 1} del servicio" loading="lazy" />
-        <div class="bita-card-veil" aria-hidden="true"></div>
-        <div class="bita-card-score" aria-label="Salud del agua: ${score} de 100">
-          <span class="bita-score-num" style="color:${scoreColor};">${score}</span>
-          <span class="bita-score-den">/ 100</span>
+      <div class="phc-slide" data-pindex="${i}" aria-label="Foto ${i + 1} de ${list.length}">
+        <div class="phc-card">
+          <img src="${url}" alt="Foto ${i + 1} del servicio" loading="lazy" />
+          <div class="phc-veil-tl" aria-hidden="true"></div>
+          <div class="phc-score" aria-label="Salud del agua: ${score} de 100">
+            <span class="bita-score-num" style="color:${scoreColor};">${score}</span>
+            <span class="bita-score-den">/ 100 · salud</span>
+          </div>
+          <div class="phc-expand"><i class="fa-solid fa-expand" aria-hidden="true"></i></div>
+          <div class="phc-dim" aria-hidden="true"></div>
         </div>
-        <div class="gallery-3d-overlay"><i class="fa-solid fa-expand text-white"></i></div>
       </div>`;
   }).join('');
 
   const arrows = list.length > 1 ? `
-    <button class="gallery-3d-arrow prev" onclick="BitacoraUI.slide3D(-1)" aria-label="Foto anterior" type="button"><i class="fa-solid fa-chevron-left"></i></button>
-    <button class="gallery-3d-arrow next" onclick="BitacoraUI.slide3D(1)" aria-label="Foto siguiente" type="button"><i class="fa-solid fa-chevron-right"></i></button>` : '';
+    <button class="dcar-arrow prev" id="phc-prev" type="button" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="dcar-arrow next" id="phc-next" type="button" aria-label="Foto siguiente"><i class="fa-solid fa-chevron-right"></i></button>` : '';
 
   const dots = list.length > 1
-    ? `<div class="gallery-3d-dots" id="gallery-3d-dots">${list.map((_, i) => `<span class="gallery-3d-dot ${i === 0 ? 'active' : ''}" onclick="BitacoraUI.goTo3DSlide(${i})" role="button" aria-label="Ir a foto ${i + 1}"></span>`).join('')}</div>`
+    ? `<div class="dcar-dots" id="phc-dots">${list.map((_, i) => `<button class="dcar-dot ${i === 0 ? 'active' : ''}" data-pdot="${i}" type="button" aria-label="Ir a foto ${i + 1}"></button>`).join('')}</div>`
     : '';
 
   return `
-  <section class="bita-hero" aria-label="Fotografías del servicio">
-    <div class="gallery-3d-wrapper" style="margin:0;">
-      ${arrows}
-      <div class="gallery-3d-container">
-        <div class="gallery-3d-track" id="gallery-3d-track" role="list">
-          ${cards}
-        </div>
-      </div>
-      ${dots}
+  <section class="phc" id="phc" aria-roledescription="carrusel" aria-label="Fotografías del servicio">
+    <div class="phc-stage" id="phc-stage" role="list">
+      ${slides}
     </div>
-  </section>`;
+    ${arrows}
+  </section>
+  ${dots}`;
 }
 
 // ─────────────────────────────────────────
-//  GRÁFICO 3D DE SALUD DEL AGUA (RADAR)
+//  LECTURAS DEL FOTÓMETRO — TUBOS DE ENSAYO 3D
+//  Compacto. El líquido toma color por estado (verde/amarillo/rojo).
 // ─────────────────────────────────────────
 
-function _renderWaterRadar(bitacora, accent) {
+function _renderTubes(bitacora) {
   const lecturas = bitacora.lecturas || {};
-  const axes = [
+  const tubos = [
     { key: 'ph',              label: 'pH' },
     { key: 'cloro_libre',     label: 'Cloro' },
     { key: 'alcalinidad',     label: 'Alcal.' },
     { key: 'dureza_calcica',  label: 'Dureza' },
     { key: 'lsi',             label: 'LSI' },
-    { key: 'cloro_combinado', label: 'Cl. comb.' },
-  ].filter(a => lecturas[a.key] !== undefined && lecturas[a.key] !== null && PARAMETROS[a.key]);
+    { key: 'cloro_combinado', label: 'Cl.comb' },
+  ].filter(t => lecturas[t.key] !== undefined && lecturas[t.key] !== null && PARAMETROS[t.key]);
 
-  const N = axes.length;
-  if (N < 3) return '';
+  if (!tubos.length) return '';
 
-  const cx = 140, cy = 130, R = 92;
-  const valOf = (a) => {
-    const est = _estadoParamCtx(a.key, PARAMETROS[a.key], lecturas[a.key], bitacora);
-    return est === 'optimo' ? 1 : est === 'alerta' ? 0.58 : 0.3;
-  };
-  const ang = (i) => (-90 + i * 360 / N) * Math.PI / 180;
-  const pt  = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))];
-
-  let grid = '';
-  [0.25, 0.5, 0.75, 1].forEach(level => {
-    const pts = axes.map((_, i) => pt(i, R * level).map(n => n.toFixed(1)).join(',')).join(' ');
-    grid += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
-  });
-
-  let spokes = '', labels = '';
-  axes.forEach((a, i) => {
-    const [x, y] = pt(i, R);
-    spokes += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
-    const [lx, ly] = pt(i, R + 17);
-    const anchor = Math.abs(lx - cx) < 8 ? 'middle' : (lx > cx ? 'start' : 'end');
-    labels += `<text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" fill="#9fb3c2" font-size="10.5" font-weight="700" text-anchor="${anchor}" font-family="'Bricolage Grotesque',sans-serif">${a.label}</text>`;
-  });
-
-  const dataPts = axes.map((a, i) => pt(i, R * valOf(a)).map(n => n.toFixed(1)).join(',')).join(' ');
-  const dots = axes.map((a, i) => {
-    const [x, y] = pt(i, R * valOf(a));
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="${accent}" stroke="#0b1420" stroke-width="1.5"/>`;
+  const cols = tubos.map(t => {
+    const cfg    = PARAMETROS[t.key];
+    const val    = lecturas[t.key];
+    const estado = _estadoParamCtx(t.key, cfg, val, bitacora);
+    const color  = estado === 'optimo' ? '#2D9E6B' : estado === 'alerta' ? '#E8A838' : '#D95C5C';
+    const fill   = Math.max(14, Math.min(94, _valToPct(val, cfg)));
+    const valStr = val.toFixed(cfg.decimales);
+    return `
+      <div class="tube-col">
+        <div class="tube-val" style="color:${color};">${valStr}</div>
+        <div class="tube" role="img" aria-label="${cfg.label}: ${valStr}">
+          <div class="tube-cap"></div>
+          <div class="tube-liquid" style="height:${fill}%; --liq:${color};">
+            <span class="tube-meniscus"></span>
+            <span class="tube-shine"></span>
+          </div>
+          <div class="tube-glass"></div>
+        </div>
+        <div class="tube-lbl">${t.label}</div>
+      </div>`;
   }).join('');
 
-  const legend = [['#2D9E6B', 'Óptimo'], ['#E8A838', 'Corregido'], ['#D95C5C', 'Alerta']]
-    .map(([c, l]) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#9fb3c2;"><span style="width:9px;height:9px;border-radius:50%;background:${c};"></span>${l}</span>`)
-    .join('');
-
   return `
-  <div class="premium-dark-card" style="padding:18px 10px 14px; display:flex; flex-direction:column; align-items:center;">
-    <svg width="280" height="252" viewBox="0 0 280 252" style="max-width:100%;" role="img" aria-label="Gráfico de balance químico del agua">
-      <defs>
-        <radialGradient id="radarFill" cx="50%" cy="44%" r="62%">
-          <stop offset="0%" stop-color="${accent}" stop-opacity="0.55"/>
-          <stop offset="100%" stop-color="${accent}" stop-opacity="0.10"/>
-        </radialGradient>
-        <filter id="radarGlow" x="-40%" y="-40%" width="180%" height="180%">
-          <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="${accent}" flood-opacity="0.5"/>
-        </filter>
-      </defs>
-      ${grid}
-      ${spokes}
-      <polygon points="${dataPts}" fill="url(#radarFill)" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" filter="url(#radarGlow)"/>
-      ${dots}
-      ${labels}
-    </svg>
-    <div style="display:flex; gap:16px; margin-top:8px; flex-wrap:wrap; justify-content:center;">${legend}</div>
+  <div class="premium-dark-card tube-card">
+    <div class="tube-rack">${cols}</div>
   </div>`;
 }
 
@@ -1108,7 +1078,6 @@ function _formatFechaLarga(dateStr) {
 
 const BitacoraUI = {
   _currentIndex: 0,
-  _current3DIndex: 0,
   _fotos: [],
 
   // Visor de foto a pantalla completa: vive como singleton en <body> para
@@ -1217,100 +1186,6 @@ const BitacoraUI = {
     img.src = this._fotos[this._currentIndex];
   },
 
-  // Métodos del carrusel 3D Coverflow
-  slide3D(dir) {
-    const fotosRaw = window._currentBitacora?.fotos || [];
-    if (!fotosRaw.length) return;
-    this._current3DIndex = (this._current3DIndex + dir + fotosRaw.length) % fotosRaw.length;
-    this.update3DGallery();
-  },
-
-  goTo3DSlide(index) {
-    this._current3DIndex = index;
-    this.update3DGallery();
-  },
-
-  handleCardClick(index) {
-    if (this._current3DIndex === index) {
-      this.openGallery(index);
-    } else {
-      this._current3DIndex = index;
-      this.update3DGallery();
-    }
-  },
-
-  update3DGallery() {
-    const track = document.getElementById('gallery-3d-track');
-    if (!track) return;
-    const cards = Array.from(track.querySelectorAll('.gallery-3d-card'));
-    const dots = Array.from(document.querySelectorAll('.gallery-3d-dot'));
-    if (!cards.length) return;
-
-    const total = cards.length;
-    let activeIdx = this._current3DIndex || 0;
-
-    cards.forEach((card, i) => {
-      let diff = i - activeIdx;
-      
-      let rotateY = 0;
-      let translateZ = 0;
-      let translateX = 0;
-      let scale = 1;
-      let opacity = 1;
-      let zIndex = 100 - Math.abs(diff);
-
-      if (diff === 0) {
-        rotateY = 0;
-        translateZ = 80;
-        translateX = 0;
-        scale = 1.05;
-        opacity = 1;
-      } else {
-        rotateY = diff < 0 ? 30 : -30;
-        translateZ = -90;
-        // Shift factor is dynamic to allow card visibility on various screens
-        translateX = diff * 120;
-        scale = 0.82;
-        opacity = 0.65;
-        if (Math.abs(diff) > 1) {
-          opacity = 0.25;
-        }
-      }
-
-      card.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
-      card.style.zIndex = zIndex;
-      card.style.opacity = opacity;
-      card.classList.toggle('active', i === activeIdx);
-    });
-
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('active', i === activeIdx);
-    });
-  },
-
-  init3DSwipe() {
-    const track = document.getElementById('gallery-3d-track');
-    if (!track) return;
-    let startX = 0;
-    let endX = 0;
-
-    track.addEventListener('touchstart', (e) => {
-      startX = e.touches[0].clientX;
-    }, { passive: true });
-
-    track.addEventListener('touchend', (e) => {
-      endX = e.changedTouches[0].clientX;
-      const diff = startX - endX;
-      if (Math.abs(diff) > 40) {
-        if (diff > 0) {
-          this.slide3D(1);
-        } else {
-          this.slide3D(-1);
-        }
-      }
-    }, { passive: true });
-  },
-
   shareWhatsApp() {
     const bit  = window._currentBitacora;
     const prof = window._currentClientProfile;
@@ -1398,8 +1273,9 @@ const DetailCarousel = {
     }, { passive: true });
 
     // Arrastre con mouse (desktop)
+    // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
     let mx = null;
-    stage.addEventListener('pointerdown', (e) => { mx = e.clientX; });
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
     if (this._onUp) window.removeEventListener('pointerup', this._onUp);
     this._onUp = (e) => {
       if (mx == null) return;
@@ -1452,6 +1328,106 @@ const DetailCarousel = {
 };
 window.DetailCarousel = DetailCarousel;
 
+// ─────────────────────────────────────────
+//  CARRUSEL 3D DE FOTOS (coverflow) — mismo motor que los otros dos
+// ─────────────────────────────────────────
+
+const PhotoCarousel = {
+  active: 0,
+  total: 0,
+  _onUp: null,
+
+  init() {
+    const stage = document.getElementById('phc-stage');
+    if (!stage) return;
+    this.total = stage.querySelectorAll('.phc-slide').length;
+    this.active = 0;
+    this.layout();
+
+    const prev = document.getElementById('phc-prev');
+    const next = document.getElementById('phc-next');
+    prev && (prev.onclick = () => this.go(this.active - 1));
+    next && (next.onclick = () => this.go(this.active + 1));
+
+    document.querySelectorAll('[data-pdot]').forEach(d => {
+      d.onclick = () => this.go(parseInt(d.dataset.pdot, 10));
+    });
+
+    stage.querySelectorAll('.phc-slide').forEach(sl => {
+      sl.addEventListener('click', (e) => {
+        if (e.target.closest('button, a')) return;
+        const idx = parseInt(sl.dataset.pindex, 10);
+        e.stopPropagation();
+        if (idx === this.active) BitacoraUI.openGallery(this.active);
+        else this.go(idx);
+      });
+    });
+
+    let sx = null;
+    stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener('touchend', (e) => {
+      if (sx == null) return;
+      const dx = e.changedTouches[0].clientX - sx;
+      if (dx > 40) this.go(this.active - 1);
+      else if (dx < -40) this.go(this.active + 1);
+      sx = null;
+    }, { passive: true });
+
+    // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
+    let mx = null;
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
+    if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+    this._onUp = (e) => {
+      if (mx == null) return;
+      const dx = e.clientX - mx;
+      if (dx > 50) this.go(this.active - 1);
+      else if (dx < -50) this.go(this.active + 1);
+      mx = null;
+    };
+    window.addEventListener('pointerup', this._onUp);
+  },
+
+  go(i) {
+    if (!this.total) return;
+    this.active = ((i % this.total) + this.total) % this.total;
+    this.layout();
+  },
+
+  layout() {
+    const slides = Array.from(document.querySelectorAll('#phc-stage .phc-slide'));
+    const total = slides.length;
+    slides.forEach((sl, i) => {
+      let off = i - this.active;
+      if (off > total / 2) off -= total;
+      if (off < -total / 2) off += total;
+
+      let transform, opacity, z, pe = 'auto';
+      if (off === 0) {
+        transform = 'translateX(-50%) rotateY(0deg) scale(1)';
+        opacity = 1; z = 30;
+      } else if (Math.abs(off) === 1) {
+        const d = off > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${d * 58}%)) rotateY(${d * -30}deg) scale(0.82)`;
+        opacity = 1; z = 20;
+      } else {
+        const d = off > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${d * 72}%)) rotateY(${d * -30}deg) scale(0.78)`;
+        opacity = 0; z = 10; pe = 'none';
+      }
+      sl.style.transform = transform;
+      sl.style.opacity = opacity;
+      sl.style.zIndex = z;
+      sl.style.pointerEvents = pe;
+      sl.classList.toggle('is-active', off === 0);
+    });
+
+    document.querySelectorAll('[data-pdot]').forEach((d, i) => {
+      d.classList.toggle('active', i === this.active);
+    });
+  },
+};
+window.PhotoCarousel = PhotoCarousel;
+
 // Post-render
 window.PostRender = window.PostRender || {}; // <-- ESTA ES LA LÍNEA SALVAVIDAS
 
@@ -1489,36 +1465,28 @@ window.PostRender.bitacora = function() {
   }
   
   window._bitacoraKeyHandler = function onKey(e) {
+    const modal = document.getElementById('gallery-modal');
+    const galleryOpen = modal && !modal.classList.contains('hidden');
     if (e.key === 'Escape') BitacoraUI.closeGallery();
     if (e.key === 'ArrowLeft') {
-      const modal = document.getElementById('gallery-modal');
-      if (modal && !modal.classList.contains('hidden')) {
-        BitacoraUI.galleryPrev();
-      } else {
-        BitacoraUI.slide3D(-1);
-      }
+      if (galleryOpen) BitacoraUI.galleryPrev();
+      else PhotoCarousel.go(PhotoCarousel.active - 1);
     }
     if (e.key === 'ArrowRight') {
-      const modal = document.getElementById('gallery-modal');
-      if (modal && !modal.classList.contains('hidden')) {
-        BitacoraUI.galleryNext();
-      } else {
-        BitacoraUI.slide3D(1);
-      }
+      if (galleryOpen) BitacoraUI.galleryNext();
+      else PhotoCarousel.go(PhotoCarousel.active + 1);
     }
   };
-  
+
   document.addEventListener('keydown', window._bitacoraKeyHandler);
 
   // Inicializar carruseles 3D Coverflow (fotos + detalles) — robusto: rAF + fallback
-  BitacoraUI._current3DIndex = 0;
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    BitacoraUI.update3DGallery();
+    PhotoCarousel.init();
     DetailCarousel.init();
   }));
   setTimeout(() => {
-    BitacoraUI.update3DGallery();
-    BitacoraUI.init3DSwipe();
+    PhotoCarousel.init();
     DetailCarousel.init();
   }, 120);
 
@@ -1526,7 +1494,7 @@ window.PostRender.bitacora = function() {
   if (window._bitacoraResizeHandler) {
     window.removeEventListener('resize', window._bitacoraResizeHandler);
   }
-  window._bitacoraResizeHandler = () => { BitacoraUI.update3DGallery(); DetailCarousel.layout(); };
+  window._bitacoraResizeHandler = () => { PhotoCarousel.layout(); DetailCarousel.layout(); };
   window.addEventListener('resize', window._bitacoraResizeHandler);
 };
 
@@ -1534,3 +1502,4 @@ window.renderBitacoraDetalle = renderBitacoraDetalle;
 window.PARAMETROS = PARAMETROS;
 window.BitacoraUI = BitacoraUI;
 window.DetailCarousel = DetailCarousel;
+window.PhotoCarousel = PhotoCarousel;

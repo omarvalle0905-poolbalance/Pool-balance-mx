@@ -2389,30 +2389,84 @@
 
 /* ═══════════════════════════════════════════
    BITÁCORA — VISTA 3 (rediseño)
-   Hero de fotos 3D con score superpuesto + carrusel de detalles
 ═══════════════════════════════════════════ */
-.bita-hero { position: relative; border-radius: 18px; }
 
-/* Score superpuesto en la esquina de la foto ACTIVA.
-   Vive dentro de cada tarjeta y solo se muestra en la activa, así
-   queda perfectamente alineado con la fotografía central. */
-.bita-card-veil {
-  position: absolute; top: 0; left: 0; width: 70%; height: 52%;
-  z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.45s ease;
+/* ── Carrusel 3D de fotos (mismo motor coverflow que los otros dos) ── */
+.phc { position: relative; height: 360px; perspective: 1600px; touch-action: pan-y; overflow: hidden; }
+.phc-stage { position: absolute; inset: 0; transform-style: preserve-3d; }
+.phc-slide {
+  position: absolute; left: 50%; top: 10px; width: 300px;
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.5s ease;
+  cursor: pointer; will-change: transform;
+}
+.phc-slide.is-active { cursor: zoom-in; }
+.phc-card {
+  position: relative; width: 300px; height: 330px; border-radius: 22px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.12); background: #0b1420;
+  box-shadow: 0 30px 62px -18px rgba(0,0,0,0.75);
+}
+.phc-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Velo sólido que oscurece las fotos NO activas (evita el "fantasma"
+   de la foto de atrás que se transparentaba) */
+.phc-dim { position: absolute; inset: 0; background: rgba(4,12,22,0.52); opacity: 1; transition: opacity 0.5s ease; pointer-events: none; }
+.phc-slide.is-active .phc-dim { opacity: 0; }
+/* Degradado para dar contraste al score (solo en la activa) */
+.phc-veil-tl {
+  position: absolute; top: 0; left: 0; width: 74%; height: 50%; pointer-events: none;
+  opacity: 0; transition: opacity 0.45s ease; z-index: 2;
   background: radial-gradient(120% 120% at 0% 0%, rgba(2,10,18,0.82) 0%, rgba(2,10,18,0.30) 48%, transparent 74%);
 }
-.bita-card-score {
-  position: absolute; top: 12px; left: 13px; z-index: 3; pointer-events: none;
+.phc-slide.is-active .phc-veil-tl { opacity: 1; }
+.phc-score {
+  position: absolute; top: 15px; left: 16px; z-index: 3; pointer-events: none;
   display: flex; flex-direction: column; line-height: 1;
   opacity: 0; transform: translateY(-4px); transition: opacity 0.45s ease, transform 0.45s ease;
 }
-.gallery-3d-card.active .bita-card-veil { opacity: 1; }
-.gallery-3d-card.active .bita-card-score { opacity: 1; transform: none; }
-.bita-score-num {
-  font-size: 54px; font-weight: 800; line-height: 0.9; letter-spacing: -0.02em;
-  text-shadow: 0 4px 18px rgba(0,0,0,0.6);
+.phc-slide.is-active .phc-score { opacity: 1; transform: none; }
+.phc-expand {
+  position: absolute; bottom: 12px; right: 12px; z-index: 3; width: 34px; height: 34px;
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.5); color: #fff; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  opacity: 0; transition: opacity 0.45s ease;
 }
-.bita-score-den { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #eaf6f9; margin-top: 3px; opacity: 0.9; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+.phc-slide.is-active .phc-expand { opacity: 1; }
+.bita-score-num { font-size: 56px; font-weight: 800; line-height: 0.9; letter-spacing: -0.02em; text-shadow: 0 4px 18px rgba(0,0,0,0.6); }
+.bita-score-den { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #eaf6f9; margin-top: 4px; opacity: 0.92; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+
+/* ── Lecturas del fotómetro: tubos de ensayo 3D (compacto) ── */
+.tube-card { padding: 16px 8px 12px; }
+.tube-rack { display: flex; justify-content: space-between; align-items: flex-end; gap: 4px; }
+.tube-col { display: flex; flex-direction: column; align-items: center; gap: 7px; flex: 1 1 0; min-width: 0; }
+.tube-val { font-size: 12.5px; font-weight: 800; line-height: 1; }
+.tube {
+  position: relative; width: 30px; height: 104px;
+  border-radius: 7px 7px 11px 11px / 9px 9px 13px 13px;
+}
+.tube-cap {
+  position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+  width: 36px; height: 9px; border-radius: 5px; z-index: 4;
+  background: linear-gradient(180deg, #e4ebf0 0%, #aeb9c2 55%, #8b97a1 100%);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.45);
+}
+.tube-glass {
+  position: absolute; inset: 0; border-radius: inherit; z-index: 3; pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.28);
+  background:
+    linear-gradient(100deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.22) 14%, rgba(255,255,255,0.02) 34%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.12) 92%);
+  box-shadow: inset 0 0 9px rgba(255,255,255,0.10), inset 0 -10px 14px rgba(0,0,0,0.25);
+}
+.tube-liquid {
+  position: absolute; left: 2px; right: 2px; bottom: 2px; z-index: 1;
+  border-radius: 3px 3px 8px 8px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 30%, rgba(0,0,0,0.22) 100%),
+    var(--liq);
+  box-shadow: inset 0 -6px 10px rgba(0,0,0,0.28), 0 0 16px -2px var(--liq);
+  transition: height 0.85s cubic-bezier(0.22,1,0.36,1);
+}
+.tube-meniscus { position: absolute; top: -2px; left: 0; right: 0; height: 5px; border-radius: 50%; background: var(--liq); filter: brightness(1.45); }
+.tube-shine { position: absolute; top: 2px; left: 4px; width: 5px; bottom: 6px; border-radius: 99px; background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0)); opacity: 0.5; }
+.tube-lbl { font-size: 8.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #9fb3c2; text-align: center; white-space: nowrap; }
 
 /* ── Carrusel 3D de detalles (coverflow, mismo efecto que los otros) ── */
 .dcar { position: relative; height: 352px; perspective: 1500px; touch-action: pan-y; overflow: hidden; margin-top: 4px; }

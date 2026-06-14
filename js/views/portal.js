@@ -401,6 +401,7 @@ const PortalCarousel = {
   active: 0,
   total: 0,
   _bound: false,
+  _onUp: null,
 
   init() {
     const stage = document.getElementById('pcar-stage');
@@ -440,16 +441,18 @@ const PortalCarousel = {
       sx = null;
     }, { passive: true });
 
-    // Arrastre con mouse (desktop)
+    // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
     let mx = null;
-    stage.addEventListener('pointerdown', (e) => { mx = e.clientX; });
-    window.addEventListener('pointerup', (e) => {
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
+    if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+    this._onUp = (e) => {
       if (mx == null) return;
       const dx = e.clientX - mx;
       if (dx > 50) this.go(this.active - 1);
       else if (dx < -50) this.go(this.active + 1);
       mx = null;
-    });
+    };
+    window.addEventListener('pointerup', this._onUp);
 
     if (!this._bound) {
       this._bound = true;

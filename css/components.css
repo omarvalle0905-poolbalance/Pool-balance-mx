@@ -2172,39 +2172,22 @@
 .pd-month-foot { font-size: 0.68rem; color: rgba(255,255,255,0.42); text-align: center; margin-top: 11px; }
 .pd-month-empty { font-size: 0.82rem; color: rgba(255,255,255,0.5); text-align: center; padding: 6px 0; }
 
-/* Aura acuática + lift 3D alrededor de la tarjeta de login.
-   Tonos de agua (cristal → teal → marino), contorno tenue por debajo
-   para dar profundidad, sin saturar el frente de la tarjeta. */
+/* Tarjeta de login: lift 3D limpio, sin aura animada — mismo lenguaje
+   visual sobrio que el resto del portal (borde sutil + sombra profunda
+   + un fino acento coral arriba). */
 .pd-login-card {
   position: relative;
   isolation: isolate;
-  box-shadow:
-    0 26px 60px rgba(3, 18, 32, 0.55),       /* sombra base — lift 3D */
-    0 10px 34px rgba(111, 184, 198, 0.20);   /* halo acuático inferior */
+  box-shadow: 0 26px 60px rgba(3, 18, 32, 0.55);
 }
 .pd-login-card::before {
   content: '';
   position: absolute;
-  inset: -2px;
-  border-radius: 26px;
-  z-index: -1;
-  background: linear-gradient(130deg,
-    #8ecbd7 0%,
-    #6FB8C6 26%,
-    #2f93b6 50%,
-    #1a5a82 74%,
-    #6FB8C6 100%);
-  background-size: 240% 240%;
-  filter: blur(12px);
-  opacity: 0.55;
-  animation: pd-aura 9s ease-in-out infinite;
-}
-@keyframes pd-aura {
-  0%, 100% { background-position: 0% 50%; }
-  50%      { background-position: 100% 50%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pd-login-card::before { animation: none; }
+  top: 0; left: 24px; right: 24px;
+  height: 3px;
+  border-radius: 0 0 99px 99px;
+  background: linear-gradient(90deg, transparent, var(--color-arcilla), transparent);
+  opacity: 0.85;
 }
 
 /* ═══════════════════════════════════════════
@@ -2309,7 +2292,8 @@
 .pcar-card-bar { height: 5px; width: 100%; flex-shrink: 0; background: linear-gradient(90deg, var(--accent), transparent); }
 .pcar-card-body { padding: 18px; display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .pcar-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.pcar-id { font-size: 0.62rem; font-family: ui-monospace, monospace; color: rgba(255,255,255,0.4); letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 58%; }
+.pcar-time { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.55); white-space: nowrap; }
+.pcar-time i { font-size: 0.66rem; color: var(--color-cristal); }
 .pcar-badge { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; border: 1px solid; flex-shrink: 0; }
 .pcar-date { color: #fff; font-weight: 800; font-size: 1.05rem; line-height: 1.18; margin-top: 10px; }
 .pcar-tech-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; padding-bottom: 13px; border-bottom: 1px solid rgba(255,255,255,0.08); }
@@ -2437,7 +2421,7 @@
 .tube-card { padding: 16px 8px 12px; }
 .tube-rack { display: flex; justify-content: space-between; align-items: flex-end; gap: 4px; }
 .tube-col { display: flex; flex-direction: column; align-items: center; gap: 7px; flex: 1 1 0; min-width: 0; }
-.tube-val { font-size: 12.5px; font-weight: 800; line-height: 1; }
+.tube-val { font-size: 12.5px; font-weight: 800; line-height: 1; color: #e7eef4; }
 .tube {
   position: relative; width: 30px; height: 104px;
   border-radius: 7px 7px 11px 11px / 9px 9px 13px 13px;
@@ -2467,6 +2451,14 @@
 .tube-meniscus { position: absolute; top: -2px; left: 0; right: 0; height: 5px; border-radius: 50%; background: var(--liq); filter: brightness(1.45); }
 .tube-shine { position: absolute; top: 2px; left: 4px; width: 5px; bottom: 6px; border-radius: 99px; background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0)); opacity: 0.5; }
 .tube-lbl { font-size: 8.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #9fb3c2; text-align: center; white-space: nowrap; }
+/* Foquito de estado (semáforo) — se "prende" en verde/amarillo/rojo */
+.tube-led {
+  width: 19px; height: 19px; border-radius: 50%; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 8.5px;
+  background: var(--led);
+  box-shadow: 0 0 9px 1px var(--led), inset 0 1px 1px rgba(255,255,255,0.45);
+}
 
 /* ── Carrusel 3D de detalles (coverflow, mismo efecto que los otros) ── */
 .dcar { position: relative; height: 352px; perspective: 1500px; touch-action: pan-y; overflow: hidden; margin-top: 4px; }

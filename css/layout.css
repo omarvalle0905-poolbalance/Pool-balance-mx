@@ -49,13 +49,13 @@
 .brand-topbar-logo {
   width: 46px;
   height: 46px;
-  object-fit: cover;
-  /* Círculo perfecto que integra el logo aunque tenga fondo blanco */
-  border-radius: 50%;
+  object-fit: contain;
+  /* Logo sin contorno/trazo: se funde limpio con el fondo marino */
+  border-radius: 12px;
   flex-shrink: 0;
-  /* Borde cristal sutil */
-  border: 2px solid rgba(111, 184, 198, 0.6);
-  box-shadow: 0 0 0 3px rgba(111,184,198,0.18), 0 2px 10px rgba(0,0,0,0.25);
+  border: none;
+  background: transparent;
+  filter: drop-shadow(0 3px 10px rgba(0,0,0,0.35));
 }
 
 .brand-topbar-text {
@@ -384,7 +384,53 @@ body.portal-only .bottom-nav {
 
 body.portal-only .main-content {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: transparent;
 }
+
+/* ── FONDO GLOBAL (page gradient) ──
+   Fijo al viewport mediante un pseudo-elemento: cubre toda la pantalla
+   sin cortes al hacer scroll (robusto en iOS, donde background-attachment:
+   fixed no funciona). El degradado es el oficial Pool Balance. */
+body.portal-only {
+  background-color: #02101c !important;
+}
+body.portal-only::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 60%, rgba(111,184,198,0.10), transparent 70%),
+    linear-gradient(
+      180deg,
+      #2E7AA8 0%,
+      #1a5a82 14%,
+      #0E4569 28%,
+      #0a3350 44%,
+      #062338 60%,
+      #02101c 76%,
+      #00060c 90%,
+      #000000 100%
+    );
+}
+
+/* Las vistas del portal se vuelven transparentes para dejar ver el fondo global */
+body.portal-only .portal-dark { background: transparent; }
+body.portal-only #view-dashboard,
+body.portal-only #view-portal-login,
+body.portal-only #view-portal-restoring { background: transparent; }
+body.portal-only #view-bitacora-detalle { background: transparent !important; }
+
+/* Topbar: se funde con el fondo marino (sin caja ni borde) en el portal */
+body.portal-only .brand-topbar {
+  background: linear-gradient(180deg, rgba(8,40,64,0.55) 0%, rgba(8,40,64,0) 100%);
+  border-bottom: none;
+  box-shadow: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+body.portal-only .brand-topbar::after { display: none; }
 
 /* Escritorio: ocultar los enlaces de módulos del sidebar.
    Se conserva el logo y el CTA de WhatsApp. */

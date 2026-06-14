@@ -2176,3 +2176,255 @@
 @media (prefers-reduced-motion: reduce) {
   .pd-login-card::before { animation: none; }
 }
+
+/* ═══════════════════════════════════════════
+   DASHBOARD v6 — Cabecera limpia + saludo typewriter
+═══════════════════════════════════════════ */
+.pd-hero2 { padding: 26px 20px 14px; position: relative; }
+.pd-hero2-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+
+/* Marca de logo SIN contorno — se funde con el fondo marino */
+.pd-brandmark { position: relative; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; }
+.pd-brandmark-img {
+  width: 48px; height: 48px; object-fit: contain;
+  border: none; background: transparent; border-radius: 12px;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,0.45));
+  animation: pd-logo-in 0.6s cubic-bezier(0.22,1,0.36,1) both;
+}
+.pd-brandmark-pulse {
+  position: absolute; inset: -6px; border-radius: 50%; z-index: -1;
+  background: radial-gradient(circle, rgba(111,184,198,0.30) 0%, transparent 70%);
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+@keyframes pd-logo-in {
+  0%   { opacity: 0; transform: scale(0.6) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Saludo typewriter — nace desde el logo */
+.pd-greet {
+  font-size: 1.85rem; font-weight: 800; color: #fff; line-height: 1.12;
+  letter-spacing: -0.02em; margin: 2px 0 12px; min-height: 1.3em;
+  display: flex; align-items: baseline; flex-wrap: wrap;
+  transform-origin: left center;
+  animation: pd-greet-in 0.5s ease both;
+}
+@keyframes pd-greet-in {
+  0%   { opacity: 0; transform: translateX(-10px) scale(0.96); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+.pd-greet-text { background: linear-gradient(92deg, #ffffff 0%, #cfeaf1 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.pd-greet-caret { color: var(--color-cristal); font-weight: 400; margin-left: 2px; transform: translateY(1px); }
+.pd-greet-caret--blink { animation: pd-caret 1s steps(1) infinite; }
+@keyframes pd-caret { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+
+/* Fila de plan: botón interactivo (upsell) + ubicación */
+.pd-plan-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pd-plan-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.8rem; font-weight: 700; color: var(--color-cristal);
+  background: rgba(111,184,198,0.14); border: 1px solid rgba(111,184,198,0.34);
+  padding: 7px 14px; border-radius: 99px; cursor: pointer; font-family: inherit;
+  transition: background .2s, transform .15s, box-shadow .2s;
+}
+.pd-plan-btn:hover { background: rgba(111,184,198,0.24); box-shadow: 0 6px 18px rgba(111,184,198,0.18); }
+.pd-plan-btn:active { transform: scale(.97); }
+.pd-plan-chevron { font-size: 0.62rem; opacity: 0.8; }
+.pd-loc { font-size: 0.76rem; color: rgba(255,255,255,0.5); }
+
+/* Dos tarjetas: Próxima visita · Retrolavado */
+.pd-twin { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px; margin-bottom: 14px; }
+.pd-twin-card {
+  display: flex; align-items: flex-start; gap: 12px; padding: 16px 15px;
+  border-radius: 18px;
+  background: linear-gradient(165deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 0 10px 30px -16px rgba(0,0,0,0.6);
+}
+.pd-twin-ico {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  background: rgba(111,184,198,0.14); color: var(--color-cristal);
+  display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+}
+.pd-twin-body { min-width: 0; }
+.pd-twin-lbl { font-size: 0.64rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+.pd-twin-val { font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; }
+.pd-twin-unit { font-size: 0.85rem; font-weight: 700; color: rgba(255,255,255,0.6); }
+.pd-twin-sub { font-size: 0.66rem; color: rgba(255,255,255,0.42); margin-top: 5px; line-height: 1.3; }
+
+/* ── Carrusel 3D de bitácoras (coverflow) ── */
+.pd-carousel-sec { padding: 6px 16px 18px; }
+.pcar {
+  position: relative; width: 100%; height: 446px; margin-top: 8px;
+  perspective: 1500px; touch-action: pan-y; overflow: hidden;
+}
+.pcar-stage { position: absolute; inset: 0; transform-style: preserve-3d; }
+.pcar-slide {
+  position: absolute; left: 50%; top: 6px; width: 250px;
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.5s ease;
+  cursor: pointer; will-change: transform;
+}
+.pcar-slide.is-active { cursor: default; }
+
+.pcar-card {
+  position: relative; width: 250px; height: 420px; border-radius: 24px; overflow: hidden;
+  display: flex; flex-direction: column;
+  background:
+    linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 55%),
+    linear-gradient(160deg, #1a5a82 0%, #0E4569 55%, #0a3350 100%);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 28px 60px -16px rgba(0,0,0,0.65);
+  user-select: none;
+}
+.pcar-card-bar { height: 5px; width: 100%; flex-shrink: 0; background: linear-gradient(90deg, var(--accent), transparent); }
+.pcar-card-body { padding: 18px; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.pcar-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pcar-id { font-size: 0.62rem; font-family: ui-monospace, monospace; color: rgba(255,255,255,0.4); letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 58%; }
+.pcar-badge { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; border: 1px solid; flex-shrink: 0; }
+.pcar-date { color: #fff; font-weight: 800; font-size: 1.05rem; line-height: 1.18; margin-top: 10px; }
+.pcar-tech-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; padding-bottom: 13px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.pcar-tech { display: inline-flex; align-items: center; gap: 6px; font-size: 0.68rem; color: rgba(255,255,255,0.55); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcar-tech i { color: var(--color-cristal); }
+.pcar-score-wrap { display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.pcar-score-bar { width: 44px; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.12); overflow: hidden; }
+.pcar-score-bar span { display: block; height: 100%; border-radius: 99px; }
+.pcar-score-num { font-size: 0.9rem; font-weight: 800; }
+.pcar-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.pcar-metric { text-align: center; }
+.pcar-metric-val { font-size: 0.92rem; font-weight: 800; line-height: 1; }
+.pcar-metric-lbl { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin-top: 5px; }
+.pcar-tag { display: flex; align-items: center; gap: 7px; padding: 13px 0; font-size: 0.78rem; color: rgba(255,255,255,0.72); flex: 1; min-height: 0; }
+.pcar-tag-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcar-tag-extra { font-weight: 700; color: var(--color-cristal); white-space: nowrap; flex-shrink: 0; }
+.pcar-tag-spacer { flex: 1; }
+.pcar-actions { display: flex; gap: 8px; margin-top: auto; flex-shrink: 0; }
+.pcar-btn-primary {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  font-size: 0.8rem; font-weight: 800; color: #fff; background: var(--color-arcilla);
+  border: none; padding: 11px; border-radius: 15px; cursor: pointer; font-family: inherit;
+  transition: filter .2s, transform .15s;
+}
+.pcar-btn-primary:hover { filter: brightness(1.07); }
+.pcar-btn-primary:active { transform: scale(.97); }
+.pcar-btn-icon {
+  width: 44px; display: flex; align-items: center; justify-content: center;
+  border-radius: 15px; border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); cursor: pointer;
+  transition: background .2s;
+}
+.pcar-btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.pcar-veil { position: absolute; inset: 0; background: rgba(4,12,22,0.5); pointer-events: none; transition: opacity 0.5s ease; opacity: 1; }
+.pcar-slide.is-active .pcar-veil { opacity: 0; }
+
+.pcar-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 40;
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12);
+  color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: transform .15s, background .2s;
+}
+.pcar-arrow:hover { background: rgba(0,0,0,0.6); }
+.pcar-arrow:active { transform: translateY(-50%) scale(0.92); }
+.pcar-arrow.prev { left: 0; }
+.pcar-arrow.next { right: 0; }
+.pcar-dots { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 16px 0 4px; }
+.pcar-dot { height: 8px; width: 8px; border-radius: 99px; border: none; cursor: pointer; padding: 0; background: rgba(255,255,255,0.2); transition: width .3s ease, background .3s ease; }
+.pcar-dot.active { width: 22px; background: var(--color-arcilla); }
+.pcar-hint { text-align: center; color: rgba(255,255,255,0.3); font-size: 0.7rem; margin-top: 2px; }
+
+/* ── Modal de mejora de plan (upsell) ── */
+.pd-upsell-modal {
+  position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center;
+  padding: 22px; background: rgba(3,12,22,0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease both;
+}
+.pd-upsell-modal.hidden { display: none !important; }
+.pd-upsell-card {
+  position: relative; width: 100%; max-width: 360px; padding: 30px 24px 26px; text-align: center;
+  border-radius: 24px; color: #EEF1F5;
+  background: linear-gradient(165deg, #14324a, #0a2740 70%, #07121d);
+  border: 1px solid rgba(111,184,198,0.2);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.6);
+  animation: pd-upsell-in 0.32s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes pd-upsell-in { 0% { opacity: 0; transform: translateY(16px) scale(0.96); } 100% { opacity: 1; transform: none; } }
+.pd-upsell-x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border-radius: 10px; border: none; cursor: pointer; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7); }
+.pd-upsell-x:hover { background: rgba(255,255,255,0.14); }
+.pd-upsell-ico { width: 58px; height: 58px; margin: 0 auto 14px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--color-arcilla); background: rgba(232,102,74,0.14); border: 1px solid rgba(232,102,74,0.3); }
+.pd-upsell-title { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.pd-upsell-sub { font-size: 0.88rem; color: rgba(220,230,238,0.7); line-height: 1.55; margin-bottom: 20px; }
+.pd-upsell-cta { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; padding: 14px; border-radius: 14px; background: var(--color-arcilla); color: #fff; font-weight: 800; text-decoration: none; box-shadow: 0 10px 26px rgba(232,102,74,0.3); transition: background .2s; }
+.pd-upsell-cta:hover { background: var(--color-arcilla-dark); }
+
+/* ═══════════════════════════════════════════
+   BITÁCORA — VISTA 3 (rediseño)
+   Hero de fotos 3D con score superpuesto + carrusel de detalles
+═══════════════════════════════════════════ */
+.bita-hero { position: relative; border-radius: 18px; }
+
+/* Score superpuesto en la esquina de la foto ACTIVA.
+   Vive dentro de cada tarjeta y solo se muestra en la activa, así
+   queda perfectamente alineado con la fotografía central. */
+.bita-card-veil {
+  position: absolute; top: 0; left: 0; width: 70%; height: 52%;
+  z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.45s ease;
+  background: radial-gradient(120% 120% at 0% 0%, rgba(2,10,18,0.82) 0%, rgba(2,10,18,0.30) 48%, transparent 74%);
+}
+.bita-card-score {
+  position: absolute; top: 12px; left: 13px; z-index: 3; pointer-events: none;
+  display: flex; flex-direction: column; line-height: 1;
+  opacity: 0; transform: translateY(-4px); transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.gallery-3d-card.active .bita-card-veil { opacity: 1; }
+.gallery-3d-card.active .bita-card-score { opacity: 1; transform: none; }
+.bita-score-num {
+  font-size: 54px; font-weight: 800; line-height: 0.9; letter-spacing: -0.02em;
+  text-shadow: 0 4px 18px rgba(0,0,0,0.6);
+}
+.bita-score-den { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #eaf6f9; margin-top: 3px; opacity: 0.9; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+
+/* ── Carrusel deslizable de detalles ── */
+.bslide-arrow {
+  width: 34px; height: 34px; border-radius: 11px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #11161F; color: #6FB8C6; border: 1px solid rgba(111,184,198,0.18);
+  transition: background .2s, transform .15s;
+}
+.bslide-arrow:hover { background: #1A2030; }
+.bslide-arrow:active { transform: scale(0.92); }
+
+.bslide-track {
+  display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch; padding: 2px 2px 8px; scroll-padding-left: 2px;
+}
+.bslide-card {
+  flex: 0 0 84%; max-width: 320px; scroll-snap-align: start;
+  background-color: #11161F; border: 1px solid rgba(111,184,198,0.10);
+  border-radius: 16px; padding: 18px; min-height: 220px;
+  display: flex; flex-direction: column; box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+}
+.bslide-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.bslide-ico {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(111,184,198,0.12); color: #6FB8C6; font-size: 0.9rem;
+}
+/* Títulos y textos: SIEMPRE neutros (bruma/gris) */
+.bslide-title { font-size: 14px; font-weight: 600; color: #c7d4df; }
+.bslide-value { display: flex; align-items: baseline; gap: 4px; }
+/* Único elemento con color dinámico: el número */
+.bslide-num { font-size: 38px; font-weight: 800; line-height: 1; }
+.bslide-unit { font-size: 14px; color: #8B95A7; font-weight: 600; }
+.bslide-llegada { font-size: 12px; color: #8B95A7; margin-top: 8px; }
+.bslide-bar { position: relative; height: 6px; background: #1A2030; border-radius: 99px; margin: 14px 0 12px; }
+.bslide-bar span { position: absolute; top: -4px; width: 14px; height: 14px; border-radius: 50%; transform: translateX(-50%); }
+.bslide-desc { font-size: 13px; line-height: 1.55; color: #aebfcd; margin: 0; }
+.bslide-sign { font-size: 13px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #1A2030; }
+.bslide-pills { display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+.bslide-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: #d3dde6; background: #1A2030;
+  border: 1px solid rgba(255,255,255,0.05);
+  padding: 9px 13px; border-radius: 9999px; line-height: 1.2;
+}

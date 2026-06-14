@@ -276,11 +276,13 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     }
   }
 
+  const scoreColor = score >= 80 ? '#2D9E6B' : score >= 60 ? '#E8A838' : '#D95C5C';
+
   return `
   <!-- Scoped style overrides for Premium Dark Theme -->
   <style>
     #view-bitacora-detalle {
-      background-color: #0A0E14 !important;
+      background-color: transparent !important;
       color: #EEF1F5 !important;
       font-family: 'Bricolage Grotesque', sans-serif !important;
       min-height: 100vh;
@@ -403,154 +405,66 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       </button>
     </div>
 
-    <!-- ── HERO DE SALUD DEL AGUA ── -->
-    <div class="premium-dark-card" style="background: linear-gradient(180deg, #0E4569 0%, #0a3350 60%, #0A0E14 100%) !important; padding: 36px 22px; display: flex; flex-direction: column; align-items: center; gap: 22px; border: none !important;">
-      <div>
-        ${_renderScoreRing(score)}
-      </div>
-      <div style="text-align: center;">
-        <h1 style="color: #EEF1F5; font-size: 28px; font-weight: 700; margin-bottom: 8px; line-height: 1.2; font-family: 'Bricolage Grotesque', sans-serif;">
-          ${_scoreLabel(score)}
-        </h1>
-        <p style="color: #d8eff3; font-size: 16px; font-weight: 400; line-height: 1.6; font-family: 'Bricolage Grotesque', sans-serif; max-width: 340px; margin: 0 auto; opacity: 0.9;">
-          ${_getScoreHint(score)}
-        </p>
-        ${pillsHTML}
-      </div>
+    <!-- ── HERO: CARRUSEL 3D DE FOTOS + SCORE SUPERPUESTO ── -->
+    ${_renderPhotoHero(fotos, score, scoreColor)}
+
+    <!-- Resumen breve + pills de estado -->
+    <div style="text-align:center; margin-top:-8px;">
+      <h1 style="color:#EEF1F5; font-size:23px; font-weight:800; line-height:1.2; margin-bottom:6px;">
+        ${_scoreLabel(score)}
+      </h1>
+      <p style="color:#aebfcd; font-size:14.5px; line-height:1.55; max-width:350px; margin:0 auto;">
+        ${_getScoreHint(score)}
+      </p>
+      ${pillsHTML}
     </div>
 
-    <!-- ── SECCIÓN PARÁMETROS DEL AGUA (GRID ESTRICTO DE 2 COLUMNAS) ── -->
+    <!-- ── GRÁFICO 3D DE SALUD DEL AGUA (RADAR) ── -->
     <div>
-      <h2 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
-        PARÁMETROS DEL AGUA
+      <h2 style="color:#6FB8C6; font-size:13px; font-weight:700; letter-spacing:2px; margin-bottom:12px; text-transform:uppercase;">
+        Balance del agua
       </h2>
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-        ${parametrosAMostrar.map(key => {
-          const cfg = PARAMETROS[key];
-          const val = lecturas[key];
-          if (val === undefined || val === null || !cfg) return '';
-          return _renderParametroCard(key, cfg, val, bitacora);
-        }).join('')}
-      </div>
+      ${_renderWaterRadar(bitacora, scoreColor)}
     </div>
-
-    <!-- ── VISITA TÉCNICA ── -->
-    <div class="premium-dark-card" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
-      <div style="font-size: 14px; font-weight: 500; color: #6FB8C6; font-family: 'Bricolage Grotesque', sans-serif;">
-        ${_formatFechaLarga(fecha)} · ${tecnico || 'Omar Valle'}
-      </div>
-      
-      <!-- Photo placeholder / real photo with carousel callback trigger -->
-      <div style="position: relative; width: 100%; height: 230px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.35);">
-        <img 
-          src="${fotos?.length ? _fotoToUrl(fotos[0]) : 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800'}" 
-          alt="Fotografía de servicio" 
-          style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
-          onclick="BitacoraUI.openGallery(0)"
-        />
-        <div style="position: absolute; bottom: 10px; right: 10px; background-color: rgba(0,0,0,0.6); border-radius: 8px; padding: 4px 8px; color: #EEF1F5; font-size: 11px; display: flex; align-items: center; gap: 4px;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <polyline points="9 21 3 21 3 15"></polyline>
-            <line x1="21" y1="3" x2="14" y2="10"></line>
-            <line x1="3" y1="21" x2="10" y2="14"></line>
-          </svg>
-          Ampliar
-        </div>
-      </div>
-      
-      <div style="color: #EEF1F5; font-size: 16px; font-weight: 400; line-height: 1.65; font-family: 'Bricolage Grotesque', sans-serif;">
-        "${notas || 'Servicio periódico realizado. Filtro limpio, fondo aspirado y parámetros equilibrados. El agua es completamente confortable.'}"
-      </div>
-      
-      <!-- Signature Line -->
-      <div style="height: 1px; background-color: #1A2030; width: 100%;"></div>
-      
-      <div style="display: flex; align-items: center; gap: 6px; font-size: 15px; font-family: 'Bricolage Grotesque', sans-serif;">
-        <span style="color: #E8664A; font-weight: 700;">✓</span>
-        <span style="color: #E8664A; font-weight: 700;">Omar Valle</span>
-        <span style="color: #6FB8C6;">· Pool Balance Veracruz</span>
-      </div>
-    </div>
-
-    <!-- ── PRODUCTOS APLICADOS (solo si realmente se aplicaron) ── -->
-    ${chipsHTML ? `
-    <div>
-      <h2 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; margin-bottom: 12px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
-        PRODUCTOS APLICADOS
-      </h2>
-      <div class="custom-scrollbar" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;">
-        ${chipsHTML}
-      </div>
-    </div>` : ''}
 
     <!-- ── BANNER DE ALERTA DINÁMICO ── -->
     ${hasAlertBanner ? `
     <div style="background-color: rgba(232, 168, 56, 0.12); border-left: 3px solid #E8A838; border-radius: 12px; padding: 16px; display: flex; gap: 12px; align-items: start;">
       <span style="color: #E8A838; font-size: 18px;">⚠️</span>
-      <div style="color: #EEF1F5; font-size: 15px; font-weight: 500; font-family: 'Bricolage Grotesque', sans-serif; line-height: 1.5;">
+      <div style="color: #EEF1F5; font-size: 15px; font-weight: 500; line-height: 1.5;">
         ${alertBannerMsg}
       </div>
     </div>` : ''}
 
-    <!-- ── ACCIONES REALIZADAS (Adicional si existen en bítacora real) ── -->
-    ${trabajoRealizado.length ? `
-    <div class="premium-dark-card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-      <h3 style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif;">TRABAJO REALIZADO EN LA VISITA</h3>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${trabajoRealizado.map(acc => `
-          <div style="display: flex; align-items: start; gap: 10px; font-size: 15px;">
-            <span style="color: #2D9E6B; font-weight: bold;">✓</span>
-            <span style="color: #EEF1F5; line-height: 1.45;">${acc}</span>
-          </div>
-        `).join('')}
+    <!-- ── CARRUSEL DESLIZABLE DE DETALLES (parámetros + trabajo + dosificación) ── -->
+    <div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h2 style="color:#6FB8C6; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase;">
+          Detalle del servicio
+        </h2>
+        <div style="display:flex; gap:8px;">
+          <button class="bslide-arrow" onclick="BitacoraUI.slideDetails(-1)" aria-label="Anterior" type="button">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="bslide-arrow" onclick="BitacoraUI.slideDetails(1)" aria-label="Siguiente" type="button">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
       </div>
-    </div>` : ''}
 
-    <!-- ── GALERÍA 3D CAROUSEL (Si existe más de una foto en la bitácora) ── -->
-    ${fotos?.length > 1 ? `
-    <section aria-labelledby="fotos-title" style="overflow:hidden; display: flex; flex-direction: column; gap: 12px;">
-      <h2 id="fotos-title" style="color: #6FB8C6; font-size: 13px; font-weight: 600; letter-spacing: 2px; font-family: 'Bricolage Grotesque', sans-serif; text-transform: uppercase;">
-        RECHAZO DE SÓLIDOS Y MEJORAS (${fotos.length} fotos)
-      </h2>
-      
-      <div class="gallery-3d-wrapper">
-        <button class="gallery-3d-arrow prev" onclick="BitacoraUI.slide3D(-1)" aria-label="Foto anterior" type="button">
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        
-        <div class="gallery-3d-container">
-          <div class="gallery-3d-track" id="gallery-3d-track" role="list">
-            ${fotos.map((foto, i) => {
-              const fotoUrl = _fotoToUrl(foto);
-              return `
-              <div
-                class="gallery-3d-card"
-                role="listitem"
-                data-index="${i}"
-                onclick="BitacoraUI.handleCardClick(${i})"
-                tabindex="0"
-                aria-label="Ver foto ${i + 1} de ${fotos.length}"
-              >
-                <img src="${fotoUrl}" alt="Foto ${i + 1} del servicio" loading="lazy" />
-                <div class="gallery-3d-overlay">
-                  <i class="fa-solid fa-expand text-white text-base"></i>
-                </div>
-              </div>
-              `;
-            }).join('')}
-          </div>
-        </div>
-        
-        <button class="gallery-3d-arrow next" onclick="BitacoraUI.slide3D(1)" aria-label="Foto siguiente" type="button">
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-        
-        <div class="gallery-3d-dots" id="gallery-3d-dots">
-          ${fotos.map((_, i) => `<span class="gallery-3d-dot ${i === 0 ? 'active' : ''}" onclick="BitacoraUI.goTo3DSlide(${i})" role="button" aria-label="Ir a foto ${i+1}"></span>`).join('')}
-        </div>
+      <div class="bslide-track custom-scrollbar" id="bslide-track" role="list">
+        ${parametrosAMostrar.map(key => {
+          const cfg = PARAMETROS[key];
+          const val = lecturas[key];
+          if (val === undefined || val === null || !cfg) return '';
+          return _paramSlideHTML(key, cfg, val, bitacora);
+        }).join('')}
+        ${trabajoRealizado.length ? _workSlideHTML(trabajoRealizado) : ''}
+        ${_prod.length ? _doseSlideHTML(_prod) : ''}
+        ${notas ? _noteSlideHTML(notas, fecha, tecnico) : ''}
       </div>
-    </section>` : ''}
+      <p style="text-align:center; color:rgba(255,255,255,0.3); font-size:11px; margin-top:10px;">Desliza para ver cada parámetro</p>
+    </div>
 
     <!-- ── ACCIONES BOTONES ── -->
     <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
@@ -891,7 +805,199 @@ function _renderParametroCard(key, cfg, val, bitacora) {
 }
 
 // ─────────────────────────────────────────
-//  SCORE RING SVG (DIÁMETRO 200PX, GLOW EN VER DE ALGA)
+//  HERO: CARRUSEL 3D DE FOTOS + SCORE SUPERPUESTO
+// ─────────────────────────────────────────
+
+function _renderPhotoHero(fotos, score, scoreColor) {
+  const list = (fotos && fotos.length) ? fotos : [null];
+
+  const cards = list.map((foto, i) => {
+    const url = foto ? _fotoToUrl(foto) : 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800';
+    return `
+      <div class="gallery-3d-card" role="listitem" data-index="${i}"
+           onclick="BitacoraUI.handleCardClick(${i})" tabindex="0"
+           aria-label="Ver foto ${i + 1} de ${list.length}">
+        <img src="${url}" alt="Foto ${i + 1} del servicio" loading="lazy" />
+        <div class="bita-card-veil" aria-hidden="true"></div>
+        <div class="bita-card-score" aria-label="Salud del agua: ${score} de 100">
+          <span class="bita-score-num" style="color:${scoreColor};">${score}</span>
+          <span class="bita-score-den">/ 100</span>
+        </div>
+        <div class="gallery-3d-overlay"><i class="fa-solid fa-expand text-white"></i></div>
+      </div>`;
+  }).join('');
+
+  const arrows = list.length > 1 ? `
+    <button class="gallery-3d-arrow prev" onclick="BitacoraUI.slide3D(-1)" aria-label="Foto anterior" type="button"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="gallery-3d-arrow next" onclick="BitacoraUI.slide3D(1)" aria-label="Foto siguiente" type="button"><i class="fa-solid fa-chevron-right"></i></button>` : '';
+
+  const dots = list.length > 1
+    ? `<div class="gallery-3d-dots" id="gallery-3d-dots">${list.map((_, i) => `<span class="gallery-3d-dot ${i === 0 ? 'active' : ''}" onclick="BitacoraUI.goTo3DSlide(${i})" role="button" aria-label="Ir a foto ${i + 1}"></span>`).join('')}</div>`
+    : '';
+
+  return `
+  <section class="bita-hero" aria-label="Fotografías del servicio">
+    <div class="gallery-3d-wrapper" style="margin:0;">
+      ${arrows}
+      <div class="gallery-3d-container">
+        <div class="gallery-3d-track" id="gallery-3d-track" role="list">
+          ${cards}
+        </div>
+      </div>
+      ${dots}
+    </div>
+  </section>`;
+}
+
+// ─────────────────────────────────────────
+//  GRÁFICO 3D DE SALUD DEL AGUA (RADAR)
+// ─────────────────────────────────────────
+
+function _renderWaterRadar(bitacora, accent) {
+  const lecturas = bitacora.lecturas || {};
+  const axes = [
+    { key: 'ph',              label: 'pH' },
+    { key: 'cloro_libre',     label: 'Cloro' },
+    { key: 'alcalinidad',     label: 'Alcal.' },
+    { key: 'dureza_calcica',  label: 'Dureza' },
+    { key: 'lsi',             label: 'LSI' },
+    { key: 'cloro_combinado', label: 'Cl. comb.' },
+  ].filter(a => lecturas[a.key] !== undefined && lecturas[a.key] !== null && PARAMETROS[a.key]);
+
+  const N = axes.length;
+  if (N < 3) return '';
+
+  const cx = 140, cy = 130, R = 92;
+  const valOf = (a) => {
+    const est = _estadoParamCtx(a.key, PARAMETROS[a.key], lecturas[a.key], bitacora);
+    return est === 'optimo' ? 1 : est === 'alerta' ? 0.58 : 0.3;
+  };
+  const ang = (i) => (-90 + i * 360 / N) * Math.PI / 180;
+  const pt  = (i, r) => [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))];
+
+  let grid = '';
+  [0.25, 0.5, 0.75, 1].forEach(level => {
+    const pts = axes.map((_, i) => pt(i, R * level).map(n => n.toFixed(1)).join(',')).join(' ');
+    grid += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+  });
+
+  let spokes = '', labels = '';
+  axes.forEach((a, i) => {
+    const [x, y] = pt(i, R);
+    spokes += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`;
+    const [lx, ly] = pt(i, R + 17);
+    const anchor = Math.abs(lx - cx) < 8 ? 'middle' : (lx > cx ? 'start' : 'end');
+    labels += `<text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" fill="#9fb3c2" font-size="10.5" font-weight="700" text-anchor="${anchor}" font-family="'Bricolage Grotesque',sans-serif">${a.label}</text>`;
+  });
+
+  const dataPts = axes.map((a, i) => pt(i, R * valOf(a)).map(n => n.toFixed(1)).join(',')).join(' ');
+  const dots = axes.map((a, i) => {
+    const [x, y] = pt(i, R * valOf(a));
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="${accent}" stroke="#0b1420" stroke-width="1.5"/>`;
+  }).join('');
+
+  const legend = [['#2D9E6B', 'Óptimo'], ['#E8A838', 'Corregido'], ['#D95C5C', 'Alerta']]
+    .map(([c, l]) => `<span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#9fb3c2;"><span style="width:9px;height:9px;border-radius:50%;background:${c};"></span>${l}</span>`)
+    .join('');
+
+  return `
+  <div class="premium-dark-card" style="padding:18px 10px 14px; display:flex; flex-direction:column; align-items:center;">
+    <svg width="280" height="252" viewBox="0 0 280 252" style="max-width:100%;" role="img" aria-label="Gráfico de balance químico del agua">
+      <defs>
+        <radialGradient id="radarFill" cx="50%" cy="44%" r="62%">
+          <stop offset="0%" stop-color="${accent}" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="${accent}" stop-opacity="0.10"/>
+        </radialGradient>
+        <filter id="radarGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="${accent}" flood-opacity="0.5"/>
+        </filter>
+      </defs>
+      ${grid}
+      ${spokes}
+      <polygon points="${dataPts}" fill="url(#radarFill)" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" filter="url(#radarGlow)"/>
+      ${dots}
+      ${labels}
+    </svg>
+    <div style="display:flex; gap:16px; margin-top:8px; flex-wrap:wrap; justify-content:center;">${legend}</div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────
+//  TARJETAS DEL CARRUSEL DESLIZABLE DE DETALLES
+//  Regla de color: SOLO el valor numérico cambia de color;
+//  títulos y textos descriptivos quedan en neutro (bruma/gris).
+// ─────────────────────────────────────────
+
+function _paramSlideHTML(key, cfg, val, bitacora) {
+  const exp    = _explicacionParam(key, cfg, val, bitacora);
+  const pct    = _valToPct(val, cfg);
+  const estado = _estadoParamCtx(key, cfg, val, bitacora);
+  const color  = estado === 'optimo' ? '#2D9E6B' : estado === 'alerta' ? '#E8A838' : '#D95C5C';
+  const valStr = val.toFixed(cfg.decimales);
+  const u      = cfg.unidad ? ' ' + cfg.unidad : '';
+
+  const llegada = bitacora.lecturas_llegada ? bitacora.lecturas_llegada[key] : undefined;
+  const llegadaHTML = (typeof llegada === 'number' && llegada !== val)
+    ? `<div class="bslide-llegada">Al llegar <b style="color:#cfe0ea;">${llegada.toFixed(cfg.decimales)}${u}</b> <span style="color:#6FB8C6;">→</span> <b style="color:${color};">${valStr}${u}</b></div>`
+    : '';
+
+  return `
+  <article class="bslide-card" role="listitem">
+    <div class="bslide-head">
+      <span class="bslide-ico"><i class="fa-solid ${cfg.icon}" aria-hidden="true"></i></span>
+      <span class="bslide-title">${cfg.label}</span>
+    </div>
+    <div class="bslide-value">
+      <span class="bslide-num" style="color:${color};">${valStr}</span>
+      <span class="bslide-unit">${cfg.unidad}</span>
+    </div>
+    ${llegadaHTML}
+    <div class="bslide-bar"><span style="left:${pct}%; background:${color}; box-shadow:0 0 8px ${color};"></span></div>
+    <p class="bslide-desc">${exp.emoji} ${exp.texto}</p>
+  </article>`;
+}
+
+function _workSlideHTML(items) {
+  const pills = items.map(t => `<span class="bslide-pill"><i class="fa-solid fa-check" style="color:#5fcf97;" aria-hidden="true"></i> ${t}</span>`).join('');
+  return `
+  <article class="bslide-card" role="listitem">
+    <div class="bslide-head">
+      <span class="bslide-ico"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
+      <span class="bslide-title">Trabajo realizado</span>
+    </div>
+    <div class="bslide-pills">${pills}</div>
+  </article>`;
+}
+
+function _doseSlideHTML(prods) {
+  const pills = prods.map(p => `<span class="bslide-pill">${p.emoji} ${p.label}</span>`).join('');
+  return `
+  <article class="bslide-card" role="listitem">
+    <div class="bslide-head">
+      <span class="bslide-ico"><i class="fa-solid fa-flask-vial" aria-hidden="true"></i></span>
+      <span class="bslide-title">Dosificación aplicada</span>
+    </div>
+    <div class="bslide-pills">${pills}</div>
+  </article>`;
+}
+
+function _noteSlideHTML(notas, fecha, tecnico) {
+  return `
+  <article class="bslide-card" role="listitem">
+    <div class="bslide-head">
+      <span class="bslide-ico"><i class="fa-solid fa-pen-nib" aria-hidden="true"></i></span>
+      <span class="bslide-title">Nota del técnico</span>
+    </div>
+    <p class="bslide-desc" style="flex:1;">"${notas}"</p>
+    <div class="bslide-sign">
+      <span style="color:#E8664A; font-weight:700;">✓ ${tecnico || 'Pool Balance'}</span>
+      <span style="color:#6FB8C6;"> · ${_formatFechaLarga(fecha)}</span>
+    </div>
+  </article>`;
+}
+
+// ─────────────────────────────────────────
+//  SCORE RING SVG (legado — ya no se usa en el hero)
 // ─────────────────────────────────────────
 
 function _renderScoreRing(score) {
@@ -1093,6 +1199,15 @@ const BitacoraUI = {
     };
     img.alt = `Foto ${n}`;
     img.src = this._fotos[this._currentIndex];
+  },
+
+  // Carrusel deslizable de detalles (scroll-snap nativo)
+  slideDetails(dir) {
+    const track = document.getElementById('bslide-track');
+    if (!track) return;
+    const card = track.querySelector('.bslide-card');
+    const w = card ? card.offsetWidth + 12 : 260;
+    track.scrollBy({ left: dir * w, behavior: 'smooth' });
   },
 
   // Métodos del carrusel 3D Coverflow

@@ -142,84 +142,56 @@ function renderDashboard() {
   <article class="view-page portal-dark" id="view-dashboard">
     <div class="fit-canvas" id="portal-fit">
 
-      <header class="pd-hero" role="banner">
-        <div class="pd-hero-top">
-          <span class="pd-eyebrow">
-            Bienvenido
-            <span class="pd-live"><span class="pd-live-dot"></span> En vivo</span>
-          </span>
+      <!-- ── CABECERA: logo limpio + saludo typewriter ── -->
+      <header class="pd-hero2" role="banner">
+        <div class="pd-hero2-top">
+          <div class="pd-brandmark" aria-hidden="true">
+            <img src="images/logo.png" alt="" class="pd-brandmark-img" width="48" height="48" draggable="false" />
+            <span class="pd-brandmark-pulse"></span>
+          </div>
           <button onclick="PortalAuth.logout()" class="pd-logout" aria-label="Cerrar sesión">
             <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
             Salir
           </button>
         </div>
-        <h1 class="pd-client">${client.nombre || client.name}</h1>
-        <div class="pd-hero-meta">
-          <span class="pd-plan">
+
+        <h1 class="pd-greet" id="pd-greet"
+            data-greet="${(_saludoCliente(client) || '').replace(/"/g, '&quot;')}">
+          <span class="pd-greet-text" id="pd-greet-text"></span><span class="pd-greet-caret" id="pd-greet-caret">|</span>
+        </h1>
+
+        <div class="pd-plan-row">
+          <button class="pd-plan-btn" onclick="PortalNav.openUpsell()"
+                  aria-label="Ver mi plan y opciones de mejora">
             <i class="fa-solid fa-star fa-xs" aria-hidden="true"></i>
-            Plan ${client.plan}
-          </span>
+            <span>Plan ${client.plan}</span>
+            <i class="fa-solid fa-chevron-right pd-plan-chevron" aria-hidden="true"></i>
+          </button>
+          ${(client.address || client.direccion) ? `
           <span class="pd-loc">
             <i class="fa-solid fa-location-dot mr-1" aria-hidden="true"></i>
-            ${client.address || client.direccion || ''}
-          </span>
+            ${client.address || client.direccion}
+          </span>` : ''}
         </div>
       </header>
 
-      <div class="pd-stats" role="region" aria-label="Resumen del servicio">
-        <div class="pd-stat">
-          <div class="pd-stat-val" id="stat-total">${bits.length}</div>
-          <div class="pd-stat-lbl">Servicios</div>
-        </div>
-        <div class="pd-stat">
-          <div class="pd-stat-val">${client.poolVolume || client.volumen_m3 || '—'}</div>
-          <div class="pd-stat-lbl">Volumen</div>
-        </div>
-        <div class="pd-stat">
-          <div class="pd-stat-val" style="color:var(--color-arcilla);">
-            ${_daysUntilNext(client.nextVisit || client.proxima_visita)}
-          </div>
-          <div class="pd-stat-lbl">Próx. visita</div>
-        </div>
+      <!-- ── DOS TARJETAS: Próxima visita · Retrolavado ── -->
+      <div class="pd-twin" id="pd-twin">
+        ${_twinCardsHTML(client, bits)}
       </div>
 
-      <div class="pd-card pd-info">
-        <div class="pd-info-grid">
-          ${[
-            { icon:'calendar',      label:'Próxima visita', value: _formatFecha(client.nextVisit || client.proxima_visita) },
-            { icon:'user-clock',    label:'Cliente desde',  value: client.clientSince || client.cliente_desde || '—' },
-            { icon:'layer-group',   label:'Plan activo',    value: client.plan },
-            { icon:'ruler-combined',label:'Volumen',        value: client.poolVolume || client.volumen_m3 || '—' },
-          ].map(item => `
-            <div class="pd-info-item">
-              <div class="pd-info-ico"><i class="fa-solid fa-${item.icon}" aria-hidden="true"></i></div>
-              <div>
-                <p class="pd-info-lbl">${item.label}</p>
-                <p class="pd-info-val">${item.value}</p>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <div class="pd-card pd-month" id="pd-month">
-        ${_resumenMes(bits)}
-      </div>
-
-      <section class="pd-history" aria-labelledby="bitacoras-title">
+      <!-- ── CARRUSEL 3D DE BITÁCORAS ── -->
+      <section class="pd-carousel-sec" aria-labelledby="bitacoras-title">
         <div class="pd-history-head">
           <h2 id="bitacoras-title">
             <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
-            Historial de Servicios
+            Bitácoras de servicio
           </h2>
           <span class="pd-count" id="bitacoras-count">${bits.length}</span>
         </div>
 
-        <div class="pd-list" id="bitacoras-list" role="feed" aria-label="Historial de bitácoras" aria-live="polite">
-          ${bits.length
-            ? bits.map(b => _renderBitacoraRow(b)).join('')
-            : _emptyHistory()
-          }
+        <div id="bitacoras-carousel">
+          ${_renderCarousel3D(bits)}
         </div>
 
         ${client._isDemo ? `
@@ -230,7 +202,74 @@ function renderDashboard() {
       </section>
 
     </div>
+
+    <!-- ── MODAL DE MEJORA DE PLAN (upsell · cableado para el futuro) ── -->
+    <div id="pd-upsell-modal" class="pd-upsell-modal hidden" role="dialog" aria-modal="true"
+         aria-label="Mejora tu plan" onclick="if(event.target===this)PortalNav.closeUpsell()">
+      <div class="pd-upsell-card">
+        <button class="pd-upsell-x" onclick="PortalNav.closeUpsell()" aria-label="Cerrar">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="pd-upsell-ico"><i class="fa-solid fa-arrow-trend-up"></i></div>
+        <h3 class="pd-upsell-title">Tu plan actual: ${client.plan}</h3>
+        <p class="pd-upsell-sub">Muy pronto podrás mejorar tu plan y desbloquear visitas ilimitadas, atención prioritaria 24 h y análisis de laboratorio — directo desde aquí.</p>
+        <a class="pd-upsell-cta" id="pd-upsell-cta" href="#" target="_blank" rel="noopener">
+          <i class="fa-brands fa-whatsapp"></i> Quiero saber más
+        </a>
+      </div>
+    </div>
   </article>
+  `;
+}
+
+// ── Saludo personalizado con tratamiento cortés ──
+function _saludoCliente(client) {
+  if (!client) return 'Bienvenido';
+  if (client.saludo) return client.saludo;
+  const full = String(client.nombre || client.name || 'Cliente').trim();
+  if (/^familia/i.test(full)) return `Bienvenida ${full}`;
+  const first = full.split(/\s+/)[0];
+  // Por defecto "Bienvenido"; con el campo `genero: 'f'` cambia a "Bienvenida".
+  const g = String(client.genero || client.sexo || '').toLowerCase();
+  return `${g.startsWith('f') ? 'Bienvenida' : 'Bienvenido'}, ${first}`;
+}
+
+// ── Litros de retrolavado del mes en curso (fallback: última bitácora) ──
+function _retroDelMes(bitacoras) {
+  const now = new Date();
+  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const delMes = (bitacoras || []).filter(b => typeof b.fecha === 'string' && b.fecha.startsWith(ym));
+  if (delMes.length) {
+    return delMes.reduce((s, b) => s + (Number(b.litros_retrolav) || 0), 0);
+  }
+  const ultima = (bitacoras || []).find(b => Number(b.litros_retrolav) > 0);
+  return ultima ? Number(ultima.litros_retrolav) : 0;
+}
+
+// ── Las dos tarjetas del dashboard: Próxima visita + Retrolavado ──
+function _twinCardsHTML(client, bits) {
+  const dias  = _daysUntilNext(client.nextVisit || client.proxima_visita);
+  const fecha = _formatFecha(client.nextVisit || client.proxima_visita);
+  const retro = _retroDelMes(bits);
+  const retroStr = retro > 0 ? Math.round(retro).toLocaleString('es-MX') : '—';
+
+  return `
+    <div class="pd-twin-card">
+      <div class="pd-twin-ico"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i></div>
+      <div class="pd-twin-body">
+        <p class="pd-twin-lbl">Próxima visita</p>
+        <p class="pd-twin-val" style="color:var(--color-arcilla);">${dias}</p>
+        <p class="pd-twin-sub">${fecha}</p>
+      </div>
+    </div>
+    <div class="pd-twin-card">
+      <div class="pd-twin-ico"><i class="fa-solid fa-droplet" aria-hidden="true"></i></div>
+      <div class="pd-twin-body">
+        <p class="pd-twin-lbl">Retrolavado del mes</p>
+        <p class="pd-twin-val">${retroStr}<span class="pd-twin-unit">${retro > 0 ? ' L' : ''}</span></p>
+        <p class="pd-twin-sub">agua recuperada del filtro</p>
+      </div>
+    </div>
   `;
 }
 
@@ -243,135 +282,261 @@ function _emptyHistory() {
     </div>`;
 }
 
-// ── Reporte mensual de pérdidas de agua ──
-// Suma litros_retrolav (medido) y litros_evap (estimado) de las
-// bitácoras del mes en curso. La fuente son las bitácoras en vivo.
-function _resumenMes(bitacoras) {
-  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const now = new Date();
-  const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const titulo = `${meses[now.getMonth()]} ${now.getFullYear()}`;
+// ─────────────────────────────────────────
+//  CARRUSEL 3D DE BITÁCORAS (coverflow)
+// ─────────────────────────────────────────
 
-  const delMes = (bitacoras || []).filter(b => typeof b.fecha === 'string' && b.fecha.startsWith(ym));
-  const totalRetro = delMes.reduce((s, b) => s + (Number(b.litros_retrolav) || 0), 0);
-  const totalEvap  = delMes.reduce((s, b) => s + (Number(b.litros_evap)     || 0), 0);
-  const total = totalRetro + totalEvap;
-  const fmt = n => Math.round(n).toLocaleString('es-MX');
+const ST_MAP = {
+  optimo:    { bg:'rgba(70,201,138,0.16)',  bd:'rgba(70,201,138,0.45)',  c:'#5fcf97', label:'Óptimo' },
+  corregido: { bg:'rgba(240,185,78,0.16)',  bd:'rgba(240,185,78,0.45)',  c:'#f0b94e', label:'Corregido' },
+  alerta:    { bg:'rgba(239,107,107,0.16)', bd:'rgba(239,107,107,0.45)', c:'#ef6b6b', label:'Alerta' },
+};
 
-  const sinDatos = delMes.length === 0;
+function _scoreColorHex(score) {
+  return score >= 80 ? '#5fcf97' : score >= 60 ? '#f0b94e' : '#ef6b6b';
+}
+
+function _renderCarousel3D(bits) {
+  if (!bits || !bits.length) return _emptyHistory();
+
+  const cards = bits.map((b, i) => _carouselCardHTML(b, i)).join('');
+  const dots  = bits.map((_, i) => `
+    <button class="pcar-dot ${i === 0 ? 'active' : ''}" data-cdot="${i}" type="button"
+            aria-label="Ir a la bitácora ${i + 1}"></button>`).join('');
 
   return `
-    <div class="pd-month-head">
-      <i class="fa-solid fa-droplet" aria-hidden="true"></i>
-      Pérdidas de agua · ${titulo}
-    </div>
-    ${sinDatos ? `
-      <p class="pd-month-empty">Aún sin servicios este mes. Aquí verás el resumen al cierre del mes.</p>
-    ` : `
-      <div class="pd-month-grid">
-        <div class="pd-month-item">
-          <span class="pd-month-val">${fmt(totalRetro)} L</span>
-          <span class="pd-month-lbl">Retrolavado (medido)</span>
-        </div>
-        <div class="pd-month-item">
-          <span class="pd-month-val">≈ ${fmt(totalEvap)} L</span>
-          <span class="pd-month-lbl">Evaporación (estimada)</span>
-        </div>
-        <div class="pd-month-item pd-month-total">
-          <span class="pd-month-val">${fmt(total)} L</span>
-          <span class="pd-month-lbl">Total del mes</span>
-        </div>
+    <div class="pcar" id="pcar" role="region" aria-roledescription="carrusel" aria-label="Bitácoras">
+      <div class="pcar-stage" id="pcar-stage">
+        ${cards}
       </div>
-      <p class="pd-month-foot">${delMes.length} servicio${delMes.length > 1 ? 's' : ''} este mes · la evaporación es una estimación.</p>
-    `}
+
+      <button class="pcar-arrow prev" id="pcar-prev" type="button" aria-label="Anterior">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button class="pcar-arrow next" id="pcar-next" type="button" aria-label="Siguiente">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+    <div class="pcar-dots" id="pcar-dots">${dots}</div>
+    <p class="pcar-hint">Desliza o usa las flechas para navegar</p>
   `;
 }
 
-// ─────────────────────────────────────────
-//  TARJETA DE BITÁCORA (fila del listado · dark)
-// ─────────────────────────────────────────
-
-function _renderBitacoraRow(bit) {
-  const score      = (typeof _scoreMostrado === 'function') ? _scoreMostrado(bit)
-                   : (typeof _calcScore === 'function') ? _calcScore(bit.lecturas) : 85;
-  const estado     = bit.estado || 'optimo';
-  const stMap      = {
-    optimo:    { bg:'rgba(70,201,138,0.16)',  c:'#5fcf97', label:'Óptimo' },
-    corregido: { bg:'rgba(240,185,78,0.16)',  c:'#f0b94e', label:'Corregido' },
-    alerta:    { bg:'rgba(239,107,107,0.16)', c:'#ef6b6b', label:'Alerta' },
-  };
-  const st         = stMap[estado] || stMap.optimo;
-  const scoreColor = score >= 80 ? '#5fcf97' : score >= 60 ? '#f0b94e' : '#ef6b6b';
+function _carouselCardHTML(bit, i) {
+  const score  = (typeof _scoreMostrado === 'function') ? _scoreMostrado(bit)
+               : (typeof _calcScore === 'function') ? _calcScore(bit.lecturas) : 85;
+  const estado = bit.estado || 'optimo';
+  const st     = ST_MAP[estado] || ST_MAP.optimo;
+  const accent = st.c;
   const fotosCount = bit.fotos?.length || 0;
 
-  const chips = [
-    { key:'ph',             label:'pH',      val: bit.lecturas?.ph,             cfg: window.PARAMETROS?.ph },
-    { key:'cloro_libre',    label:'Cl Lib.', val: bit.lecturas?.cloro_libre,    cfg: window.PARAMETROS?.cloro_libre },
-    { key:'lsi',            label:'LSI',     val: bit.lecturas?.lsi,            cfg: window.PARAMETROS?.lsi },
-    { key:'alcalinidad',    label:'Alcal.',  val: bit.lecturas?.alcalinidad,    cfg: window.PARAMETROS?.alcalinidad },
-    { key:'dureza_calcica', label:'Dureza',  val: bit.lecturas?.dureza_calcica, cfg: window.PARAMETROS?.dureza_calcica },
-  ].filter(p => p.val !== null && p.val !== undefined).map(p => {
-    const est = (typeof _estadoParamCtx === 'function') ? _estadoParamCtx(p.key, p.cfg, p.val, bit)
-              : (p.cfg && typeof _getEstadoParam === 'function') ? _getEstadoParam(p.val, p.cfg) : 'optimo';
+  const metrics = [
+    { key:'ph',             label:'PH',     val: bit.lecturas?.ph },
+    { key:'cloro_libre',    label:'CL LIB', val: bit.lecturas?.cloro_libre },
+    { key:'lsi',            label:'LSI',    val: bit.lecturas?.lsi },
+    { key:'alcalinidad',    label:'ALCAL',  val: bit.lecturas?.alcalinidad },
+    { key:'dureza_calcica', label:'DUREZA', val: bit.lecturas?.dureza_calcica },
+  ].filter(m => m.val !== null && m.val !== undefined).map(m => {
+    const cfg = window.PARAMETROS?.[m.key];
+    const est = (typeof _estadoParamCtx === 'function') ? _estadoParamCtx(m.key, cfg, m.val, bit)
+              : (cfg && typeof _getEstadoParam === 'function') ? _getEstadoParam(m.val, cfg) : 'optimo';
     const c   = est === 'optimo' ? '#5fcf97' : est === 'alerta' ? '#f0b94e' : '#ef6b6b';
     return `
-      <div class="pd-chip" aria-label="${p.label}: ${p.val}">
-        <span class="pd-chip-val" style="color:${c};">${p.val}</span>
-        <span class="pd-chip-lbl">${p.label}</span>
+      <div class="pcar-metric">
+        <div class="pcar-metric-val" style="color:${c};">${m.val}</div>
+        <div class="pcar-metric-lbl">${m.label}</div>
       </div>`;
   }).join('');
 
+  const accion = bit.acciones?.[0] || '';
+  const extra  = (bit.acciones && bit.acciones.length > 1) ? `+${bit.acciones.length - 1} más` : '';
+
   return `
-  <article class="pd-bita" aria-label="Servicio del ${_formatFecha(bit.fecha)}">
-    <header class="pd-bita-head">
-      <div>
-        <div class="pd-bita-id">${bit._id}</div>
-        <div class="pd-bita-date">${_formatFechaLarga(bit.fecha)}</div>
-        <div class="pd-bita-tech">
-          <i class="fa-solid fa-user-tie text-xs" style="color:var(--color-cristal);margin-right:4px;" aria-hidden="true"></i>
-          ${bit.tecnico}
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-        <span class="pd-bita-badge" style="background:${st.bg};color:${st.c};">${st.label}</span>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div style="width:40px;height:5px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;">
-            <div style="width:${score}%;height:100%;background:${scoreColor};border-radius:99px;"></div>
+    <div class="pcar-slide" data-cindex="${i}">
+      <article class="pcar-card" style="--accent:${accent};">
+        <div class="pcar-card-bar"></div>
+        <div class="pcar-card-body">
+          <div class="pcar-card-top">
+            <span class="pcar-id">${bit._id}</span>
+            <span class="pcar-badge" style="color:${accent};border-color:${st.bd};background:${st.bg};">${st.label}</span>
           </div>
-          <span style="font-size:0.8rem;font-weight:700;color:${scoreColor};">${score}</span>
+
+          <h3 class="pcar-date">${_formatFechaLarga(bit.fecha)}</h3>
+
+          <div class="pcar-tech-row">
+            <span class="pcar-tech"><i class="fa-solid fa-user-tie" aria-hidden="true"></i> ${bit.tecnico || 'Pool Balance'}</span>
+            <span class="pcar-score-wrap">
+              <span class="pcar-score-bar"><span style="width:${score}%;background:${accent};"></span></span>
+              <span class="pcar-score-num" style="color:${accent};">${score}</span>
+            </span>
+          </div>
+
+          <div class="pcar-metrics">${metrics}</div>
+
+          ${accion ? `
+          <div class="pcar-tag">
+            <i class="fa-solid fa-circle-check" style="color:#5fcf97;" aria-hidden="true"></i>
+            <span class="pcar-tag-text">${accion}</span>
+            ${extra ? `<span class="pcar-tag-extra">${extra}</span>` : ''}
+          </div>` : '<div class="pcar-tag-spacer"></div>'}
+
+          <div class="pcar-actions">
+            <button class="pcar-btn-primary" onclick="PortalNav.openBitacora('${bit._id}')"
+                    aria-label="Ver análisis de la bitácora ${bit._id}">
+              <i class="fa-solid fa-magnifying-glass-chart" aria-hidden="true"></i> Ver análisis
+            </button>
+            <button class="pcar-btn-icon" onclick="PortalNav.downloadPDFFromList('${bit._id}')" aria-label="Descargar PDF">
+              <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
-
-    <div class="pd-chips" aria-label="Lecturas del servicio">
-      ${chips}
+        <div class="pcar-veil"></div>
+      </article>
     </div>
-
-    ${bit.acciones?.[0] ? `
-    <div class="pd-bita-action">
-      <i class="fa-solid fa-circle-check" style="color:#5fcf97;margin-right:5px;" aria-hidden="true"></i>
-      ${bit.acciones[0]}
-      ${bit.acciones.length > 1 ? `<span style="color:var(--color-cristal);font-weight:700;margin-left:4px;">+${bit.acciones.length - 1} más</span>` : ''}
-    </div>` : ''}
-
-    <div class="pd-bita-btns">
-      <button class="pd-bita-btn primary" onclick="PortalNav.openBitacora('${bit._id}')"
-        aria-label="Ver análisis completo de bitácora ${bit._id}">
-        <i class="fa-solid fa-magnifying-glass-chart" aria-hidden="true"></i>
-        Ver análisis completo
-      </button>
-      ${fotosCount > 0 ? `
-      <button class="pd-bita-btn soft" onclick="PortalNav.openBitacora('${bit._id}')" aria-label="${fotosCount} fotos">
-        <i class="fa-solid fa-camera" aria-hidden="true"></i>
-        ${fotosCount} foto${fotosCount > 1 ? 's' : ''}
-      </button>` : ''}
-      <button class="pd-bita-btn pdf" onclick="PortalNav.downloadPDFFromList('${bit._id}')" aria-label="Descargar PDF">
-        <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
-        PDF
-      </button>
-    </div>
-  </article>
   `;
+}
+
+// ── Controlador del carrusel 3D (vanilla, táctil) ──
+const PortalCarousel = {
+  active: 0,
+  total: 0,
+  _bound: false,
+
+  init() {
+    const stage = document.getElementById('pcar-stage');
+    if (!stage) return;
+    this.total = stage.querySelectorAll('.pcar-slide').length;
+    this.active = Math.min(this.active, Math.max(0, this.total - 1));
+    this.layout();
+
+    const prev = document.getElementById('pcar-prev');
+    const next = document.getElementById('pcar-next');
+    prev && (prev.onclick = () => this.go(this.active - 1));
+    next && (next.onclick = () => this.go(this.active + 1));
+
+    document.querySelectorAll('[data-cdot]').forEach(d => {
+      d.onclick = () => this.go(parseInt(d.dataset.cdot, 10));
+    });
+
+    // Click en una tarjeta lateral → centrarla
+    stage.querySelectorAll('.pcar-slide').forEach(sl => {
+      sl.addEventListener('click', (e) => {
+        const idx = parseInt(sl.dataset.cindex, 10);
+        if (idx !== this.active && !e.target.closest('button')) {
+          e.stopPropagation();
+          this.go(idx);
+        }
+      });
+    });
+
+    // Swipe táctil
+    let sx = null;
+    stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener('touchend', (e) => {
+      if (sx == null) return;
+      const dx = e.changedTouches[0].clientX - sx;
+      if (dx > 40) this.go(this.active - 1);
+      else if (dx < -40) this.go(this.active + 1);
+      sx = null;
+    }, { passive: true });
+
+    // Arrastre con mouse (desktop)
+    let mx = null;
+    stage.addEventListener('pointerdown', (e) => { mx = e.clientX; });
+    window.addEventListener('pointerup', (e) => {
+      if (mx == null) return;
+      const dx = e.clientX - mx;
+      if (dx > 50) this.go(this.active - 1);
+      else if (dx < -50) this.go(this.active + 1);
+      mx = null;
+    });
+
+    if (!this._bound) {
+      this._bound = true;
+      document.addEventListener('keydown', (e) => {
+        if (!document.getElementById('pcar-stage')) return;
+        if (document.getElementById('view-bitacora-detalle')) return;
+        if (e.key === 'ArrowRight') this.go(this.active + 1);
+        if (e.key === 'ArrowLeft')  this.go(this.active - 1);
+      });
+    }
+  },
+
+  go(i) {
+    if (!this.total) return;
+    this.active = ((i % this.total) + this.total) % this.total;
+    this.layout();
+  },
+
+  layout() {
+    const slides = Array.from(document.querySelectorAll('#pcar-stage .pcar-slide'));
+    const total = slides.length;
+    slides.forEach((sl, i) => {
+      let offset = i - this.active;
+      if (offset > total / 2) offset -= total;
+      if (offset < -total / 2) offset += total;
+
+      let transform, opacity, z, pe = 'auto';
+      if (offset === 0) {
+        transform = 'translateX(-50%) rotateY(0deg) scale(1)';
+        opacity = 1; z = 30;
+      } else if (Math.abs(offset) === 1) {
+        const dir = offset > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${dir * 70}%)) rotateY(${dir * -34}deg) scale(0.82)`;
+        opacity = 1; z = 20;
+      } else {
+        const dir = offset > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${dir * 84}%)) rotateY(${dir * -34}deg) scale(0.78)`;
+        opacity = 0; z = 10; pe = 'none';
+      }
+      sl.style.transform = transform;
+      sl.style.opacity = opacity;
+      sl.style.zIndex = z;
+      sl.style.pointerEvents = pe;
+      sl.classList.toggle('is-active', offset === 0);
+    });
+
+    document.querySelectorAll('[data-cdot]').forEach((d, i) => {
+      d.classList.toggle('active', i === this.active);
+    });
+  },
+
+  refresh() {
+    const wrap = document.getElementById('bitacoras-carousel');
+    if (!wrap) return;
+    this.active = 0;
+    wrap.innerHTML = _renderCarousel3D(PortalState.bitacoras);
+    requestAnimationFrame(() => this.init());
+  },
+};
+window.PortalCarousel = PortalCarousel;
+
+// ── Efecto máquina de escribir del saludo ──
+function _initGreetTypewriter() {
+  const el   = document.getElementById('pd-greet-text');
+  const host = document.getElementById('pd-greet');
+  const caret = document.getElementById('pd-greet-caret');
+  if (!el || !host) return;
+  const full = host.dataset.greet || '';
+  if (host.dataset.typed === '1') { el.textContent = full; return; }
+  host.dataset.typed = '1';
+  el.textContent = '';
+
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { el.textContent = full; if (caret) caret.style.display = 'none'; return; }
+
+  let n = 0;
+  const tick = () => {
+    if (n <= full.length) {
+      el.textContent = full.slice(0, n);
+      n++;
+      setTimeout(tick, 55 + Math.random() * 45);
+    } else if (caret) {
+      caret.classList.add('pd-greet-caret--blink');
+    }
+  };
+  // pequeño retraso para que el saludo "nazca" tras aparecer el logo
+  setTimeout(tick, 360);
 }
 
 // ─────────────────────────────────────────
@@ -461,18 +626,17 @@ const PortalAuth = {
       clientId,
       (bitacoras) => {
         PortalState.bitacoras = bitacoras;
-        const listEl  = document.getElementById('bitacoras-list');
         const countEl = document.getElementById('bitacoras-count');
-        const statEl  = document.getElementById('stat-total');
-        if (listEl) {
-          listEl.innerHTML = bitacoras.length
-            ? bitacoras.map(b => _renderBitacoraRow(b)).join('')
-            : _emptyHistory();
-        }
         if (countEl) countEl.textContent = bitacoras.length;
-        if (statEl)  statEl.textContent  = bitacoras.length;
-        const monthEl = document.getElementById('pd-month');
-        if (monthEl) monthEl.innerHTML = _resumenMes(bitacoras);
+
+        // Refrescar tarjetas (Próxima visita · Retrolavado)
+        const twinEl = document.getElementById('pd-twin');
+        if (twinEl) twinEl.innerHTML = _twinCardsHTML(PortalState.clientProfile || {}, bitacoras);
+
+        // Refrescar carrusel 3D de bitácoras
+        if (window.PortalCarousel && document.getElementById('bitacoras-carousel')) {
+          PortalCarousel.refresh();
+        }
       },
       albercaId
     );
@@ -615,6 +779,28 @@ const PortalNav = {
     window._currentClientProfile = PortalState.clientProfile;
     await PDFGenerator.generate(bit, PortalState.clientProfile);
   },
+
+  // ── Modal de mejora de plan (upsell · preparado para el futuro) ──
+  openUpsell() {
+    const modal = document.getElementById('pd-upsell-modal');
+    if (!modal) return;
+    // Cablear el CTA de WhatsApp con un mensaje contextual
+    const cta = document.getElementById('pd-upsell-cta');
+    if (cta) {
+      const wa  = APP_CONFIG.company.whatsapp;
+      const plan = PortalState.clientProfile?.plan || '';
+      const msg = `Hola Pool Balance, tengo el plan ${plan} y me gustaría conocer las opciones para mejorarlo.`;
+      cta.href = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+    }
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeUpsell() {
+    const modal = document.getElementById('pd-upsell-modal');
+    if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  },
 };
 
 // ─────────────────────────────────────────
@@ -665,6 +851,15 @@ PostRender.portal = function() {
   _fitPortalCanvas();
   setTimeout(_fitPortalCanvas, 60);
   setTimeout(_fitPortalCanvas, 300);
+
+  // Inicializar carrusel 3D y saludo typewriter del dashboard
+  if (document.getElementById('view-dashboard')) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (window.PortalCarousel) PortalCarousel.init();
+      _initGreetTypewriter();
+    }));
+    setTimeout(() => { if (window.PortalCarousel) PortalCarousel.init(); }, 200);
+  }
 
   if (window._portalFitHandler) {
     window.removeEventListener('resize', window._portalFitHandler);

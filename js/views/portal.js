@@ -350,6 +350,7 @@ function _carouselCardHTML(bit, i) {
 
   const accion = bit.acciones?.[0] || '';
   const extra  = (bit.acciones && bit.acciones.length > 1) ? `+${bit.acciones.length - 1} más` : '';
+  const hora   = _horaBitacora(bit);
 
   return `
     <div class="pcar-slide" data-cindex="${i}">
@@ -357,7 +358,7 @@ function _carouselCardHTML(bit, i) {
         <div class="pcar-card-bar"></div>
         <div class="pcar-card-body">
           <div class="pcar-card-top">
-            <span class="pcar-id">${bit._id}</span>
+            <span class="pcar-time">${hora ? `<i class="fa-regular fa-clock" aria-hidden="true"></i> ${hora}` : 'Servicio'}</span>
             <span class="pcar-badge" style="color:${accent};border-color:${st.bd};background:${st.bg};">${st.label}</span>
           </div>
 
@@ -419,40 +420,49 @@ const PortalCarousel = {
       d.onclick = () => this.go(parseInt(d.dataset.cdot, 10));
     });
 
-    // Click en una tarjeta lateral → centrarla
-    stage.querySelectorAll('.pcar-slide').forEach(sl => {
-      sl.addEventListener('click', (e) => {
-        const idx = parseInt(sl.dataset.cindex, 10);
-        if (idx !== this.active && !e.target.closest('button')) {
-          e.stopPropagation();
-          this.go(idx);
-        }
+    // Enlazar gestos UNA sola vez por elemento (init() puede llamarse
+    // varias veces; sin este guard los listeners se duplican y el swipe
+    // saltaba de 2 en 2).
+    if (!stage.dataset.carBound) {
+      stage.dataset.carBound = '1';
+
+      // Click en una tarjeta lateral → centrarla (ignorar si fue swipe)
+      stage.querySelectorAll('.pcar-slide').forEach(sl => {
+        sl.addEventListener('click', (e) => {
+          if (this._swiped) { this._swiped = false; e.stopPropagation(); return; }
+          const idx = parseInt(sl.dataset.cindex, 10);
+          if (idx !== this.active && !e.target.closest('button')) {
+            e.stopPropagation();
+            this.go(idx);
+          }
+        });
       });
-    });
 
-    // Swipe táctil
-    let sx = null;
-    stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
-    stage.addEventListener('touchend', (e) => {
-      if (sx == null) return;
-      const dx = e.changedTouches[0].clientX - sx;
-      if (dx > 40) this.go(this.active - 1);
-      else if (dx < -40) this.go(this.active + 1);
-      sx = null;
-    }, { passive: true });
+      // Swipe táctil
+      let sx = null;
+      stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; this._swiped = false; }, { passive: true });
+      stage.addEventListener('touchend', (e) => {
+        if (sx == null) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (Math.abs(dx) > 8) { this._swiped = true; setTimeout(() => { this._swiped = false; }, 400); }
+        if (dx > 40) this.go(this.active - 1);
+        else if (dx < -40) this.go(this.active + 1);
+        sx = null;
+      }, { passive: true });
 
-    // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
-    let mx = null;
-    stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
-    if (this._onUp) window.removeEventListener('pointerup', this._onUp);
-    this._onUp = (e) => {
-      if (mx == null) return;
-      const dx = e.clientX - mx;
-      if (dx > 50) this.go(this.active - 1);
-      else if (dx < -50) this.go(this.active + 1);
-      mx = null;
-    };
-    window.addEventListener('pointerup', this._onUp);
+      // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
+      let mx = null;
+      stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
+      if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+      this._onUp = (e) => {
+        if (mx == null) return;
+        const dx = e.clientX - mx;
+        if (dx > 50) this.go(this.active - 1);
+        else if (dx < -50) this.go(this.active + 1);
+        mx = null;
+      };
+      window.addEventListener('pointerup', this._onUp);
+    }
 
     if (!this._bound) {
       this._bound = true;
@@ -809,6 +819,26 @@ const PortalNav = {
 // ─────────────────────────────────────────
 //  HELPERS DE FECHA
 // ─────────────────────────────────────────
+
+// Hora legible del servicio (ej. "2:30 p.m."). La saca del campo `hora`
+// si existe, o la parsea del id/fecha (formato ..._HHMM / con hora).
+function _horaBitacora(bit) {
+  if (!bit) return '';
+  let hhmm = null;
+  if (bit.hora && /^\d{1,2}:\d{2}/.test(bit.hora)) {
+    hhmm = bit.hora;
+  } else {
+    // Solo del id, y solo si trae hora tras "_" o "T" (ej. 2026-06-06_1430).
+    const m = String(bit._id || '').match(/[_T](\d{2})[:_]?(\d{2})(?!\d)/);
+    if (m) hhmm = `${m[1]}:${m[2]}`;
+  }
+  if (!hhmm) return '';
+  const [H, M] = hhmm.split(':').map(Number);
+  if (isNaN(H) || H > 23 || (M || 0) > 59) return '';
+  const d = new Date();
+  d.setHours(H, M || 0, 0, 0);
+  return d.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
 
 function _formatFecha(dateStr) {
   if (!dateStr) return '—';

@@ -830,8 +830,21 @@ function _renderPhotoHero(fotos, score, scoreColor) {
 
 // ─────────────────────────────────────────
 //  LECTURAS DEL FOTÓMETRO — TUBOS DE ENSAYO 3D
-//  Compacto. El líquido toma color por estado (verde/amarillo/rojo).
+//  El líquido toma el color del REACTIVO (como un fotómetro real) y un
+//  foquito de estado (semáforo) debajo se enciende verde/amarillo/rojo.
 // ─────────────────────────────────────────
+
+// Color del reactivo por parámetro (aproximado a la química real del test)
+const REAGENT_COLOR = {
+  ph:              '#E8526E', // rojo fenol
+  cloro_libre:     '#E14B8A', // DPD · rosa/magenta
+  cloro_combinado: '#B65BD6', // DPD combinado · púrpura
+  alcalinidad:     '#3DBE8E', // verde bromocresol
+  dureza_calcica:  '#3E8EDE', // azul (calcio)
+  lsi:             '#6FB8C6', // índice · cristal/agua
+  temperatura:     '#F0883E', // naranja
+  estabilizador:   '#E8C24B', // amarillo (turbidez)
+};
 
 function _renderTubes(bitacora) {
   const lecturas = bitacora.lecturas || {};
@@ -847,24 +860,30 @@ function _renderTubes(bitacora) {
   if (!tubos.length) return '';
 
   const cols = tubos.map(t => {
-    const cfg    = PARAMETROS[t.key];
-    const val    = lecturas[t.key];
-    const estado = _estadoParamCtx(t.key, cfg, val, bitacora);
-    const color  = estado === 'optimo' ? '#2D9E6B' : estado === 'alerta' ? '#E8A838' : '#D95C5C';
-    const fill   = Math.max(14, Math.min(94, _valToPct(val, cfg)));
-    const valStr = val.toFixed(cfg.decimales);
+    const cfg     = PARAMETROS[t.key];
+    const val     = lecturas[t.key];
+    const estado  = _estadoParamCtx(t.key, cfg, val, bitacora);
+    const stColor = estado === 'optimo' ? '#2D9E6B' : estado === 'alerta' ? '#E8A838' : '#D95C5C';
+    const stIcon  = estado === 'optimo' ? 'fa-check' : estado === 'alerta' ? 'fa-exclamation' : 'fa-xmark';
+    const stTxt   = estado === 'optimo' ? 'Óptimo' : estado === 'alerta' ? 'Atención' : 'Alerta';
+    const liq     = REAGENT_COLOR[t.key] || '#6FB8C6';
+    const fill    = Math.max(14, Math.min(94, _valToPct(val, cfg)));
+    const valStr  = val.toFixed(cfg.decimales);
     return `
       <div class="tube-col">
-        <div class="tube-val" style="color:${color};">${valStr}</div>
-        <div class="tube" role="img" aria-label="${cfg.label}: ${valStr}">
+        <div class="tube-val">${valStr}</div>
+        <div class="tube" role="img" aria-label="${cfg.label}: ${valStr} (${stTxt})">
           <div class="tube-cap"></div>
-          <div class="tube-liquid" style="height:${fill}%; --liq:${color};">
+          <div class="tube-liquid" style="height:${fill}%; --liq:${liq};">
             <span class="tube-meniscus"></span>
             <span class="tube-shine"></span>
           </div>
           <div class="tube-glass"></div>
         </div>
         <div class="tube-lbl">${t.label}</div>
+        <div class="tube-led" style="--led:${stColor};" title="${stTxt}">
+          <i class="fa-solid ${stIcon}" aria-hidden="true"></i>
+        </div>
       </div>`;
   }).join('');
 
@@ -1251,40 +1270,47 @@ const DetailCarousel = {
       d.onclick = () => this.go(parseInt(d.dataset.ddot, 10));
     });
 
-    stage.querySelectorAll('.dcar-slide').forEach(sl => {
-      sl.addEventListener('click', (e) => {
-        const idx = parseInt(sl.dataset.dindex, 10);
-        if (idx !== this.active && !e.target.closest('button, a')) {
-          e.stopPropagation();
-          this.go(idx);
-        }
+    // Enlazar gestos UNA sola vez por elemento (evita listeners duplicados
+    // que hacían saltar el carrusel de 2 en 2 al deslizar).
+    if (!stage.dataset.carBound) {
+      stage.dataset.carBound = '1';
+
+      stage.querySelectorAll('.dcar-slide').forEach(sl => {
+        sl.addEventListener('click', (e) => {
+          if (this._swiped) { this._swiped = false; e.stopPropagation(); return; }
+          const idx = parseInt(sl.dataset.dindex, 10);
+          if (idx !== this.active && !e.target.closest('button, a')) {
+            e.stopPropagation();
+            this.go(idx);
+          }
+        });
       });
-    });
 
-    // Swipe táctil
-    let sx = null;
-    stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
-    stage.addEventListener('touchend', (e) => {
-      if (sx == null) return;
-      const dx = e.changedTouches[0].clientX - sx;
-      if (dx > 40) this.go(this.active - 1);
-      else if (dx < -40) this.go(this.active + 1);
-      sx = null;
-    }, { passive: true });
+      // Swipe táctil
+      let sx = null;
+      stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; this._swiped = false; }, { passive: true });
+      stage.addEventListener('touchend', (e) => {
+        if (sx == null) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (Math.abs(dx) > 8) { this._swiped = true; setTimeout(() => { this._swiped = false; }, 400); }
+        if (dx > 40) this.go(this.active - 1);
+        else if (dx < -40) this.go(this.active + 1);
+        sx = null;
+      }, { passive: true });
 
-    // Arrastre con mouse (desktop)
-    // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
-    let mx = null;
-    stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
-    if (this._onUp) window.removeEventListener('pointerup', this._onUp);
-    this._onUp = (e) => {
-      if (mx == null) return;
-      const dx = e.clientX - mx;
-      if (dx > 50) this.go(this.active - 1);
-      else if (dx < -50) this.go(this.active + 1);
-      mx = null;
-    };
-    window.addEventListener('pointerup', this._onUp);
+      // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
+      let mx = null;
+      stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
+      if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+      this._onUp = (e) => {
+        if (mx == null) return;
+        const dx = e.clientX - mx;
+        if (dx > 50) this.go(this.active - 1);
+        else if (dx < -50) this.go(this.active + 1);
+        mx = null;
+      };
+      window.addEventListener('pointerup', this._onUp);
+    }
   },
 
   go(i) {
@@ -1353,38 +1379,45 @@ const PhotoCarousel = {
       d.onclick = () => this.go(parseInt(d.dataset.pdot, 10));
     });
 
-    stage.querySelectorAll('.phc-slide').forEach(sl => {
-      sl.addEventListener('click', (e) => {
-        if (e.target.closest('button, a')) return;
-        const idx = parseInt(sl.dataset.pindex, 10);
-        e.stopPropagation();
-        if (idx === this.active) BitacoraUI.openGallery(this.active);
-        else this.go(idx);
+    // Enlazar gestos UNA sola vez por elemento (evita el doble-salto).
+    if (!stage.dataset.carBound) {
+      stage.dataset.carBound = '1';
+
+      stage.querySelectorAll('.phc-slide').forEach(sl => {
+        sl.addEventListener('click', (e) => {
+          if (e.target.closest('button, a')) return;
+          if (this._swiped) { this._swiped = false; e.stopPropagation(); return; }
+          const idx = parseInt(sl.dataset.pindex, 10);
+          e.stopPropagation();
+          if (idx === this.active) BitacoraUI.openGallery(this.active);
+          else this.go(idx);
+        });
       });
-    });
 
-    let sx = null;
-    stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
-    stage.addEventListener('touchend', (e) => {
-      if (sx == null) return;
-      const dx = e.changedTouches[0].clientX - sx;
-      if (dx > 40) this.go(this.active - 1);
-      else if (dx < -40) this.go(this.active + 1);
-      sx = null;
-    }, { passive: true });
+      let sx = null;
+      stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; this._swiped = false; }, { passive: true });
+      stage.addEventListener('touchend', (e) => {
+        if (sx == null) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (Math.abs(dx) > 8) { this._swiped = true; setTimeout(() => { this._swiped = false; }, 400); }
+        if (dx > 40) this.go(this.active - 1);
+        else if (dx < -40) this.go(this.active + 1);
+        sx = null;
+      }, { passive: true });
 
-    // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
-    let mx = null;
-    stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
-    if (this._onUp) window.removeEventListener('pointerup', this._onUp);
-    this._onUp = (e) => {
-      if (mx == null) return;
-      const dx = e.clientX - mx;
-      if (dx > 50) this.go(this.active - 1);
-      else if (dx < -50) this.go(this.active + 1);
-      mx = null;
-    };
-    window.addEventListener('pointerup', this._onUp);
+      // Arrastre con mouse (solo desktop; en touch lo maneja touchend)
+      let mx = null;
+      stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
+      if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+      this._onUp = (e) => {
+        if (mx == null) return;
+        const dx = e.clientX - mx;
+        if (dx > 50) this.go(this.active - 1);
+        else if (dx < -50) this.go(this.active + 1);
+        mx = null;
+      };
+      window.addEventListener('pointerup', this._onUp);
+    }
   },
 
   go(i) {

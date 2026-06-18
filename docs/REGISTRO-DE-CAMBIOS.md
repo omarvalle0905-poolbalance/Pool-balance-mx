@@ -100,3 +100,14 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     los botones del bottom-nav son más grandes (íconos 1.5rem).
   - `index.html`: `theme-color` del navegador a marino profundo `#07121d`.
   - `sw.js`: cache v31.
+
+- **Hero a carrusel 3D coverflow + comparativa legible + letra más grande**
+  - `home.js` / `home-premium.css`: el hero pasa de scroll-snap a **carrusel 3D
+    coverflow** de fotos (tarjetas anguladas, vecinas asomando) — `HeroCarousel`
+    con flechas, dots, swipe y autoplay. Titular del hero **más grande**
+    (clamp 2.3–3.4rem).
+  - Comparativa "¿Por qué Pool Balance?": se elimina la `<table>` a rayas
+    (filas blancas con texto invisible / estilos encimados) y se rediseña como
+    **tarjetas de vidrio** legibles (`.cmp-card`), mobile-first.
+  - `sw.js`: cache v32.
+  - Pendiente (en análisis): fondo WebGL de agua (cáusticas + ondas).

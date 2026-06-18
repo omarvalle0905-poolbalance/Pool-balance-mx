@@ -18,16 +18,19 @@ function renderHome() {
 
   const waUrl = `https://wa.me/${company.whatsapp}?text=${encodeURIComponent('Hola Pool Balance, me gustaría conocer más sobre sus servicios.')}`;
 
-  // Tarjetas de foto enmarcadas (no cubren toda la pantalla, sin recorte
-  // agresivo) — se deslizan con scroll-snap nativo.
+  // Carrusel 3D coverflow de fotos (estilo tarjetas anguladas). La foto vive
+  // contenida en una tarjeta; las vecinas asoman giradas en 3D.
   const slidesHTML = hero.slides.map((s, i) => `
-    <figure class="hef-card" data-slide="${i}">
-      <div class="hef-img" style="background-image:url('${s.image}')"></div>
-      ${s.tag ? `<figcaption class="hef-tag hef-tag--${s.accent}">${s.tag}</figcaption>` : ''}
+    <figure class="hcar-slide" data-hindex="${i}">
+      <div class="hcar-card">
+        <div class="hcar-img" style="background-image:url('${s.image}')"></div>
+        ${s.tag ? `<figcaption class="hcar-tag hcar-tag--${s.accent}">${s.tag}</figcaption>` : ''}
+        <div class="hcar-veil" aria-hidden="true"></div>
+      </div>
     </figure>`).join('');
 
   const dotsHTML = hero.slides.map((_, i) => `
-    <button class="hef-dot ${i === 0 ? 'active' : ''}"
+    <button class="hcar-dot ${i === 0 ? 'active' : ''}"
             data-hdot="${i}" type="button"
             aria-label="Foto ${i + 1}"></button>`).join('');
 
@@ -64,16 +67,16 @@ function renderHome() {
         </div>
       </div>
 
-      <!-- Carrusel de fotos enmarcadas (scroll-snap nativo) -->
-      <div class="hef anim-fade-in anim-delay-4">
-        <div class="hef-track" id="hef-track">${slidesHTML}</div>
-        <button class="hef-arrow prev" id="hef-prev" type="button" aria-label="Anterior">
+      <!-- Carrusel 3D coverflow de fotos -->
+      <div class="hcar anim-fade-in anim-delay-4">
+        <div class="hcar-stage" id="hcar-stage">${slidesHTML}</div>
+        <button class="hcar-arrow prev" id="hcar-prev" type="button" aria-label="Anterior">
           <i class="fa-solid fa-chevron-left"></i>
         </button>
-        <button class="hef-arrow next" id="hef-next" type="button" aria-label="Siguiente">
+        <button class="hcar-arrow next" id="hcar-next" type="button" aria-label="Siguiente">
           <i class="fa-solid fa-chevron-right"></i>
         </button>
-        <div class="hef-dots" id="hef-dots">${dotsHTML}</div>
+        <div class="hcar-dots" id="hcar-dots">${dotsHTML}</div>
       </div>
     </section>
 
@@ -148,32 +151,25 @@ function renderHome() {
 
 
     <!-- ══ COMPARATIVA ══ -->
-    <section class="page-section bg-bruma" id="diferencia">
+    <section class="page-section" id="diferencia">
       <div class="content-container">
         <header class="section-header reveal">
           <p class="section-eyebrow">La diferencia</p>
           <h2 class="section-title">${whySection.title}</h2>
         </header>
-        <div class="overflow-x-auto rounded-2xl reveal">
-          <table class="comparison-table" role="table">
-            <thead>
-              <tr>
-                <th scope="col">Característica</th>
-                <th scope="col"><i class="fa-solid fa-times-circle mr-1 opacity-70"></i> Convencional</th>
-                <th scope="col" style="background:var(--color-cristal-dark);">
-                  <i class="fa-solid fa-check-circle mr-1"></i> Pool Balance™
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              ${whySection.comparisons.map(row => `
-                <tr>
-                  <td class="font-semibold" style="color:var(--text-primary);">${row.feature}</td>
-                  <td style="color:var(--text-muted);">${row.conventional}</td>
-                  <td class="highlight"><i class="fa-solid fa-check-circle"></i> ${row.poolBalance}</td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
+        <div class="cmp reveal">
+          ${whySection.comparisons.map(row => `
+            <article class="cmp-card">
+              <h4 class="cmp-feature">${row.feature}</h4>
+              <div class="cmp-line cmp-line-conv">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                <span><span class="cmp-lbl">Convencional:</span> ${row.conventional}</span>
+              </div>
+              <div class="cmp-line cmp-line-pb">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                <span><span class="cmp-lbl">Pool Balance™:</span> ${row.poolBalance}</span>
+              </div>
+            </article>`).join('')}
         </div>
       </div>
     </section>
@@ -447,73 +443,119 @@ function _buildVideoEmbed(url) {
 //  se desliza con scroll-snap. Flechas, dots y autoplay sincronizados.
 // ════════════════════════════════════════════════════════════
 
-function _initHeroCarousel() {
-  const track = document.getElementById('hef-track');
-  if (!track || track.dataset.bound === '1') return;
-  track.dataset.bound = '1';
+const HeroCarousel = {
+  active: 0,
+  total: 0,
+  _onUp: null,
+  _timer: null,
 
-  const cards = Array.from(track.children);
-  const dots  = Array.from(document.querySelectorAll('[data-hdot]'));
-  const prev  = document.getElementById('hef-prev');
-  const next  = document.getElementById('hef-next');
-  const total = cards.length;
-  if (!total) return;
+  init() {
+    const stage = document.getElementById('hcar-stage');
+    if (!stage) return;
+    this.total = stage.querySelectorAll('.hcar-slide').length;
+    if (!this.total) return;
+    this.active = Math.min(this.active, this.total - 1);
+    this.layout();
 
-  let current = 0;
-  let timer = null;
+    const prev = document.getElementById('hcar-prev');
+    const next = document.getElementById('hcar-next');
+    prev && (prev.onclick = () => { this.go(this.active - 1); this._restart(); });
+    next && (next.onclick = () => { this.go(this.active + 1); this._restart(); });
+    document.querySelectorAll('[data-hdot]').forEach(d => {
+      d.onclick = () => { this.go(parseInt(d.dataset.hdot, 10)); this._restart(); };
+    });
 
-  function centerOf(card) {
-    // Posición de scroll para centrar la tarjeta en el viewport del track.
-    return card.offsetLeft - (track.clientWidth - card.clientWidth) / 2;
-  }
-  function goTo(n) {
-    n = ((n % total) + total) % total;
-    current = n;
-    track.scrollTo({ left: centerOf(cards[n]), behavior: 'smooth' });
-    _syncDots();
-  }
-  function _syncDots() {
-    dots.forEach((d, i) => d.classList.toggle('active', i === current));
-  }
+    // Gestos atados una sola vez por elemento
+    if (!stage.dataset.hcarBound) {
+      stage.dataset.hcarBound = '1';
 
-  // Sincronizar el punto activo según la tarjeta más cercana al centro
-  let scrollT;
-  track.addEventListener('scroll', () => {
-    clearTimeout(scrollT);
-    scrollT = setTimeout(() => {
-      const center = track.scrollLeft + track.clientWidth / 2;
-      let best = 0, bestDist = Infinity;
-      cards.forEach((c, i) => {
-        const cc = c.offsetLeft + c.clientWidth / 2;
-        const d = Math.abs(cc - center);
-        if (d < bestDist) { bestDist = d; best = i; }
+      stage.querySelectorAll('.hcar-slide').forEach(sl => {
+        sl.addEventListener('click', (e) => {
+          if (this._swiped) { this._swiped = false; e.stopPropagation(); return; }
+          const idx = parseInt(sl.dataset.hindex, 10);
+          if (idx !== this.active) { e.stopPropagation(); this.go(idx); this._restart(); }
+        });
       });
-      current = best;
-      _syncDots();
-    }, 90);
-  }, { passive: true });
 
-  prev && (prev.onclick = () => { goTo(current - 1); _restart(); });
-  next && (next.onclick = () => { goTo(current + 1); _restart(); });
-  dots.forEach(d => d.onclick = () => { goTo(parseInt(d.dataset.hdot, 10)); _restart(); });
+      let sx = null;
+      stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; this._swiped = false; this._stop(); }, { passive: true });
+      stage.addEventListener('touchend', (e) => {
+        if (sx == null) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (Math.abs(dx) > 8) { this._swiped = true; setTimeout(() => { this._swiped = false; }, 400); }
+        if (dx > 40) this.go(this.active - 1);
+        else if (dx < -40) this.go(this.active + 1);
+        sx = null; this._restart();
+      }, { passive: true });
 
-  function _start() { clearInterval(timer); timer = setInterval(() => goTo(current + 1), 5500); }
-  function _stop()  { clearInterval(timer); }
-  function _restart() { _stop(); _start(); }
+      let mx = null;
+      stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; this._stop(); });
+      if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+      this._onUp = (e) => {
+        if (mx == null) return;
+        const dx = e.clientX - mx;
+        if (dx > 50) this.go(this.active - 1);
+        else if (dx < -50) this.go(this.active + 1);
+        mx = null; this._restart();
+      };
+      window.addEventListener('pointerup', this._onUp);
+    }
 
-  // Pausar autoplay mientras el usuario interactúa
-  track.addEventListener('pointerdown', _stop, { passive: true });
-  track.addEventListener('pointerup', _restart, { passive: true });
-  track.addEventListener('mouseenter', _stop);
-  track.addEventListener('mouseleave', _start);
+    document.addEventListener('viewRendered', (e) => {
+      if (e.detail?.view !== 'home') this._stop();
+    });
 
-  // Detener autoplay al salir de la vista home
-  document.addEventListener('viewRendered', (e) => {
-    if (e.detail?.view !== 'home') _stop();
-  });
+    this._restart();
+  },
 
-  _syncDots();
-  _start();
+  go(i) {
+    if (!this.total) return;
+    this.active = ((i % this.total) + this.total) % this.total;
+    this.layout();
+  },
+
+  layout() {
+    const slides = Array.from(document.querySelectorAll('#hcar-stage .hcar-slide'));
+    const total = slides.length;
+    slides.forEach((sl, i) => {
+      let offset = i - this.active;
+      if (offset > total / 2) offset -= total;
+      if (offset < -total / 2) offset += total;
+
+      let transform, opacity, z, pe = 'auto';
+      if (offset === 0) {
+        transform = 'translateX(-50%) rotateY(0deg) scale(1)';
+        opacity = 1; z = 30;
+      } else if (Math.abs(offset) === 1) {
+        const dir = offset > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${dir * 60}%)) rotateY(${dir * -38}deg) scale(0.86)`;
+        opacity = 1; z = 20;
+      } else {
+        const dir = offset > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${dir * 78}%)) rotateY(${dir * -38}deg) scale(0.8)`;
+        opacity = 0; z = 10; pe = 'none';
+      }
+      sl.style.transform = transform;
+      sl.style.opacity = opacity;
+      sl.style.zIndex = z;
+      sl.style.pointerEvents = pe;
+      sl.classList.toggle('is-active', offset === 0);
+    });
+    document.querySelectorAll('[data-hdot]').forEach((d, i) => {
+      d.classList.toggle('active', i === this.active);
+    });
+  },
+
+  _start() { clearInterval(this._timer); this._timer = setInterval(() => this.go(this.active + 1), 5500); },
+  _stop()  { clearInterval(this._timer); },
+  _restart() { this._stop(); this._start(); },
+};
+window.HeroCarousel = HeroCarousel;
+
+function _initHeroCarousel() {
+  if (!document.getElementById('hcar-stage')) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => HeroCarousel.init()));
+  setTimeout(() => HeroCarousel.init(), 200);
 }
 
 // ── Parallax scroll effect driver ────────────────────────────

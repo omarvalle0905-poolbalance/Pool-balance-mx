@@ -794,6 +794,33 @@ function _initScrollLinks() {
   });
 }
 
+// ── Ondas de agua en las tarjetas (ligero, sin WebGL) ────────
+// Al tocar/clic una tarjeta brota una onda concéntrica desde el punto
+// tocado. Delegado en #view-home, se ata una sola vez.
+function _initCardRipples() {
+  const view = document.getElementById('view-home');
+  if (!view || view.dataset.rippleBound) return;
+  view.dataset.rippleBound = '1';
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const SEL = '.didactic-card, .cmp-card, .method-step, .testimonial-card, .pricing-card, .ba-tile, .hcar-card';
+  view.addEventListener('pointerdown', (e) => {
+    const card = e.target.closest(SEL);
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    if (!rect.width) return;
+    const size = Math.max(rect.width, rect.height) * 1.15;
+    const wave = document.createElement('span');
+    wave.className = 'hp-ripple-wave';
+    wave.style.width = wave.style.height = size + 'px';
+    wave.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    wave.style.top  = (e.clientY - rect.top  - size / 2) + 'px';
+    card.appendChild(wave);
+    wave.addEventListener('animationend', () => wave.remove());
+  }, { passive: true });
+}
+
 // ── Inicializa todo lo de Home ───────────────────────────────
 function _initHome() {
   _initHeroCarousel();
@@ -804,6 +831,7 @@ function _initHome() {
   _initFaq();
   _initPackageCarousel();
   _initScrollLinks();
+  _initCardRipples();
 }
 
 // ── Escuchar el evento del router → siempre que se renderice 'home' ──

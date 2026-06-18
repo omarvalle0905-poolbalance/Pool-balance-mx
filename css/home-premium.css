@@ -540,3 +540,40 @@
   background: rgba(255,255,255,0.25); transition: width .3s ease, background .3s ease;
 }
 .hcar-dot.active { width: 22px; background: var(--color-cristal); }
+
+/* ─────────────────────────────────────────
+   16. ONDAS DE AGUA EN TARJETAS (ligero, sin WebGL)
+   Al tocar/clic una tarjeta brota una onda concéntrica tipo agua.
+   Solo CSS + un poco de JS; respeta prefers-reduced-motion.
+───────────────────────────────────────── */
+#view-home .didactic-card,
+#view-home .cmp-card,
+#view-home .method-step,
+#view-home .testimonial-card,
+#view-home .pricing-card,
+#view-home .ba-tile,
+#view-home .hcar-card {
+  position: relative;
+  overflow: hidden;
+}
+.hp-ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
+  background: radial-gradient(circle,
+    rgba(111,184,198,0.38) 0%,
+    rgba(142,203,215,0.18) 38%,
+    rgba(111,184,198,0.06) 60%,
+    transparent 72%);
+  box-shadow: 0 0 0 1px rgba(142,203,215,0.25) inset;
+  transform: scale(0);
+  opacity: 0.95;
+  animation: hp-ripple 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes hp-ripple {
+  to { transform: scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hp-ripple-wave { display: none; }
+}

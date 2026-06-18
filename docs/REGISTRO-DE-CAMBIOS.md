@@ -110,4 +110,13 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     (filas blancas con texto invisible / estilos encimados) y se rediseña como
     **tarjetas de vidrio** legibles (`.cmp-card`), mobile-first.
   - `sw.js`: cache v32.
-  - Pendiente (en análisis): fondo WebGL de agua (cáusticas + ondas).
+
+- **Ondas de agua en las tarjetas (efecto ligero, sin WebGL)**
+  - Decisión: en vez de un fondo WebGL a pantalla completa (pesado en batería
+    móvil), se eligió el efecto **solo en tarjetas**. Al tocar/clic una tarjeta
+    brota una onda concéntrica tipo agua desde el punto tocado.
+  - `home.js`: `_initCardRipples()` (delegado, una sola vez, respeta
+    prefers-reduced-motion). `home-premium.css`: `.hp-ripple-wave` + keyframes.
+  - Aplica a tarjetas de problema, comparativa, método, testimonios, paquetes,
+    antes/después y fotos del hero.
+  - `sw.js`: cache v33.

@@ -19,34 +19,10 @@ function renderHome() {
   const waUrl = `https://wa.me/${company.whatsapp}?text=${encodeURIComponent('Hola Pool Balance, me gustaría conocer más sobre sus servicios.')}`;
 
   const slidesHTML = hero.slides.map((s, i) => `
-    <div class="hero-slide ${i === 0 ? 'active' : ''}"
-         data-slide="${i}"
-         data-audio="${s.audio || ''}">
+    <div class="hero-slide ${i === 0 ? 'active' : ''}" data-slide="${i}">
       <div class="hero-bg" style="background-image:url('${s.image}')"></div>
       <div class="hero-overlay"></div>
-      <div class="hero-slide-tag hero-slide-tag--${s.accent}">${s.tag}</div>
-      ${(s.caption || s.audio || s.stat) ? `
-      <div class="hero-slide-caption">
-        ${s.caption ? `<p class="hero-slide-caption-text">${s.caption}</p>` : '<span class="hero-slide-caption-text"></span>'}
-        <div class="hero-slide-caption-right">
-          <div class="hero-slide-stat">
-            <span class="hero-slide-stat-value">${s.stat.value}</span>
-            <span class="hero-slide-stat-label">${s.stat.label}</span>
-          </div>
-          ${s.audio ? `
-          <button class="slide-audio-btn"
-                  data-audio-src="${s.audio}"
-                  aria-label="Escuchar explicación"
-                  title="Escuchar explicación"
-                  type="button">
-            <span class="slide-audio-icon">
-              <i class="fa-solid fa-volume-high slide-audio-ico-play"></i>
-              <i class="fa-solid fa-pause slide-audio-ico-pause" style="display:none"></i>
-            </span>
-            <span class="slide-audio-label">Escuchar</span>
-          </button>` : ''}
-        </div>
-      </div>` : ''}
+      ${s.tag ? `<div class="hero-slide-tag hero-slide-tag--${s.accent}">${s.tag}</div>` : ''}
     </div>`).join('');
 
   const dotsHTML = hero.slides.map((_, i) => `
@@ -80,20 +56,13 @@ function renderHome() {
         </h1>
         <p class="hero-subheadline anim-fade-in anim-delay-2">${hero.subheadline}</p>
         <div class="hero-ctas anim-fade-in anim-delay-3">
-          <button class="btn btn-primary btn-lg" data-navigate="${hero.cta_primary.view}">
-            ${hero.cta_primary.label}
+          <button class="btn btn-primary btn-lg" data-scroll="paquetes">
+            Ver planes
             <i class="fa-solid fa-arrow-right text-sm"></i>
           </button>
           <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-ghost">
             <i class="fa-brands fa-whatsapp"></i> Agendar diagnóstico
           </a>
-        </div>
-        <div class="hero-stats anim-fade-in anim-delay-4">
-          ${hero.stats.map(s => `
-            <div class="stat-chip">
-              <div class="stat-chip-value">${s.value}</div>
-              <div class="stat-chip-label">${s.label}</div>
-            </div>`).join('')}
         </div>
       </div>
 
@@ -116,6 +85,12 @@ function renderHome() {
     </section>
 
 
+    <!-- ══ VIDEO PROMOCIONAL — directamente debajo del carrusel ══ -->
+    <!-- Se muestra SOLO cuando hay una URL en APP_CONFIG.home.hero.promoVideo.url
+         (acepta YouTube, Vimeo o MP4). Si es null, esta sección no aparece. -->
+    ${_renderVideoSection(hero)}
+
+
     <!-- ══ BARRA DE CONFIANZA ══ -->
     ${(trustBadges && trustBadges.length) ? `
     <section class="trust-bar" aria-label="Sellos de confianza">
@@ -126,10 +101,6 @@ function renderHome() {
           </span>`).join('')}
       </div>
     </section>` : ''}
-
-
-    <!-- ══ VIDEO PROMOCIONAL ══ -->
-    ${_renderVideoSection(hero)}
 
 
     <!-- ══ PROBLEMA ══ -->
@@ -175,8 +146,8 @@ function renderHome() {
             </div>`).join('')}
         </div>
         <div class="mt-10 reveal">
-          <button class="btn btn-primary" data-navigate="servicios">
-            Ver nuestros paquetes <i class="fa-solid fa-arrow-right text-sm"></i>
+          <button class="btn btn-primary" data-scroll="paquetes">
+            Ver planes <i class="fa-solid fa-arrow-right text-sm"></i>
           </button>
         </div>
       </div>
@@ -286,7 +257,7 @@ function renderHome() {
           Agenda tu diagnóstico inicial con fotómetro digital sin costo adicional al primer servicio.
         </p>
         <div class="flex flex-wrap gap-4 justify-center">
-          <button class="btn btn-primary btn-lg" data-navigate="servicios">Ver paquetes y precios</button>
+          <button class="btn btn-primary btn-lg" data-scroll="paquetes">Ver planes y precios</button>
           <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">
             <i class="fa-brands fa-whatsapp"></i> Escribir por WhatsApp
           </a>
@@ -403,11 +374,13 @@ function _renderHomePackages() {
           <button class="pkgcar-arrow next" id="pkgcar-next" type="button" aria-label="Paquete siguiente"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         <div class="pkgcar-dots" id="pkgcar-dots">${pkgDots}</div>
-        <p class="text-xs text-center mt-6 reveal" style="color:var(--text-muted);">
+        <p class="text-xs text-center mt-6 reveal" style="color:rgba(255,255,255,0.5);">
           <i class="fa-solid fa-circle-info mr-1"></i> ${services.pricingNote}
         </p>
         <div class="text-center mt-6 reveal">
-          <button class="btn btn-secondary" data-navigate="servicios">Ver servicios adicionales y proceso <i class="fa-solid fa-arrow-right text-sm"></i></button>
+          <a href="${`https://wa.me/${wa}?text=${encodeURIComponent('Hola Pool Balance, quiero agendar mi diagnóstico.')}`}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">
+            <i class="fa-brands fa-whatsapp"></i> Agendar diagnóstico
+          </a>
         </div>
       </div>
     </section>`;
@@ -642,35 +615,38 @@ function _initReveal() {
   els.forEach(el => io.observe(el));
 }
 
-// ── Acordeón de FAQ ──────────────────────────────────────────
+// ── Acordeón de FAQ (delegación, se ata UNA sola vez) ─────────
+// Antes se ataba un listener por pregunta y, como _initHome corre dos veces
+// (viewRendered + PostRender), quedaban DOS handlers: el primer clic abría y
+// el segundo, en el mismo evento, volvía a cerrar — por eso "no abría".
 function _initFaq() {
-  const items = document.querySelectorAll('#view-home .faq-item');
-  if (!items.length) return;
+  const view = document.getElementById('view-home');
+  if (!view || view.dataset.faqBound) return;
+  view.dataset.faqBound = '1';
 
-  items.forEach(item => {
-    const btn    = item.querySelector('.faq-q');
+  view.addEventListener('click', (e) => {
+    const btn = e.target.closest('.faq-q');
+    if (!btn) return;
+    const item = btn.closest('.faq-item');
+    if (!item) return;
     const answer = item.querySelector('.faq-a');
-    if (!btn || !answer) return;
+    const isOpen = item.classList.contains('open');
 
-    btn.addEventListener('click', () => {
-      const isOpen = item.classList.contains('open');
-
-      // Cerrar todos (acordeón de uno a la vez)
-      items.forEach(other => {
-        other.classList.remove('open');
-        const a = other.querySelector('.faq-a');
-        const b = other.querySelector('.faq-q');
-        if (a) a.style.maxHeight = null;
-        if (b) b.setAttribute('aria-expanded', 'false');
-      });
-
-      // Abrir el clicado si estaba cerrado
-      if (!isOpen) {
-        item.classList.add('open');
-        btn.setAttribute('aria-expanded', 'true');
-        answer.style.maxHeight = answer.scrollHeight + 'px';
-      }
+    // Cerrar todas (acordeón de una a la vez)
+    view.querySelectorAll('.faq-item').forEach(other => {
+      other.classList.remove('open');
+      const a = other.querySelector('.faq-a');
+      const b = other.querySelector('.faq-q');
+      if (a) a.style.maxHeight = null;
+      if (b) b.setAttribute('aria-expanded', 'false');
     });
+
+    // Abrir la clicada si estaba cerrada
+    if (!isOpen && answer) {
+      item.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      answer.style.maxHeight = answer.scrollHeight + 'px';
+    }
   });
 }
 
@@ -812,13 +788,32 @@ function _initPackageCarousel() {
   setTimeout(() => PackageCarousel.init(), 200);
 }
 
+// ── Botones con data-scroll → scroll suave a una sección ─────
+function _initScrollLinks() {
+  const view = document.getElementById('view-home');
+  if (!view || view.dataset.scrollBound) return;
+  view.dataset.scrollBound = '1';
+  view.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-scroll]');
+    if (!btn) return;
+    const target = document.getElementById(btn.dataset.scroll);
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
+
 // ── Inicializa todo lo de Home ───────────────────────────────
 function _initHome() {
   _initCarousel();
-  _initHomeParallax();
+  // Nota: el parallax de scroll del hero se retiró a propósito — provocaba un
+  // "brinco" al soltar el dedo en móvil. Los reveals por IntersectionObserver
+  // (que sí se sienten bien) se mantienen.
   _initReveal();
   _initFaq();
   _initPackageCarousel();
+  _initScrollLinks();
 }
 
 // ── Escuchar el evento del router → siempre que se renderice 'home' ──

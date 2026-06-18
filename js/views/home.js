@@ -1,17 +1,19 @@
 /**
  * ============================================================
  *  POOL BALANCE — VISTA 1: HOME
- *  v2.3 — Carousel con delegación global de eventos.
- *         El init NO depende del router ni del PostRender:
- *         escucha el evento 'viewRendered' directamente
- *         en document, así funciona siempre sin importar
- *         si es primera carga, navegación o recarga.
+ *  v3.0 — Rediseño cinematográfico oscuro.
+ *         · Hero con capa "aurora" + grano + carousel.
+ *         · Barra de confianza, método en timeline,
+ *           testimonios, FAQ acordeón y CTA flotante.
+ *         · Animaciones de revelado por IntersectionObserver.
+ *         Conserva toda la lógica de carousel/audio v2.3.
  * ============================================================
  */
 
 // ── Render principal ──────────────────────────────────────────
 function renderHome() {
-  const { hero, problemSection, methodSection, whySection } = APP_CONFIG.home;
+  const { hero, problemSection, methodSection, whySection,
+          trustBadges, testimonialsSection, faqSection } = APP_CONFIG.home;
   const { company } = APP_CONFIG;
 
   const waUrl = `https://wa.me/${company.whatsapp}?text=${encodeURIComponent('Hola Pool Balance, me gustaría conocer más sobre sus servicios.')}`;
@@ -59,6 +61,9 @@ function renderHome() {
     <section class="hero-section" id="hero-carousel">
       <div class="hero-slides-track">${slidesHTML}</div>
 
+      <!-- Atmósfera de profundidad (la imagen es la tesis) -->
+      <div class="hero-aurora" aria-hidden="true"></div>
+
       <div class="hero-content">
         <div class="hero-badge anim-fade-in">
           <span class="hero-badge-dot"></span>${hero.badge}
@@ -104,6 +109,18 @@ function renderHome() {
     </section>
 
 
+    <!-- ══ BARRA DE CONFIANZA ══ -->
+    ${(trustBadges && trustBadges.length) ? `
+    <section class="trust-bar" aria-label="Sellos de confianza">
+      <div class="trust-bar-track">
+        ${trustBadges.map(b => `
+          <span class="trust-item">
+            <i class="fa-solid fa-${b.icon}"></i>${b.label}
+          </span>`).join('')}
+      </div>
+    </section>` : ''}
+
+
     <!-- ══ VIDEO PROMOCIONAL ══ -->
     ${_renderVideoSection(hero)}
 
@@ -111,14 +128,14 @@ function renderHome() {
     <!-- ══ PROBLEMA ══ -->
     <section class="page-section bg-bruma" id="problema">
       <div class="content-container">
-        <header class="section-header">
+        <header class="section-header reveal">
           <p class="section-eyebrow">El problema real</p>
           <h2 class="section-title">${problemSection.title}</h2>
           <p class="section-subtitle">${problemSection.subtitle}</p>
         </header>
         <div class="grid-cards grid-cards-4" role="list">
           ${problemSection.cards.map((card, i) => `
-            <article class="didactic-card card-${card.color} anim-fade-in-up anim-delay-${i+1}"
+            <article class="didactic-card card-${card.color} reveal reveal-delay-${Math.min(i+1,4)}"
                      data-num="${i + 1}"
                      role="listitem">
               <div class="didactic-icon icon-${card.color}">
@@ -135,14 +152,14 @@ function renderHome() {
     <!-- ══ MÉTODO ══ -->
     <section class="page-section-lg" id="metodo" style="background:#fff;">
       <div class="content-container">
-        <header class="section-header">
+        <header class="section-header reveal">
           <p class="section-eyebrow">Nuestro proceso</p>
           <h2 class="section-title">${methodSection.title}</h2>
           <p class="section-subtitle">${methodSection.subtitle}</p>
         </header>
-        <div class="flex flex-col gap-10 max-w-2xl" role="list">
+        <div class="method-timeline flex flex-col gap-10" role="list">
           ${methodSection.steps.map((step, i) => `
-            <div class="method-step anim-fade-in-up anim-delay-${Math.min(i+1,6)}" role="listitem">
+            <div class="method-step reveal reveal-delay-${Math.min(i+1,4)}" role="listitem">
               <div class="method-step-number">${step.number}</div>
               <div>
                 <h3 class="text-base font-bold text-marino mb-1">${step.title}</h3>
@@ -150,7 +167,7 @@ function renderHome() {
               </div>
             </div>`).join('')}
         </div>
-        <div class="mt-10">
+        <div class="mt-10 reveal">
           <button class="btn btn-primary" data-navigate="servicios">
             Ver nuestros paquetes <i class="fa-solid fa-arrow-right text-sm"></i>
           </button>
@@ -162,11 +179,11 @@ function renderHome() {
     <!-- ══ COMPARATIVA ══ -->
     <section class="page-section bg-bruma" id="diferencia">
       <div class="content-container">
-        <header class="section-header">
+        <header class="section-header reveal">
           <p class="section-eyebrow">La diferencia</p>
           <h2 class="section-title">${whySection.title}</h2>
         </header>
-        <div class="overflow-x-auto rounded-2xl">
+        <div class="overflow-x-auto rounded-2xl reveal">
           <table class="comparison-table" role="table">
             <thead>
               <tr>
@@ -191,8 +208,63 @@ function renderHome() {
     </section>
 
 
+    <!-- ══ TESTIMONIOS ══ -->
+    ${(testimonialsSection && testimonialsSection.items?.length) ? `
+    <section class="page-section-lg testimonials-section">
+      <div class="content-container">
+        <header class="section-header reveal" style="text-align:center;max-width:620px;margin-left:auto;margin-right:auto;">
+          <p class="section-eyebrow" style="justify-content:center;">Prueba social</p>
+          <h2 class="section-title">${testimonialsSection.title}</h2>
+          <p class="section-subtitle" style="margin-left:auto;margin-right:auto;">${testimonialsSection.subtitle}</p>
+        </header>
+        <div class="testimonials-grid">
+          ${testimonialsSection.items.map((t, i) => `
+            <article class="testimonial-card reveal reveal-delay-${Math.min(i+1,3)}">
+              <div class="testimonial-quote-mark">&ldquo;</div>
+              <div class="testimonial-stars" aria-label="${t.rating} de 5">
+                ${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}
+              </div>
+              <p class="testimonial-text">${t.quote}</p>
+              <div class="testimonial-author">
+                <div class="testimonial-avatar">${_initials(t.name)}</div>
+                <div>
+                  <div class="testimonial-name">${t.name}</div>
+                  <div class="testimonial-role">${t.role}</div>
+                </div>
+              </div>
+            </article>`).join('')}
+        </div>
+      </div>
+    </section>` : ''}
+
+
+    <!-- ══ FAQ ══ -->
+    ${(faqSection && faqSection.items?.length) ? `
+    <section class="page-section-lg bg-bruma" id="faq">
+      <div class="content-container">
+        <header class="section-header reveal" style="text-align:center;max-width:620px;margin-left:auto;margin-right:auto;">
+          <p class="section-eyebrow" style="justify-content:center;">Dudas frecuentes</p>
+          <h2 class="section-title">${faqSection.title}</h2>
+          <p class="section-subtitle" style="margin-left:auto;margin-right:auto;">${faqSection.subtitle}</p>
+        </header>
+        <div class="faq-list reveal">
+          ${faqSection.items.map((f, i) => `
+            <div class="faq-item" data-faq="${i}">
+              <button class="faq-q" type="button" aria-expanded="false">
+                <span>${f.q}</span>
+                <span class="faq-q-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-a">
+                <div class="faq-a-inner">${f.a}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </section>` : ''}
+
+
     <!-- ══ CTA FINAL ══ -->
-    <section class="page-section-lg" style="background:var(--color-marino);">
+    <section class="page-section-lg cta-final">
       <div class="content-container text-center">
         <p class="section-eyebrow" style="color:var(--color-cristal);justify-content:center;">Veracruz, México</p>
         <h2 class="text-white font-extrabold mb-4" style="font-size:clamp(1.6rem,4vw,2.4rem);">
@@ -218,38 +290,44 @@ function renderHome() {
 }
 
 
+// ── Iniciales para avatar de testimonio ──────────────────────
+function _initials(name) {
+  return (name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(w => w.length > 1)   // ignora títulos cortos como "Arq."
+    .slice(0, 2)
+    .map(w => w[0].toUpperCase())
+    .join('');
+}
+
+
 // ── Sección de video promocional ─────────────────────────────
 function _renderVideoSection(hero) {
-  // Si no hay config de video en el config, mostrar placeholder editable
   const video = hero.promoVideo || null;
 
   if (video && video.url) {
-    // Hay URL guardada → mostrar reproductor
     return `
     <section class="page-section" id="promo-video" style="background:#fff;">
       <div class="content-container">
-        <header class="section-header" style="margin-bottom:24px;">
+        <header class="section-header reveal" style="margin-bottom:24px;">
           <p class="section-eyebrow">Video</p>
           <h2 class="section-title" style="font-size:clamp(1.2rem,3vw,1.8rem);">
             ${video.title || 'Mira Pool Balance en acción'}
           </h2>
           ${video.subtitle ? `<p class="section-subtitle">${video.subtitle}</p>` : ''}
         </header>
-        <div class="promo-video-wrap">
+        <div class="promo-video-wrap reveal">
           ${_buildVideoEmbed(video.url)}
         </div>
       </div>
     </section>`;
   }
-
-  // Sin URL → mostrar placeholder (solo visible en modo administrador / desarrollo)
-  // En producción puedes ocultar esto con display:none o borrarlo del config
   return '';
 }
 
 // Detecta si la URL es YouTube, Vimeo o MP4 directo
 function _buildVideoEmbed(url) {
-  // YouTube
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   if (ytMatch) {
     return `<div class="promo-video-iframe-wrap">
@@ -262,7 +340,6 @@ function _buildVideoEmbed(url) {
     </div>`;
   }
 
-  // Vimeo
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) {
     return `<div class="promo-video-iframe-wrap">
@@ -275,7 +352,6 @@ function _buildVideoEmbed(url) {
     </div>`;
   }
 
-  // MP4 directo (Firebase Storage, etc.)
   return `<video class="promo-video-native" controls playsinline preload="metadata">
     <source src="${url}" type="video/mp4">
     Tu navegador no soporta la reproducción de video.
@@ -285,8 +361,6 @@ function _buildVideoEmbed(url) {
 
 // ════════════════════════════════════════════════════════════
 //  CAROUSEL — Init con delegación de eventos en document.
-//  Se llama desde el evento 'viewRendered' para garantizar
-//  que el DOM ya existe, sin depender del PostRender del router.
 // ════════════════════════════════════════════════════════════
 
 function _initCarousel() {
@@ -306,18 +380,15 @@ function _initCarousel() {
   let timer   = null;
 
   // ── REPRODUCTOR DE AUDIO ────────────────────────────────────
-  // Un único elemento <audio> reutilizado para todos los slides.
-  // Se crea una sola vez y se reutiliza cambiando el src.
   const audioEl = new Audio();
   audioEl.preload = 'none';
-  let activeAudioBtn = null;  // botón actualmente en estado "playing"
+  let activeAudioBtn = null;
 
   function _stopAudio() {
     if (!audioEl.paused) audioEl.pause();
     audioEl.currentTime = 0;
     if (activeAudioBtn) {
       activeAudioBtn.classList.remove('playing');
-      // Restablecer íconos
       const icoPlay  = activeAudioBtn.querySelector('.slide-audio-ico-play');
       const icoPause = activeAudioBtn.querySelector('.slide-audio-ico-pause');
       if (icoPlay)  icoPlay.style.display  = '';
@@ -333,7 +404,6 @@ function _initCarousel() {
     const icoPlay  = btn.querySelector('.slide-audio-ico-play');
     const icoPause = btn.querySelector('.slide-audio-ico-pause');
 
-    // Si este botón ya está reproduciendo → pausar
     if (btn === activeAudioBtn && !audioEl.paused) {
       audioEl.pause();
       btn.classList.remove('playing');
@@ -342,20 +412,15 @@ function _initCarousel() {
       return;
     }
 
-    // Si hay otro audio activo → detenerlo primero
     _stopAudio();
 
-    // Cargar y reproducir
     audioEl.src = src;
-    audioEl.play().catch(() => {
-      // El navegador bloqueó la reproducción automática — no es error crítico
-    });
+    audioEl.play().catch(() => {});
     btn.classList.add('playing');
     if (icoPlay)  icoPlay.style.display  = 'none';
     if (icoPause) icoPause.style.display = '';
     activeAudioBtn = btn;
 
-    // Cuando termine el audio → restablecer estado
     audioEl.onended = () => {
       btn.classList.remove('playing');
       if (icoPlay)  icoPlay.style.display  = '';
@@ -364,7 +429,6 @@ function _initCarousel() {
     };
   }
 
-  // Delegar clicks de botones de audio en el carousel
   carousel.addEventListener('click', e => {
     const audioBtn = e.target.closest('.slide-audio-btn');
     if (audioBtn) {
@@ -376,7 +440,6 @@ function _initCarousel() {
   // ── NAVEGACIÓN DEL CAROUSEL ─────────────────────────────────
   function goTo(n) {
     n = ((n % total) + total) % total;
-    // Detener audio al cambiar de slide
     _stopAudio();
     slides.forEach((s, i) => s.classList.toggle('active', i === n));
     dots.forEach((d, i)   => d.classList.toggle('active', i === n));
@@ -389,17 +452,14 @@ function _initCarousel() {
   }
   function stopTimer() { clearInterval(timer); }
 
-  // Flechas
   btnPrev && btnPrev.addEventListener('click', () => { goTo(current - 1); startTimer(); });
   btnNext && btnNext.addEventListener('click', () => { goTo(current + 1); startTimer(); });
 
-  // Dots
   dots.forEach(d => d.addEventListener('click', () => {
     goTo(parseInt(d.dataset.dot, 10));
     startTimer();
   }));
 
-  // Swipe táctil
   let tx = 0;
   carousel.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
   carousel.addEventListener('touchend',   e => {
@@ -407,11 +467,9 @@ function _initCarousel() {
     if (Math.abs(dx) > 40) { goTo(dx < 0 ? current + 1 : current - 1); startTimer(); }
   }, { passive: true });
 
-  // Pausa del auto-avance en hover (desktop)
   carousel.addEventListener('mouseenter', stopTimer);
   carousel.addEventListener('mouseleave', startTimer);
 
-  // Limpiar audio y scroll listeners si el usuario navega a otra vista
   document.addEventListener('viewRendered', (e) => {
     if (e.detail?.view !== 'home') {
       _stopAudio();
@@ -434,42 +492,65 @@ function _initHomeParallax() {
     window.removeEventListener('scroll', window._homeScrollHandler);
   }
 
+  // Parallax de fondo del hero (solo transform → corre en compositor).
+  // Los reveals y el pop 3D los maneja CSS scroll-driven, no este handler.
   window._homeScrollHandler = function() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    
-    // Parallax background on hero slides
-    const bgs = document.querySelectorAll('.hero-bg');
+    if (scrollTop > window.innerHeight) return;   // fuera del hero: nada que mover
+    const bgs = document.querySelectorAll('.hero-slide.active .hero-bg');
     bgs.forEach(bg => {
-      bg.style.transform = `translateY(${scrollTop * 0.35}px)`;
-    });
-
-    // Parallax dynamic relative motion on didactic icons
-    const cards = document.querySelectorAll('.didactic-card');
-    cards.forEach((card, index) => {
-      const rect = card.getBoundingClientRect();
-      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
-      if (inViewport) {
-        const offset = (window.innerHeight - rect.top) * 0.04 * (1 + (index % 2) * 0.2);
-        const icon = card.querySelector('.didactic-icon');
-        if (icon) {
-          icon.style.transform = `translateY(${offset - 10}px)`;
-        }
-      }
+      // scale(1.06) mantiene sobre-escaneo: el borde nunca se asoma al desplazar.
+      bg.style.transform = `translateY(${scrollTop * 0.32}px) scale(1.06)`;
     });
   };
 
   window.addEventListener('scroll', window._homeScrollHandler, { passive: true });
 }
 
+// ── Acordeón de FAQ ──────────────────────────────────────────
+function _initFaq() {
+  const items = document.querySelectorAll('#view-home .faq-item');
+  if (!items.length) return;
+
+  items.forEach(item => {
+    const btn    = item.querySelector('.faq-q');
+    const answer = item.querySelector('.faq-a');
+    if (!btn || !answer) return;
+
+    btn.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+
+      // Cerrar todos (acordeón de uno a la vez)
+      items.forEach(other => {
+        other.classList.remove('open');
+        const a = other.querySelector('.faq-a');
+        const b = other.querySelector('.faq-q');
+        if (a) a.style.maxHeight = null;
+        if (b) b.setAttribute('aria-expanded', 'false');
+      });
+
+      // Abrir el clicado si estaba cerrado
+      if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+      }
+    });
+  });
+}
+
+// ── Inicializa todo lo de Home ───────────────────────────────
+function _initHome() {
+  _initCarousel();
+  _initHomeParallax();
+  _initFaq();
+}
+
 // ── Escuchar el evento del router → siempre que se renderice 'home' ──
 document.addEventListener('viewRendered', (e) => {
   if (e.detail?.view === 'home') {
-    // Dos frames de margen para asegurarnos que el DOM está pintado
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        _initCarousel();
-        _initHomeParallax();
-      });
+      requestAnimationFrame(_initHome);
     });
   }
 });
@@ -477,9 +558,6 @@ document.addEventListener('viewRendered', (e) => {
 // ── PostRender como respaldo adicional (doble seguro) ──
 if (typeof PostRender !== 'undefined') {
   PostRender.home = function() {
-    setTimeout(() => {
-      _initCarousel();
-      _initHomeParallax();
-    }, 60);
+    setTimeout(_initHome, 60);
   };
 }

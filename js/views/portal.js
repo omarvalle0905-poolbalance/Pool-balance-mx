@@ -677,11 +677,29 @@ const PortalAuth = {
     try { creds = JSON.parse(localStorage.getItem('pb_session') || 'null'); } catch (e) { creds = null; }
     if (!creds || !creds.id) { this._failRestore(); return; }
 
-    const result = await AuthService.login(creds.id, creds.code);
-    if (result.success) {
+    // ── Timeout de seguridad ──
+    // Si la restauración tarda demasiado (red lenta, import de Firebase o
+    // consulta a Firestore que no responde), NO podemos quedarnos colgados
+    // para siempre en "Cargando tu portal…". Tras unos segundos caemos al
+    // login para que el cliente pueda entrar manualmente.
+    const TIMEOUT_MS = 8000;
+    const timeout = new Promise((resolve) =>
+      setTimeout(() => resolve({ _timedOut: true }), TIMEOUT_MS));
+
+    let result;
+    try {
+      result = await Promise.race([AuthService.login(creds.id, creds.code), timeout]);
+    } catch (err) {
+      result = { success: false };
+    }
+
+    if (result && result.success) {
       PortalState.isAuthenticated = true;
       PortalState.clientProfile   = result.profile;
-      await this._loadBitacoras(result.profile);
+      // La carga de bitácoras NO debe bloquear el render del dashboard: monta
+      // una suscripción en vivo y se actualiza sola. Si falla, el dashboard
+      // igual se muestra (con su estado vacío) y luego se rellena.
+      try { await this._loadBitacoras(result.profile); } catch (e) {}
       const c = document.getElementById('view-container');
       if (c) {
         c.innerHTML = renderDashboard();
@@ -689,9 +707,15 @@ const PortalAuth = {
         Nav.setActive('portal');
         PostRender.portal();
       }
-    } else {
-      try { localStorage.removeItem('pb_session'); } catch (e) {}
-      this._failRestore();
+      return;
+    }
+
+    // Falló o expiró el tiempo: limpiar la sesión y mostrar el login para no
+    // dejar al cliente atrapado en la pantalla de carga.
+    try { localStorage.removeItem('pb_session'); } catch (e) {}
+    this._failRestore();
+    if (result && result._timedOut && window.Toast) {
+      Toast.show('No pudimos cargar tu portal automáticamente. Ingresa de nuevo.', 'warning');
     }
   },
 

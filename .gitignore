@@ -1,0 +1,4 @@
+
+# Python cache (de las skills)
+__pycache__/
+*.pyc

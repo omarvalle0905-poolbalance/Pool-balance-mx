@@ -22,7 +22,7 @@ const APP_CONFIG = {
   //  Para reactivar toda la app, cambia esto a false.
   // ─────────────────────────────────────────────
   features: {
-    portalOnly: true,
+    portalOnly: false,
   },
 
   // ─────────────────────────────────────────────
@@ -48,7 +48,7 @@ const APP_CONFIG = {
     title: "Pool Balance | Gestoría Técnica y Monitoreo de Albercas en Veracruz",
     description:
       "Una alberca cristalina no siempre es una alberca segura. Pool Balance usa fotómetros digitales profesionales para garantizar el equilibrio químico real del agua de tu alberca en Veracruz. Servicio técnico certificado, bitácoras digitales y monitoreo continuo.",
-    ogImage: "https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?w=1200&h=630&fit=crop",
+    ogImage: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023731_c26a86f3-4ce6-4634-af55-1677b9d0a4ad.png",
     ogType: "website",
     canonicalUrl: "https://poolbalance.com.mx",
     keywords: "mantenimiento de albercas Veracruz, química de agua piscinas, monitoreo albercas, gestoría hídrica, Pool Balance Veracruz",
@@ -115,7 +115,7 @@ const APP_CONFIG = {
       slides: [
         {
           id: "slide-verde",
-          image: "images/carousel-1.jpg",   // ← Slide 1: foto de alberca verde / problema
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023202_fecac0cb-bbf9-49fb-be98-352c8f7844b1.png",   // ← Slide 1: alberca verde (IA Higgsfield)
           tag: "⚠️ Agua verde",
           caption: "El color verde es causado por algas y metales en oxidación. El cobre, hierro y manganeso reaccionan con el cloro y tiñen el agua — incluso el cabello rubio. Sin tratamiento específico, el problema empeora cada día.",
           stat: { value: "72h", label: "para resolver sin drenar" },
@@ -125,7 +125,7 @@ const APP_CONFIG = {
         },
         {
           id: "slide-lsi",
-          image: "images/carousel-2.jpg",   // ← Slide 2: foto de alberca cristalina engañosa
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023331_f114c20c-a415-407a-9e15-28a1be4704fb.png",   // ← Slide 2: cristalina engañosa / LSI (IA Higgsfield)
           tag: "🔬 LSI negativo — agua agresiva",
           caption: "El agua puede verse perfectamente cristalina y aun así tener un Índice de Langelier negativo. Esto significa que está en modo 'corrosivo': disuelve activamente el acabado, los accesorios metálicos y el equipo de filtración.",
           stat: { value: "LSI", label: "el parámetro invisible" },
@@ -135,7 +135,7 @@ const APP_CONFIG = {
         },
         {
           id: "slide-cloro",
-          image: "images/carousel-3.jpg",   // ← Slide 3: foto de medición química / fotómetro
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023607_c49cdbee-6f16-4456-baae-94fb56062373.png",   // ← Slide 3: fotómetro digital (IA Higgsfield)
           tag: "🧪 Cloro excesivo",
           caption: "Una alberca cristalina con cloro libre superior a 5 ppm irrita los ojos, blanquea trajes de baño y libera cloraminas tóxicas al respirar cerca de la superficie. Más cloro no es más seguro — es un riesgo diferente.",
           stat: { value: ">5 ppm", label: "cloro libre: zona de riesgo" },
@@ -145,7 +145,7 @@ const APP_CONFIG = {
         },
         {
           id: "slide-optimo",
-          image: "images/carousel-4.jpg",   // ← Slide 4: foto de alberca perfecta / certificada
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023731_c26a86f3-4ce6-4634-af55-1677b9d0a4ad.png",   // ← Slide 4: alberca certificada (IA Higgsfield)
           tag: "✅ Agua certificada Pool Balance™",
           caption: "Cuando los 6 parámetros están en rango simultáneamente — pH, cloro libre, cloro combinado, alcalinidad, dureza cálcica e índice de Langelier — el agua es genuinamente segura, no solo transparente.",
           stat: { value: "6/6", label: "parámetros en rango" },
@@ -240,6 +240,69 @@ const APP_CONFIG = {
         { feature: "Índice de Langelier", conventional: "No se calcula", poolBalance: "Calculado en cada visita" },
         { feature: "Historial del agua", conventional: "No existe", poolBalance: "Portal digital del cliente" },
         { feature: "Capacitación al propietario", conventional: "No incluida", poolBalance: "Mini-guías incluidas" },
+      ],
+    },
+
+    // ── Sellos de confianza (trust bar bajo el hero) ──
+    trustBadges: [
+      { icon: "microscope",      label: "Fotómetros calibrados" },
+      { icon: "file-shield",     label: "Bitácora digital PDF" },
+      { icon: "droplet",         label: "6 parámetros medidos" },
+      { icon: "location-dot",    label: "Veracruz y zona conurbada" },
+      { icon: "clock",           label: "Respuesta en 24 h" },
+    ],
+
+    // ── Testimonios (prueba social) ──
+    testimonialsSection: {
+      title: "Lo que dicen quienes ya tienen agua segura",
+      subtitle: "Propietarios, administradores y desarrolladores que cambiaron la apariencia por la certeza.",
+      items: [
+        {
+          quote: "Llevaba años pagando mantenimiento y nunca me daban un número. Pool Balance me entrega un PDF con las lecturas exactas cada visita. Por fin entiendo mi alberca.",
+          name: "Mariana Esquivel",
+          role: "Casa residencial · Boca del Río",
+          rating: 5,
+        },
+        {
+          quote: "Administramos una torre con alberca de uso intensivo. El historial digital nos da evidencia ante condóminos y autoridades. Cero quejas desde que entraron.",
+          name: "Arq. Luis Domínguez",
+          role: "Administrador · Fraccionamiento Costa de Oro",
+          rating: 5,
+        },
+        {
+          quote: "Tenía el agua verde y tres cotizaciones para drenar 60,000 litros. La resolvieron en 72 horas sin vaciar. El ahorro pagó el servicio del año.",
+          name: "Roberto Nava",
+          role: "Villa vacacional · Antón Lizardo",
+          rating: 5,
+        },
+      ],
+    },
+
+    // ── Preguntas frecuentes (acordeón) ──
+    faqSection: {
+      title: "Preguntas que todo propietario debería hacer",
+      subtitle: "Si tu servicio actual no puede responder esto, vale la pena una segunda opinión.",
+      items: [
+        {
+          q: "¿Por qué un fotómetro digital y no las tiras reactivas?",
+          a: "Las tiras de color dependen del ojo humano y tienen un margen de error enorme. El fotómetro mide la concentración real de cada compuesto con precisión de laboratorio (±0.01 ppm), los mismos equipos usados en albercas olímpicas. Si no se mide bien, no se puede dosificar bien.",
+        },
+        {
+          q: "¿Qué es el Índice de Langelier y por qué me importa?",
+          a: "Es el cálculo que determina si tu agua es corrosiva o incrustante. Un agua que se ve cristalina puede estar disolviendo activamente el acabado, las luminarias y el equipo metálico. Lo calculamos en cada visita para proteger tu inversión, no solo la transparencia.",
+        },
+        {
+          q: "¿Tengo que firmar un contrato forzoso?",
+          a: "No. Trabajamos con planes mensuales claros y servicios por visita. Sin permanencias engañosas ni letras pequeñas. Si no estás satisfecho, te quedas con tus bitácoras y nos despedimos como amigos.",
+        },
+        {
+          q: "¿Atienden mi zona?",
+          a: "Damos servicio en Veracruz puerto, Boca del Río, Medellín y zona conurbada. Para volúmenes mayores o desarrollos fuera del área, cotizamos a la medida. Escríbenos por WhatsApp y te confirmamos en minutos.",
+        },
+        {
+          q: "¿Cada cuánto deben darle servicio a mi alberca?",
+          a: "Depende del uso, exposición solar y carga de bañistas. Una alberca residencial estándar suele necesitar de 1 a 2 visitas técnicas al mes. En el diagnóstico inicial te damos una recomendación basada en datos, no en una rutina genérica.",
+        },
       ],
     },
   },

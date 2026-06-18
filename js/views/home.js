@@ -61,9 +61,8 @@ function renderHome() {
     <section class="hero-section" id="hero-carousel">
       <div class="hero-slides-track">${slidesHTML}</div>
 
-      <!-- Capas cinematográficas -->
+      <!-- Atmósfera de profundidad (la imagen es la tesis) -->
       <div class="hero-aurora" aria-hidden="true"></div>
-      <div class="hero-grain" aria-hidden="true"></div>
 
       <div class="hero-content">
         <div class="hero-badge anim-fade-in">
@@ -493,51 +492,19 @@ function _initHomeParallax() {
     window.removeEventListener('scroll', window._homeScrollHandler);
   }
 
+  // Parallax de fondo del hero (solo transform → corre en compositor).
+  // Los reveals y el pop 3D los maneja CSS scroll-driven, no este handler.
   window._homeScrollHandler = function() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
-
-    const bgs = document.querySelectorAll('.hero-bg');
+    if (scrollTop > window.innerHeight) return;   // fuera del hero: nada que mover
+    const bgs = document.querySelectorAll('.hero-slide.active .hero-bg');
     bgs.forEach(bg => {
-      bg.style.transform = `translateY(${scrollTop * 0.35}px)`;
-    });
-
-    const cards = document.querySelectorAll('.didactic-card');
-    cards.forEach((card, index) => {
-      const rect = card.getBoundingClientRect();
-      const inViewport = rect.top < window.innerHeight && rect.bottom > 0;
-      if (inViewport) {
-        const offset = (window.innerHeight - rect.top) * 0.04 * (1 + (index % 2) * 0.2);
-        const icon = card.querySelector('.didactic-icon');
-        if (icon) {
-          icon.style.transform = `translateY(${offset - 10}px)`;
-        }
-      }
+      // scale(1.06) mantiene sobre-escaneo: el borde nunca se asoma al desplazar.
+      bg.style.transform = `translateY(${scrollTop * 0.32}px) scale(1.06)`;
     });
   };
 
   window.addEventListener('scroll', window._homeScrollHandler, { passive: true });
-}
-
-// ── Revelado por scroll (IntersectionObserver) ───────────────
-function _initReveal() {
-  const els = document.querySelectorAll('#view-home .reveal');
-  if (!els.length) return;
-
-  if (!('IntersectionObserver' in window)) {
-    els.forEach(el => el.classList.add('in-view'));
-    return;
-  }
-
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in-view');
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-
-  els.forEach(el => io.observe(el));
 }
 
 // ── Acordeón de FAQ ──────────────────────────────────────────
@@ -576,7 +543,6 @@ function _initFaq() {
 function _initHome() {
   _initCarousel();
   _initHomeParallax();
-  _initReveal();
   _initFaq();
 }
 

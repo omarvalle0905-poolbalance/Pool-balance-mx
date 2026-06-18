@@ -256,27 +256,48 @@
 #view-home .method-step p { color: rgba(255,255,255,0.66) !important; }
 
 /* ─────────────────────────────────────────
-   7. TABLA COMPARATIVA — vidrio oscuro
+   7. COMPARATIVA — tarjetas de vidrio (sin tabla a rayas)
+   Antes era una <table> con filas blancas/grises donde el texto claro
+   quedaba invisible y se veían estilos encimados. Ahora son tarjetas
+   limpias de vidrio, legibles y mobile-first.
 ───────────────────────────────────────── */
-#view-home .comparison-table {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.10);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border-radius: 18px; overflow: hidden;
+.cmp {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  max-width: 760px;
+  margin: 0 auto;
 }
-#view-home .comparison-table th {
-  background: rgba(255,255,255,0.06);
-  color: #fff;
+@media (min-width: 768px) { .cmp { grid-template-columns: 1fr 1fr; } }
+
+#view-home .cmp-card {
+  background: linear-gradient(165deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 18px 20px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 18px 44px -26px rgba(0,0,0,0.7);
 }
-#view-home .comparison-table th[style] { background: rgba(111,184,198,0.22) !important; }
-#view-home .comparison-table td { border-color: rgba(255,255,255,0.08); }
-#view-home .comparison-table td:first-child { color: #fff !important; }
-#view-home .comparison-table td { color: rgba(255,255,255,0.6) !important; }
-#view-home .comparison-table td.highlight {
-  color: #fff !important;
-  background: rgba(111,184,198,0.12);
+#view-home .cmp-feature {
+  color: #fff; font-weight: 700; font-size: 1.02rem;
+  margin: 0 0 12px; line-height: 1.25;
 }
-#view-home .comparison-table td.highlight i { color: var(--color-cristal); }
+#view-home .cmp-line {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.9rem; line-height: 1.45; padding: 6px 0;
+}
+#view-home .cmp-line i {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
+  margin-top: 1px;
+}
+#view-home .cmp-lbl { font-weight: 700; }
+#view-home .cmp-line-conv { color: rgba(255,255,255,0.5); }
+#view-home .cmp-line-conv i { background: rgba(217,92,92,0.2); color: #ff9b9b; }
+#view-home .cmp-line-conv .cmp-lbl { color: rgba(255,255,255,0.6); }
+#view-home .cmp-line-pb { color: #fff; }
+#view-home .cmp-line-pb i { background: rgba(45,158,107,0.25); color: #6ee7a8; }
+#view-home .cmp-line-pb .cmp-lbl { color: var(--color-cristal); }
 
 /* ─────────────────────────────────────────
    8. ANTES / DESPUÉS — vidrio
@@ -420,20 +441,23 @@
 /* ─────────────────────────────────────────
    14. TIPOGRAFÍA EN MÓVIL
 ───────────────────────────────────────── */
+/* Titular del hero más grande y presente (en todas las pantallas) */
+#view-home .hero-headline { font-size: clamp(2.3rem, 8.5vw, 3.4rem); line-height: 1.08; }
+#view-home .hero-subheadline { font-size: clamp(1rem, 3.6vw, 1.18rem); line-height: 1.6; }
+
 @media (max-width: 430px) {
-  #view-home .hero-headline    { font-size: 2rem; line-height: 1.12; }
-  #view-home .hero-subheadline { font-size: 0.96rem; line-height: 1.6; }
-  #view-home .section-title    { font-size: 1.7rem; line-height: 1.16; }
-  #view-home .section-subtitle { font-size: 0.94rem; }
+  #view-home .hero-subheadline { line-height: 1.55; }
+  #view-home .section-title    { font-size: 1.8rem; line-height: 1.16; }
+  #view-home .section-subtitle { font-size: 0.96rem; }
   #view-home .didactic-card-title { font-size: 1.05rem; }
-  #view-home .testimonial-text    { font-size: 0.96rem; }
-  #view-home .faq-q               { font-size: 0.95rem; }
+  #view-home .testimonial-text    { font-size: 0.98rem; }
+  #view-home .faq-q               { font-size: 0.96rem; }
 }
 
 /* ─────────────────────────────────────────
-   15. HERO EDITORIAL — tarjeta de foto enmarcada (scroll-snap)
-   La foto ya NO cubre toda la pantalla ni sale "acercada": vive
-   contenida en una tarjeta con marco y aire alrededor.
+   15. HERO — carrusel 3D coverflow de fotos
+   La foto vive contenida en una tarjeta; las vecinas asoman giradas
+   en 3D (estilo coverflow). No cubre toda la pantalla.
 ───────────────────────────────────────── */
 .hero-editorial {
   position: relative;
@@ -442,73 +466,114 @@
   padding-bottom: 26px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 26px;
 }
 /* Anula el padding-bottom:160px que tenía el hero a pantalla completa */
 #view-home .hero-editorial .hero-content {
   padding: 0 22px;
   padding-bottom: 0;
-  max-width: 640px;
+  max-width: 660px;
 }
 
-.hef { position: relative; }
-.hef-track {
-  display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  padding: 4px 9vw 4px 22px;     /* deja asomar la siguiente tarjeta */
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.hef-track::-webkit-scrollbar { display: none; }
-
-.hef-card {
+.hcar {
   position: relative;
-  flex: 0 0 82%;
-  max-width: 460px;
-  margin: 0;
-  scroll-snap-align: center;
-  aspect-ratio: 4 / 3;           /* marco horizontal: muestra la escena sin recorte agresivo */
-  border-radius: 22px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: 0 28px 60px -22px rgba(0,0,0,0.78);
+  width: 100%;
+  height: 64vw;
+  max-height: 380px;
+  perspective: 1500px;
+  touch-action: pan-y;
 }
-.hef-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
-.hef-card::after {
+.hcar-stage { position: absolute; inset: 0; transform-style: preserve-3d; }
+.hcar-slide {
+  position: absolute; left: 50%; top: 0;
+  width: 70%; max-width: 360px; height: 100%;
+  transition: transform 0.55s cubic-bezier(0.22,1,0.36,1), opacity 0.55s ease;
+  cursor: pointer; will-change: transform;
+}
+.hcar-slide.is-active { cursor: default; }
+.hcar-card {
+  position: relative; width: 100%; height: 100%;
+  border-radius: 22px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8);
+  background: #0a2740;
+}
+.hcar-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.hcar-card::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, transparent 52%, rgba(6,15,27,0.55) 100%);
+  background: linear-gradient(180deg, transparent 50%, rgba(6,15,27,0.6) 100%);
 }
-.hef-tag {
-  position: absolute; left: 12px; bottom: 12px; z-index: 2;
+.hcar-veil {
+  position: absolute; inset: 0; pointer-events: none;
+  background: rgba(6,15,27,0.55);
+  transition: opacity 0.55s ease; opacity: 1;
+}
+.hcar-slide.is-active .hcar-veil { opacity: 0; }
+.hcar-tag {
+  position: absolute; left: 12px; bottom: 12px; z-index: 3;
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 12px; border-radius: 99px;
   font-size: 0.74rem; font-weight: 600; color: #fff;
   background: rgba(6,15,27,0.5); border: 1px solid rgba(255,255,255,0.18);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
-.hef-tag--danger  { background: rgba(217,92,92,0.55);  border-color: rgba(217,92,92,0.5); }
-.hef-tag--warning { background: rgba(232,168,56,0.5);  border-color: rgba(232,168,56,0.5); }
-.hef-tag--success { background: rgba(45,158,107,0.5);  border-color: rgba(45,158,107,0.5); }
+.hcar-tag--danger  { background: rgba(217,92,92,0.55);  border-color: rgba(217,92,92,0.5); }
+.hcar-tag--warning { background: rgba(232,168,56,0.5);  border-color: rgba(232,168,56,0.5); }
+.hcar-tag--success { background: rgba(45,158,107,0.5);  border-color: rgba(45,158,107,0.5); }
 
-.hef-arrow {
-  position: absolute; top: 42%; transform: translateY(-50%);
-  width: 40px; height: 40px; border-radius: 50%; z-index: 5; cursor: pointer;
-  display: none; align-items: center; justify-content: center;
-  background: rgba(6,15,27,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff;
+.hcar-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 42px; height: 42px; border-radius: 50%; z-index: 40; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(6,15,27,0.55); border: 1px solid rgba(255,255,255,0.2); color: #fff;
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  transition: background .2s;
+  transition: background .2s, transform .15s;
 }
-.hef-arrow:hover { background: rgba(6,15,27,0.75); }
-.hef-arrow.prev { left: 14px; }
-.hef-arrow.next { right: 14px; }
-@media (min-width: 768px) { .hef-arrow { display: flex; } }  /* en móvil se desliza con el dedo */
+.hcar-arrow:hover { background: rgba(6,15,27,0.8); }
+.hcar-arrow:active { transform: translateY(-50%) scale(0.92); }
+.hcar-arrow.prev { left: 6px; }
+.hcar-arrow.next { right: 6px; }
 
-.hef-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
-.hef-dot {
+.hcar-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+.hcar-dot {
   width: 8px; height: 8px; border-radius: 99px; border: none; padding: 0; cursor: pointer;
   background: rgba(255,255,255,0.25); transition: width .3s ease, background .3s ease;
 }
-.hef-dot.active { width: 22px; background: var(--color-cristal); }
+.hcar-dot.active { width: 22px; background: var(--color-cristal); }
+
+/* ─────────────────────────────────────────
+   16. ONDAS DE AGUA EN TARJETAS (ligero, sin WebGL)
+   Al tocar/clic una tarjeta brota una onda concéntrica tipo agua.
+   Solo CSS + un poco de JS; respeta prefers-reduced-motion.
+───────────────────────────────────────── */
+#view-home .didactic-card,
+#view-home .cmp-card,
+#view-home .method-step,
+#view-home .testimonial-card,
+#view-home .pricing-card,
+#view-home .ba-tile,
+#view-home .hcar-card {
+  position: relative;
+  overflow: hidden;
+}
+.hp-ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 4;
+  background: radial-gradient(circle,
+    rgba(111,184,198,0.38) 0%,
+    rgba(142,203,215,0.18) 38%,
+    rgba(111,184,198,0.06) 60%,
+    transparent 72%);
+  box-shadow: 0 0 0 1px rgba(142,203,215,0.25) inset;
+  transform: scale(0);
+  opacity: 0.95;
+  animation: hp-ripple 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes hp-ripple {
+  to { transform: scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hp-ripple-wave { display: none; }
+}

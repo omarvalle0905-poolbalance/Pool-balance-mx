@@ -100,3 +100,23 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     los botones del bottom-nav son más grandes (íconos 1.5rem).
   - `index.html`: `theme-color` del navegador a marino profundo `#07121d`.
   - `sw.js`: cache v31.
+
+- **Hero a carrusel 3D coverflow + comparativa legible + letra más grande**
+  - `home.js` / `home-premium.css`: el hero pasa de scroll-snap a **carrusel 3D
+    coverflow** de fotos (tarjetas anguladas, vecinas asomando) — `HeroCarousel`
+    con flechas, dots, swipe y autoplay. Titular del hero **más grande**
+    (clamp 2.3–3.4rem).
+  - Comparativa "¿Por qué Pool Balance?": se elimina la `<table>` a rayas
+    (filas blancas con texto invisible / estilos encimados) y se rediseña como
+    **tarjetas de vidrio** legibles (`.cmp-card`), mobile-first.
+  - `sw.js`: cache v32.
+
+- **Ondas de agua en las tarjetas (efecto ligero, sin WebGL)**
+  - Decisión: en vez de un fondo WebGL a pantalla completa (pesado en batería
+    móvil), se eligió el efecto **solo en tarjetas**. Al tocar/clic una tarjeta
+    brota una onda concéntrica tipo agua desde el punto tocado.
+  - `home.js`: `_initCardRipples()` (delegado, una sola vez, respeta
+    prefers-reduced-motion). `home-premium.css`: `.hp-ripple-wave` + keyframes.
+  - Aplica a tarjetas de problema, comparativa, método, testimonios, paquetes,
+    antes/después y fotos del hero.
+  - `sw.js`: cache v33.

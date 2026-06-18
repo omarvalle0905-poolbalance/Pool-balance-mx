@@ -95,6 +95,13 @@ const Router = (() => {
     // ── Actualizar estado ──
     currentView = viewName;
 
+    // ── Estilo oscuro del portal según la vista activa ──
+    // El portal (login/dashboard/bitácora) necesita el fondo oscuro global y
+    // sus vistas transparentes. Antes eso dependía del flag portalOnly; ahora
+    // se enciende según la vista para que el portal se vea correcto aunque la
+    // landing pública esté activa. No toca el código del portal.
+    document.body.classList.toggle('portal-active', viewName === 'portal');
+
     // ── Scroll al top ──
     const mainContent = document.getElementById('main-content');
     if (mainContent) mainContent.scrollTo({ top: 0, behavior: 'instant' });

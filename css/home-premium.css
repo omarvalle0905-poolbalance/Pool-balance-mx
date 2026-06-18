@@ -115,53 +115,41 @@
 }
 
 /* ─────────────────────────────────────────
-   3. REVEAL — animación dirigida por scroll (CSS nativo)
-   Mejora progresiva: por defecto TODO visible y usable.
-   La animación solo existe donde el navegador soporta
-   animation-timeline (corre en el compositor, 60fps, sin JS).
+   3. REVEAL — animación al entrar al viewport
+   Disparada por IntersectionObserver (JS) → funciona en TODOS los
+   teléfonos (iPhone/Safari incluido), no solo en Chrome.
+   Estado inicial oculto; al entrar se agrega .in-view.
 ───────────────────────────────────────── */
-.reveal { opacity: 1; transform: none; }      /* fallback: estado final visible */
-
-@keyframes reveal-rise {
-  from { opacity: 0; transform: translateY(34px); }
-  to   { opacity: 1; transform: translateY(0); }
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1),
+              transform 0.7s cubic-bezier(0.22,1,0.36,1);
+  will-change: opacity, transform;
 }
-
-@supports (animation-timeline: view()) {
-  .reveal {
-    animation: reveal-rise linear both;
-    animation-timeline: view();
-    animation-range: entry 5% cover 26%;
-  }
-  /* Escalonado por retraso negativo del rango (no por delay temporal,
-     porque el reloj es el scroll, no el tiempo). */
-  .reveal-delay-1 { animation-range: entry 8%  cover 30%; }
-  .reveal-delay-2 { animation-range: entry 12% cover 34%; }
-  .reveal-delay-3 { animation-range: entry 16% cover 38%; }
-  .reveal-delay-4 { animation-range: entry 20% cover 42%; }
+.reveal.in-view {
+  opacity: 1;
+  transform: none;
 }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
 
-/* ── FIRMA: pop 3D dirigido por scroll en las tarjetas del problema ──
-   El único gesto audaz de la página. Las 4 "verdades invisibles"
-   emergen con perspectiva, como saliendo del agua. */
-@supports (animation-timeline: view()) {
-  .grid-cards-4 { perspective: 1100px; }
-
-  .didactic-card.reveal {
-    transform-origin: 50% 100%;
-    animation: card-emerge linear both;
-    animation-timeline: view();
-    animation-range: entry 0% cover 32%;
-  }
-  @keyframes card-emerge {
-    from { opacity: 0; transform: translateY(48px) rotateX(14deg) scale(0.96); }
-    to   { opacity: 1; transform: translateY(0)    rotateX(0)     scale(1); }
-  }
+/* ── FIRMA: pop 3D en las tarjetas del problema ──
+   Las 4 "verdades invisibles" emergen con perspectiva al entrar. */
+.grid-cards-4 { perspective: 1100px; }
+.didactic-card.reveal {
+  transform-origin: 50% 100%;
+  transform: translateY(44px) rotateX(12deg) scale(0.97);
+}
+.didactic-card.reveal.in-view {
+  transform: translateY(0) rotateX(0) scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .didactic-card.reveal { animation: none; opacity: 1; transform: none; }
+  .didactic-card.reveal { opacity: 1; transform: none; transition: none; }
   .hero-aurora { animation: none; }
 }
 
@@ -274,7 +262,8 @@
   flex-direction: column;
   gap: 12px;
 }
-.faq-item {
+/* Scoped a #view-home: servicios.js usa la misma clase .faq-item con .card */
+#view-home .faq-item {
   background: #fff;
   border: 1px solid rgba(14,69,105,0.08);
   border-radius: var(--radius-lg);
@@ -282,7 +271,7 @@
   overflow: hidden;
   transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
-.faq-item.open {
+#view-home .faq-item.open {
   border-color: rgba(111,184,198,0.55);
   box-shadow: var(--shadow-card-hover);
 }
@@ -316,7 +305,7 @@
   font-size: 0.8rem;
   transition: transform var(--transition-spring), background var(--transition-base), color var(--transition-base);
 }
-.faq-item.open .faq-q-icon {
+#view-home .faq-item.open .faq-q-icon {
   transform: rotate(45deg);
   background: var(--color-cristal);
   color: #fff;
@@ -351,3 +340,64 @@
   pointer-events: none;
 }
 .cta-final > * { position: relative; z-index: 1; }
+
+/* ─────────────────────────────────────────
+   8. ANTES / DESPUÉS — alberca verde → certificada
+───────────────────────────────────────── */
+.ba-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 920px;
+  margin: 0 auto;
+}
+@media (min-width: 640px) {
+  .ba-grid { grid-template-columns: 1fr 1fr; }
+}
+.ba-tile {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  margin: 0;
+}
+.ba-img {
+  height: 210px;
+  background-size: cover;
+  background-position: center;
+  transition: transform var(--transition-slow);
+}
+.ba-tile:hover .ba-img { transform: scale(1.04); }
+@media (min-width: 640px) { .ba-img { height: 240px; } }
+.ba-cap {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.ba-cap--bad  { background: rgba(217,92,92,0.62);  border: 1px solid rgba(217,92,92,0.5); }
+.ba-cap--good { background: rgba(45,158,107,0.62); border: 1px solid rgba(45,158,107,0.5); }
+
+/* ─────────────────────────────────────────
+   9. TIPOGRAFÍA EN MÓVIL — texto cómodo en pantallas chicas
+   (alineado a la disciplina del portal: nada gigante)
+───────────────────────────────────────── */
+@media (max-width: 430px) {
+  #view-home .hero-headline   { font-size: 1.82rem; line-height: 1.14; }
+  #view-home .hero-subheadline{ font-size: 0.95rem; line-height: 1.6; }
+  #view-home .section-title   { font-size: 1.42rem; line-height: 1.2; }
+  #view-home .section-subtitle{ font-size: 0.93rem; }
+  #view-home .didactic-card-title { font-size: 1rem; }
+  #view-home .testimonial-text    { font-size: 0.92rem; }
+  #view-home .faq-q               { font-size: 0.92rem; }
+}

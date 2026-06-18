@@ -208,6 +208,10 @@ function renderHome() {
     </section>
 
 
+    <!-- ══ PAQUETES + ANTES/DESPUÉS (fusionados en la landing) ══ -->
+    ${_renderHomePackages()}
+
+
     <!-- ══ TESTIMONIOS ══ -->
     ${(testimonialsSection && testimonialsSection.items?.length) ? `
     <section class="page-section-lg testimonials-section">
@@ -299,6 +303,90 @@ function _initials(name) {
     .slice(0, 2)
     .map(w => w[0].toUpperCase())
     .join('');
+}
+
+
+// ── Paquetes + Antes/Después fusionados en la landing ────────
+function _renderHomePackages() {
+  const { services, company, home } = APP_CONFIG;
+  if (!services || !services.packages || !services.packages.length) return '';
+  const wa = company.whatsapp;
+  const slides = home.hero.slides || [];
+  const greenImg = (slides[0] && slides[0].image) || '';
+  const certImg  = (slides[3] && slides[3].image) || '';
+
+  const card = (pkg, i) => {
+    const featured = pkg.color === 'featured';
+    const waUrl = `https://wa.me/${wa}?text=${encodeURIComponent('Hola Pool Balance, me interesa el paquete "' + pkg.name + '".')}`;
+    const btnClass = featured
+      ? 'btn btn-full bg-arcilla text-white hover:bg-arcilla-dark shadow-md'
+      : (pkg.color === 'premium' ? 'btn btn-full btn-primary' : 'btn btn-full btn-secondary');
+    const feats = pkg.features.map(f => `
+      <li class="pricing-feature ${f.included ? 'feature-included' : 'feature-excluded'}">
+        <span class="pricing-feature-icon" aria-hidden="true"><i class="fa-solid ${f.included ? 'fa-check' : 'fa-minus'}"></i></span>
+        <span class="pricing-feature-text">${f.text}</span>
+      </li>`).join('');
+    const badge = pkg.badge
+      ? `<div class="pricing-badge">${featured ? '<i class="fa-solid fa-star fa-xs"></i> ' : ''}${pkg.badge}</div>`
+      : '';
+    return `
+      <article class="pricing-card ${pkg.color} reveal reveal-delay-${Math.min(i + 1, 3)}" aria-label="Paquete ${pkg.name}">
+        <header class="pricing-header">
+          ${badge}
+          <h3 class="pricing-plan-name">${pkg.name}</h3>
+          <p class="pricing-description">${pkg.description}</p>
+        </header>
+        <div class="pricing-price-block">
+          <div class="pricing-price"><span class="pricing-currency">$</span><span class="pricing-amount">${pkg.price.toLocaleString('es-MX')}</span></div>
+          <span class="pricing-period">${services.currency} · ${pkg.period}</span>
+        </div>
+        <ul class="pricing-features">${feats}</ul>
+        <div class="pricing-cta">
+          <a href="${waUrl}" target="_blank" rel="noopener" class="${btnClass}"><i class="fa-brands fa-whatsapp mr-2"></i>${pkg.cta}</a>
+        </div>
+      </article>`;
+  };
+
+  return `
+    <!-- ══ ANTES / DESPUÉS — alberca verde → certificada ══ -->
+    <section class="page-section bg-bruma" id="antes-despues">
+      <div class="content-container">
+        <header class="section-header reveal" style="text-align:center;max-width:620px;margin:0 auto 28px;">
+          <p class="section-eyebrow" style="justify-content:center;">De agua verde a agua certificada</p>
+          <h2 class="section-title">El cambio que tu alberca necesita</h2>
+        </header>
+        <div class="ba-grid reveal">
+          <figure class="ba-tile">
+            <div class="ba-img" style="background-image:url('${greenImg}')"></div>
+            <figcaption class="ba-cap ba-cap--bad"><i class="fa-solid fa-triangle-exclamation"></i> Antes · agua verde y desbalanceada</figcaption>
+          </figure>
+          <figure class="ba-tile">
+            <div class="ba-img" style="background-image:url('${certImg}')"></div>
+            <figcaption class="ba-cap ba-cap--good"><i class="fa-solid fa-circle-check"></i> Después · agua certificada Pool Balance™</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ PAQUETES — fusionados en la landing ══ -->
+    <section class="page-section-lg" id="paquetes" style="background:#fff;">
+      <div class="content-container">
+        <header class="section-header reveal" style="text-align:center;max-width:640px;margin:0 auto 8px;">
+          <p class="section-eyebrow" style="justify-content:center;">Planes y precios</p>
+          <h2 class="section-title">${services.headline}</h2>
+          <p class="section-subtitle" style="margin:0 auto;">${services.subheadline}</p>
+        </header>
+        <div class="pricing-grid reveal" role="list">
+          ${services.packages.map((p, i) => card(p, i)).join('')}
+        </div>
+        <p class="text-xs text-center mt-6 reveal" style="color:var(--text-muted);">
+          <i class="fa-solid fa-circle-info mr-1"></i> ${services.pricingNote}
+        </p>
+        <div class="text-center mt-6 reveal">
+          <button class="btn btn-secondary" data-navigate="servicios">Ver servicios adicionales y proceso <i class="fa-solid fa-arrow-right text-sm"></i></button>
+        </div>
+      </div>
+    </section>`;
 }
 
 
@@ -507,6 +595,29 @@ function _initHomeParallax() {
   window.addEventListener('scroll', window._homeScrollHandler, { passive: true });
 }
 
+// ── Revelado al entrar al viewport (IntersectionObserver) ────
+// Funciona en TODOS los teléfonos (iPhone/Safari incluido).
+function _initReveal() {
+  const els = document.querySelectorAll('#view-home .reveal');
+  if (!els.length) return;
+
+  if (!('IntersectionObserver' in window)) {
+    els.forEach(el => el.classList.add('in-view'));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+  els.forEach(el => io.observe(el));
+}
+
 // ── Acordeón de FAQ ──────────────────────────────────────────
 function _initFaq() {
   const items = document.querySelectorAll('#view-home .faq-item');
@@ -543,6 +654,7 @@ function _initFaq() {
 function _initHome() {
   _initCarousel();
   _initHomeParallax();
+  _initReveal();
   _initFaq();
 }
 

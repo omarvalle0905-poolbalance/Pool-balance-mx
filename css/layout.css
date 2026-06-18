@@ -391,16 +391,22 @@ body.portal-only .main-content {
 
 /* El portal tiene su propia marca en cada vista (login, dashboard, reporte),
    así que ocultamos el topbar global para evitar el doble logo. */
-body.portal-only .brand-topbar { display: none !important; }
+body.portal-only .brand-topbar,
+body.portal-active .brand-topbar { display: none !important; }
 
 /* ── FONDO GLOBAL (page gradient) ──
    Fijo al viewport mediante un pseudo-elemento: cubre toda la pantalla
    sin cortes al hacer scroll (robusto en iOS, donde background-attachment:
-   fixed no funciona). El degradado es el oficial Pool Balance. */
-body.portal-only {
+   fixed no funciona). El degradado es el oficial Pool Balance.
+   Se aplica tanto en modo solo-portal como cuando la vista activa es el
+   portal (body.portal-active), para que el portal se vea correcto aunque
+   la landing pública esté encendida. */
+body.portal-only,
+body.portal-active {
   background-color: #02101c !important;
 }
-body.portal-only::before {
+body.portal-only::before,
+body.portal-active::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -421,12 +427,22 @@ body.portal-only::before {
     );
 }
 
+/* En modo mixto (landing encendida), al ver el portal el main-content debe
+   dejar ver el fondo oscuro global, pero CONSERVA el padding inferior porque
+   la barra de navegación sigue visible para volver a la landing. */
+body.portal-active .main-content { background: transparent; }
+
 /* Las vistas del portal se vuelven transparentes para dejar ver el fondo global */
-body.portal-only .portal-dark { background: transparent; }
+body.portal-only .portal-dark,
+body.portal-active .portal-dark { background: transparent; }
 body.portal-only #view-dashboard,
 body.portal-only #view-portal-login,
-body.portal-only #view-portal-restoring { background: transparent; }
-body.portal-only #view-bitacora-detalle { background: transparent !important; }
+body.portal-only #view-portal-restoring,
+body.portal-active #view-dashboard,
+body.portal-active #view-portal-login,
+body.portal-active #view-portal-restoring { background: transparent; }
+body.portal-only #view-bitacora-detalle,
+body.portal-active #view-bitacora-detalle { background: transparent !important; }
 
 
 /* Escritorio: ocultar los enlaces de módulos del sidebar.

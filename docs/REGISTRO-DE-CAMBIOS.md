@@ -84,8 +84,19 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
   - Nav: solo Inicio + Mi Portal (se quitaron Servicios y Biblioteca).
   - Video: colocado debajo del carrusel; aparece al definir `promoVideo.url`.
 
-- **Instalación de skill + registro de cambios** (en curso)
+- **Instalación de skill + registro de cambios**
   - Se instaló la skill `frontend-ingenieria-avanzada`.
   - Se creó este archivo `docs/REGISTRO-DE-CAMBIOS.md`.
-  - Pendiente (a definir con opciones): nuevo modelo de carrusel del hero,
-    armonizar topbar/bottom-nav al tema oscuro, agrandar botones.
+
+- **Nuevo carrusel del hero (tarjeta editorial) + barras en vidrio oscuro**
+  - `home.js` / `home-premium.css`: el hero deja de ser a pantalla completa.
+    Ahora es titular + CTAs arriba y un carrusel de **fotos enmarcadas**
+    (tarjeta 4:3 redondeada, sin recorte agresivo) que se desliza con
+    **scroll-snap nativo**. Nuevo `_initHeroCarousel` (flechas, dots y
+    autoplay sincronizados); se retiró el viejo `_initCarousel` a pantalla
+    completa y su lógica de audio.
+  - `layout.css`: `brand-topbar` (antes azul) y `bottom-nav` (antes blanco)
+    pasan a **vidrio oscuro** translúcido para combinar con el tema marino;
+    los botones del bottom-nav son más grandes (íconos 1.5rem).
+  - `index.html`: `theme-color` del navegador a marino profundo `#07121d`.
+  - `sw.js`: cache v31.

@@ -18,17 +18,18 @@ function renderHome() {
 
   const waUrl = `https://wa.me/${company.whatsapp}?text=${encodeURIComponent('Hola Pool Balance, me gustaría conocer más sobre sus servicios.')}`;
 
+  // Tarjetas de foto enmarcadas (no cubren toda la pantalla, sin recorte
+  // agresivo) — se deslizan con scroll-snap nativo.
   const slidesHTML = hero.slides.map((s, i) => `
-    <div class="hero-slide ${i === 0 ? 'active' : ''}" data-slide="${i}">
-      <div class="hero-bg" style="background-image:url('${s.image}')"></div>
-      <div class="hero-overlay"></div>
-      ${s.tag ? `<div class="hero-slide-tag hero-slide-tag--${s.accent}">${s.tag}</div>` : ''}
-    </div>`).join('');
+    <figure class="hef-card" data-slide="${i}">
+      <div class="hef-img" style="background-image:url('${s.image}')"></div>
+      ${s.tag ? `<figcaption class="hef-tag hef-tag--${s.accent}">${s.tag}</figcaption>` : ''}
+    </figure>`).join('');
 
   const dotsHTML = hero.slides.map((_, i) => `
-    <button class="hero-dot ${i === 0 ? 'active' : ''}"
-            data-dot="${i}" type="button"
-            aria-label="Diapositiva ${i + 1}"></button>`).join('');
+    <button class="hef-dot ${i === 0 ? 'active' : ''}"
+            data-hdot="${i}" type="button"
+            aria-label="Foto ${i + 1}"></button>`).join('');
 
   return `
   <article class="view-page hp-liquid" id="view-home">
@@ -40,11 +41,8 @@ function renderHome() {
       <span class="hp-blob hp-blob-3"></span>
     </div>
 
-    <!-- ══ HERO CAROUSEL ══ -->
-    <section class="hero-section" id="hero-carousel">
-      <div class="hero-slides-track">${slidesHTML}</div>
-
-      <!-- Atmósfera de profundidad (la imagen es la tesis) -->
+    <!-- ══ HERO EDITORIAL: titular + carrusel de fotos enmarcadas ══ -->
+    <section class="hero-editorial" id="hero-carousel">
       <div class="hero-aurora" aria-hidden="true"></div>
 
       <div class="hero-content">
@@ -66,21 +64,16 @@ function renderHome() {
         </div>
       </div>
 
-      <!-- Controles: flechas + dots -->
-      <div class="carousel-controls">
-        <button class="carousel-arrow carousel-arrow--prev"
-                id="carousel-prev" type="button" aria-label="Anterior">
+      <!-- Carrusel de fotos enmarcadas (scroll-snap nativo) -->
+      <div class="hef anim-fade-in anim-delay-4">
+        <div class="hef-track" id="hef-track">${slidesHTML}</div>
+        <button class="hef-arrow prev" id="hef-prev" type="button" aria-label="Anterior">
           <i class="fa-solid fa-chevron-left"></i>
         </button>
-        <div class="carousel-dots">${dotsHTML}</div>
-        <button class="carousel-arrow carousel-arrow--next"
-                id="carousel-next" type="button" aria-label="Siguiente">
+        <button class="hef-arrow next" id="hef-next" type="button" aria-label="Siguiente">
           <i class="fa-solid fa-chevron-right"></i>
         </button>
-      </div>
-
-      <div class="scroll-indicator" aria-hidden="true">
-        <div class="scroll-indicator-line"></div>
+        <div class="hef-dots" id="hef-dots">${dotsHTML}</div>
       </div>
     </section>
 
@@ -448,124 +441,79 @@ function _buildVideoEmbed(url) {
 //  CAROUSEL — Init con delegación de eventos en document.
 // ════════════════════════════════════════════════════════════
 
-function _initCarousel() {
-  const carousel = document.getElementById('hero-carousel');
-  if (!carousel) return;
-  if (carousel.dataset.carouselReady === '1') return;
-  carousel.dataset.carouselReady = '1';
+// ════════════════════════════════════════════════════════════
+//  CAROUSEL HERO — Tarjetas de foto enmarcadas (scroll-snap nativo)
+//  La foto vive contenida en una tarjeta (no a pantalla completa);
+//  se desliza con scroll-snap. Flechas, dots y autoplay sincronizados.
+// ════════════════════════════════════════════════════════════
 
-  const slides  = Array.from(carousel.querySelectorAll('.hero-slide'));
-  const dots    = Array.from(carousel.querySelectorAll('[data-dot]'));
-  const btnPrev = document.getElementById('carousel-prev');
-  const btnNext = document.getElementById('carousel-next');
-  const total   = slides.length;
+function _initHeroCarousel() {
+  const track = document.getElementById('hef-track');
+  if (!track || track.dataset.bound === '1') return;
+  track.dataset.bound = '1';
+
+  const cards = Array.from(track.children);
+  const dots  = Array.from(document.querySelectorAll('[data-hdot]'));
+  const prev  = document.getElementById('hef-prev');
+  const next  = document.getElementById('hef-next');
+  const total = cards.length;
   if (!total) return;
 
   let current = 0;
-  let timer   = null;
+  let timer = null;
 
-  // ── REPRODUCTOR DE AUDIO ────────────────────────────────────
-  const audioEl = new Audio();
-  audioEl.preload = 'none';
-  let activeAudioBtn = null;
-
-  function _stopAudio() {
-    if (!audioEl.paused) audioEl.pause();
-    audioEl.currentTime = 0;
-    if (activeAudioBtn) {
-      activeAudioBtn.classList.remove('playing');
-      const icoPlay  = activeAudioBtn.querySelector('.slide-audio-ico-play');
-      const icoPause = activeAudioBtn.querySelector('.slide-audio-ico-pause');
-      if (icoPlay)  icoPlay.style.display  = '';
-      if (icoPause) icoPause.style.display = 'none';
-      activeAudioBtn = null;
-    }
+  function centerOf(card) {
+    // Posición de scroll para centrar la tarjeta en el viewport del track.
+    return card.offsetLeft - (track.clientWidth - card.clientWidth) / 2;
   }
-
-  function _toggleAudio(btn) {
-    const src = btn.dataset.audioSrc;
-    if (!src) return;
-
-    const icoPlay  = btn.querySelector('.slide-audio-ico-play');
-    const icoPause = btn.querySelector('.slide-audio-ico-pause');
-
-    if (btn === activeAudioBtn && !audioEl.paused) {
-      audioEl.pause();
-      btn.classList.remove('playing');
-      if (icoPlay)  icoPlay.style.display  = '';
-      if (icoPause) icoPause.style.display = 'none';
-      return;
-    }
-
-    _stopAudio();
-
-    audioEl.src = src;
-    audioEl.play().catch(() => {});
-    btn.classList.add('playing');
-    if (icoPlay)  icoPlay.style.display  = 'none';
-    if (icoPause) icoPause.style.display = '';
-    activeAudioBtn = btn;
-
-    audioEl.onended = () => {
-      btn.classList.remove('playing');
-      if (icoPlay)  icoPlay.style.display  = '';
-      if (icoPause) icoPause.style.display = 'none';
-      activeAudioBtn = null;
-    };
-  }
-
-  carousel.addEventListener('click', e => {
-    const audioBtn = e.target.closest('.slide-audio-btn');
-    if (audioBtn) {
-      e.stopPropagation();
-      _toggleAudio(audioBtn);
-    }
-  });
-
-  // ── NAVEGACIÓN DEL CAROUSEL ─────────────────────────────────
   function goTo(n) {
     n = ((n % total) + total) % total;
-    _stopAudio();
-    slides.forEach((s, i) => s.classList.toggle('active', i === n));
-    dots.forEach((d, i)   => d.classList.toggle('active', i === n));
     current = n;
+    track.scrollTo({ left: centerOf(cards[n]), behavior: 'smooth' });
+    _syncDots();
+  }
+  function _syncDots() {
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
   }
 
-  function startTimer() {
-    clearInterval(timer);
-    timer = setInterval(() => goTo(current + 1), 5000);
-  }
-  function stopTimer() { clearInterval(timer); }
-
-  btnPrev && btnPrev.addEventListener('click', () => { goTo(current - 1); startTimer(); });
-  btnNext && btnNext.addEventListener('click', () => { goTo(current + 1); startTimer(); });
-
-  dots.forEach(d => d.addEventListener('click', () => {
-    goTo(parseInt(d.dataset.dot, 10));
-    startTimer();
-  }));
-
-  let tx = 0;
-  carousel.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-  carousel.addEventListener('touchend',   e => {
-    const dx = e.changedTouches[0].clientX - tx;
-    if (Math.abs(dx) > 40) { goTo(dx < 0 ? current + 1 : current - 1); startTimer(); }
+  // Sincronizar el punto activo según la tarjeta más cercana al centro
+  let scrollT;
+  track.addEventListener('scroll', () => {
+    clearTimeout(scrollT);
+    scrollT = setTimeout(() => {
+      const center = track.scrollLeft + track.clientWidth / 2;
+      let best = 0, bestDist = Infinity;
+      cards.forEach((c, i) => {
+        const cc = c.offsetLeft + c.clientWidth / 2;
+        const d = Math.abs(cc - center);
+        if (d < bestDist) { bestDist = d; best = i; }
+      });
+      current = best;
+      _syncDots();
+    }, 90);
   }, { passive: true });
 
-  carousel.addEventListener('mouseenter', stopTimer);
-  carousel.addEventListener('mouseleave', startTimer);
+  prev && (prev.onclick = () => { goTo(current - 1); _restart(); });
+  next && (next.onclick = () => { goTo(current + 1); _restart(); });
+  dots.forEach(d => d.onclick = () => { goTo(parseInt(d.dataset.hdot, 10)); _restart(); });
 
+  function _start() { clearInterval(timer); timer = setInterval(() => goTo(current + 1), 5500); }
+  function _stop()  { clearInterval(timer); }
+  function _restart() { _stop(); _start(); }
+
+  // Pausar autoplay mientras el usuario interactúa
+  track.addEventListener('pointerdown', _stop, { passive: true });
+  track.addEventListener('pointerup', _restart, { passive: true });
+  track.addEventListener('mouseenter', _stop);
+  track.addEventListener('mouseleave', _start);
+
+  // Detener autoplay al salir de la vista home
   document.addEventListener('viewRendered', (e) => {
-    if (e.detail?.view !== 'home') {
-      _stopAudio();
-      if (window._homeScrollHandler) {
-        window.removeEventListener('scroll', window._homeScrollHandler);
-        window._homeScrollHandler = null;
-      }
-    }
-  }, { once: false });
+    if (e.detail?.view !== 'home') _stop();
+  });
 
-  startTimer();
+  _syncDots();
+  _start();
 }
 
 // ── Parallax scroll effect driver ────────────────────────────
@@ -806,7 +754,7 @@ function _initScrollLinks() {
 
 // ── Inicializa todo lo de Home ───────────────────────────────
 function _initHome() {
-  _initCarousel();
+  _initHeroCarousel();
   // Nota: el parallax de scroll del hero se retiró a propósito — provocaba un
   // "brinco" al soltar el dedo en móvil. Los reveals por IntersectionObserver
   // (que sí se sienten bien) se mantienen.

@@ -315,7 +315,7 @@ function _renderHomePackages() {
   const greenImg = (slides[0] && slides[0].image) || '';
   const certImg  = (slides[3] && slides[3].image) || '';
 
-  const card = (pkg, i) => {
+  const card = (pkg, i, plain) => {
     const featured = pkg.color === 'featured';
     const waUrl = `https://wa.me/${wa}?text=${encodeURIComponent('Hola Pool Balance, me interesa el paquete "' + pkg.name + '".')}`;
     const btnClass = featured
@@ -329,8 +329,10 @@ function _renderHomePackages() {
     const badge = pkg.badge
       ? `<div class="pricing-badge">${featured ? '<i class="fa-solid fa-star fa-xs"></i> ' : ''}${pkg.badge}</div>`
       : '';
+    // En el carrusel 3D las tarjetas NO usan "reveal" (las controla el coverflow).
+    const revealCls = plain ? '' : ` reveal reveal-delay-${Math.min(i + 1, 3)}`;
     return `
-      <article class="pricing-card ${pkg.color} reveal reveal-delay-${Math.min(i + 1, 3)}" aria-label="Paquete ${pkg.name}">
+      <article class="pricing-card ${pkg.color}${revealCls}" aria-label="Paquete ${pkg.name}">
         <header class="pricing-header">
           ${badge}
           <h3 class="pricing-plan-name">${pkg.name}</h3>
@@ -346,6 +348,16 @@ function _renderHomePackages() {
         </div>
       </article>`;
   };
+
+  // Carrusel 3D horizontal (coverflow) de paquetes — empieza en el central.
+  const startIdx = Math.max(0, services.packages.findIndex(p => p.color === 'featured'));
+  const pkgSlides = services.packages.map((p, i) => `
+    <div class="pkgcar-slide" data-pkgindex="${i}">
+      ${card(p, i, true)}
+      <div class="pkgcar-veil" aria-hidden="true"></div>
+    </div>`).join('');
+  const pkgDots = services.packages.map((p, i) =>
+    `<button class="pkgcar-dot" data-pkgdot="${i}" type="button" aria-label="Paquete ${p.name}"></button>`).join('');
 
   return `
     <!-- ══ ANTES / DESPUÉS — alberca verde → certificada ══ -->
@@ -376,9 +388,14 @@ function _renderHomePackages() {
           <h2 class="section-title">${services.headline}</h2>
           <p class="section-subtitle" style="margin:0 auto;">${services.subheadline}</p>
         </header>
-        <div class="pricing-grid reveal" role="list">
-          ${services.packages.map((p, i) => card(p, i)).join('')}
+        <div class="pkgcar reveal" id="pkgcar" data-pkgstart="${startIdx}" role="group" aria-roledescription="carrusel" aria-label="Paquetes y precios">
+          <div class="pkgcar-stage" id="pkgcar-stage">
+            ${pkgSlides}
+          </div>
+          <button class="pkgcar-arrow prev" id="pkgcar-prev" type="button" aria-label="Paquete anterior"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="pkgcar-arrow next" id="pkgcar-next" type="button" aria-label="Paquete siguiente"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
+        <div class="pkgcar-dots" id="pkgcar-dots">${pkgDots}</div>
         <p class="text-xs text-center mt-6 reveal" style="color:var(--text-muted);">
           <i class="fa-solid fa-circle-info mr-1"></i> ${services.pricingNote}
         </p>
@@ -650,12 +667,151 @@ function _initFaq() {
   });
 }
 
+// ── Carrusel 3D horizontal de paquetes (coverflow) ───────────
+const PackageCarousel = {
+  active: 0,
+  total: 0,
+  _bound: false,
+  _onUp: null,
+
+  init() {
+    const stage = document.getElementById('pkgcar-stage');
+    if (!stage) return;
+    this.total = stage.querySelectorAll('.pkgcar-slide').length;
+    if (!this.total) return;
+    const wrap = document.getElementById('pkgcar');
+    const start = wrap ? parseInt(wrap.dataset.pkgstart || '0', 10) : 0;
+    if (!stage.dataset.pkgInit) {
+      this.active = Math.min(Math.max(0, start), this.total - 1);
+      stage.dataset.pkgInit = '1';
+    }
+    this.active = Math.min(this.active, this.total - 1);
+    this._sizeStage();
+    this.layout();
+
+    const prev = document.getElementById('pkgcar-prev');
+    const next = document.getElementById('pkgcar-next');
+    prev && (prev.onclick = () => this.go(this.active - 1));
+    next && (next.onclick = () => this.go(this.active + 1));
+
+    document.querySelectorAll('[data-pkgdot]').forEach(d => {
+      d.onclick = () => this.go(parseInt(d.dataset.pkgdot, 10));
+    });
+
+    // Enlazar gestos UNA sola vez por elemento (evita swipe doble).
+    if (!stage.dataset.pkgBound) {
+      stage.dataset.pkgBound = '1';
+
+      // Click en una tarjeta lateral → centrarla (ignorar si fue swipe).
+      stage.querySelectorAll('.pkgcar-slide').forEach(sl => {
+        sl.addEventListener('click', (e) => {
+          if (this._swiped) { this._swiped = false; e.stopPropagation(); return; }
+          const idx = parseInt(sl.dataset.pkgindex, 10);
+          if (idx !== this.active && !e.target.closest('a,button')) {
+            e.stopPropagation();
+            this.go(idx);
+          }
+        });
+      });
+
+      // Swipe táctil
+      let sx = null;
+      stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; this._swiped = false; }, { passive: true });
+      stage.addEventListener('touchend', (e) => {
+        if (sx == null) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (Math.abs(dx) > 8) { this._swiped = true; setTimeout(() => { this._swiped = false; }, 400); }
+        if (dx > 40) this.go(this.active - 1);
+        else if (dx < -40) this.go(this.active + 1);
+        sx = null;
+      }, { passive: true });
+
+      // Arrastre con mouse (solo desktop)
+      let mx = null;
+      stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
+      if (this._onUp) window.removeEventListener('pointerup', this._onUp);
+      this._onUp = (e) => {
+        if (mx == null) return;
+        const dx = e.clientX - mx;
+        if (dx > 50) this.go(this.active - 1);
+        else if (dx < -50) this.go(this.active + 1);
+        mx = null;
+      };
+      window.addEventListener('pointerup', this._onUp);
+    }
+  },
+
+  // Uniforma la altura de todas las tarjetas a la más alta y ajusta el
+  // contenedor — así el coverflow se ve parejo con cualquier fuente.
+  _sizeStage() {
+    const wrap = document.getElementById('pkgcar');
+    const slides = Array.from(document.querySelectorAll('#pkgcar-stage .pkgcar-slide'));
+    if (!wrap || !slides.length) return;
+    let max = 0;
+    slides.forEach(sl => {
+      sl.style.height = 'auto';
+      const card = sl.querySelector('.pricing-card');
+      if (card) max = Math.max(max, card.offsetHeight);
+    });
+    if (!max) return;
+    slides.forEach(sl => { sl.style.height = max + 'px'; });
+    wrap.style.height = (max + 24) + 'px';
+  },
+
+  go(i) {
+    if (!this.total) return;
+    this.active = ((i % this.total) + this.total) % this.total;
+    this.layout();
+  },
+
+  layout() {
+    const slides = Array.from(document.querySelectorAll('#pkgcar-stage .pkgcar-slide'));
+    const total = slides.length;
+    slides.forEach((sl, i) => {
+      let offset = i - this.active;
+      if (offset > total / 2) offset -= total;
+      if (offset < -total / 2) offset += total;
+
+      let transform, opacity, z, pe = 'auto';
+      if (offset === 0) {
+        transform = 'translateX(-50%) rotateY(0deg) scale(1)';
+        opacity = 1; z = 30;
+      } else if (Math.abs(offset) === 1) {
+        const dir = offset > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${dir * 66}%)) rotateY(${dir * -32}deg) scale(0.84)`;
+        opacity = 1; z = 20;
+      } else {
+        const dir = offset > 0 ? 1 : -1;
+        transform = `translateX(calc(-50% + ${dir * 82}%)) rotateY(${dir * -32}deg) scale(0.78)`;
+        opacity = 0; z = 10; pe = 'none';
+      }
+      sl.style.transform = transform;
+      sl.style.opacity = opacity;
+      sl.style.zIndex = z;
+      sl.style.pointerEvents = pe;
+      sl.classList.toggle('is-active', offset === 0);
+    });
+
+    document.querySelectorAll('[data-pkgdot]').forEach((d, i) => {
+      d.classList.toggle('active', i === this.active);
+    });
+  },
+};
+window.PackageCarousel = PackageCarousel;
+
+function _initPackageCarousel() {
+  if (!document.getElementById('pkgcar-stage')) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => PackageCarousel.init()));
+  setTimeout(() => PackageCarousel.init(), 200);
+}
+
 // ── Inicializa todo lo de Home ───────────────────────────────
 function _initHome() {
   _initCarousel();
   _initHomeParallax();
   _initReveal();
   _initFaq();
+  _initPackageCarousel();
 }
 
 // ── Escuchar el evento del router → siempre que se renderice 'home' ──

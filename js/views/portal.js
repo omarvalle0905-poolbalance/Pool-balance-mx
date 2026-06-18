@@ -867,8 +867,14 @@ function _daysUntilNext(dateStr) {
 
 function _fitPortalCanvas() {
   const DESIGN = 412;
+  // Tope de escala: en teléfonos el lienzo llena el ancho (zoom ≈ 1); en
+  // pantallas anchas (tablet/escritorio) NO debe inflarse — se mantiene como
+  // una columna tipo teléfono centrada, al mismo "tamaño de render" que el
+  // resto de la app. Sin este tope el portal se veía gigante (zoom 3x) junto
+  // a la landing y el sidebar.
+  const MAX = 1.15;
   const vw = document.documentElement.clientWidth || window.innerWidth;
-  const scale = Math.max(0.5, vw / DESIGN);
+  const scale = Math.min(MAX, Math.max(0.5, vw / DESIGN));
   document.querySelectorAll('#view-portal-login .fit-canvas, #view-dashboard .fit-canvas')
     .forEach(el => { el.style.zoom = scale.toFixed(4); });
 }

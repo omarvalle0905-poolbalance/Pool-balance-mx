@@ -815,6 +815,64 @@
   border: 2px solid var(--color-arcilla);
 }
 
+/* ═══════════════════════════════════════════
+   CARRUSEL 3D HORIZONTAL DE PAQUETES (coverflow)
+   Reutiliza el lenguaje visual de los carruseles del
+   portal, pero en tema claro sobre la sección blanca.
+═══════════════════════════════════════════ */
+.pkgcar {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  height: 640px;                    /* fallback; JS lo ajusta a la tarjeta más alta */
+  margin: 26px auto 0;
+  perspective: 1700px;
+  touch-action: pan-y;
+}
+.pkgcar-stage { position: absolute; inset: 0; transform-style: preserve-3d; }
+.pkgcar-slide {
+  position: absolute; left: 50%; top: 0;
+  width: 320px;
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.5s ease;
+  cursor: pointer; will-change: transform;
+}
+.pkgcar-slide.is-active { cursor: default; }
+.pkgcar-slide .pricing-card {
+  width: 100%; height: 100%;
+  transform: none !important;       /* anula el scale/hover del grid dentro del coverflow */
+  box-shadow: 0 28px 60px -18px rgba(14,69,105,0.45);
+}
+/* Velo que atenúa las tarjetas laterales (igual que en el portal) */
+.pkgcar-veil {
+  position: absolute; inset: 0; border-radius: var(--radius-2xl);
+  background: rgba(238,241,245,0.5);
+  pointer-events: none; transition: opacity 0.5s ease; opacity: 1;
+}
+.pkgcar-slide.is-active .pkgcar-veil { opacity: 0; }
+
+.pkgcar-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 40;
+  width: 42px; height: 42px; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-marino); border: none; color: #fff;
+  box-shadow: 0 6px 18px rgba(14,69,105,0.35);
+  transition: transform .15s, background .2s;
+}
+.pkgcar-arrow:hover { background: var(--color-marino-dark, #0a3350); }
+.pkgcar-arrow:active { transform: translateY(-50%) scale(0.92); }
+.pkgcar-arrow.prev { left: 4px; }
+.pkgcar-arrow.next { right: 4px; }
+.pkgcar-dots { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 18px 0 2px; }
+.pkgcar-dot {
+  height: 8px; width: 8px; border-radius: 99px; border: none; cursor: pointer; padding: 0;
+  background: rgba(14,69,105,0.22); transition: width .3s ease, background .3s ease;
+}
+.pkgcar-dot.active { width: 22px; background: var(--color-arcilla); }
+
+@media (max-width: 380px) {
+  .pkgcar-slide { width: 290px; }
+}
+
 .pricing-header {
   padding: 28px 28px 20px;
 }
@@ -2050,6 +2108,11 @@
 .portal-dark {
   min-height: 100dvh;
   color: #EEF1F5;
+  /* El lienzo (412px) se centra como columna en pantallas anchas y, gracias
+     al tope de zoom en JS, no se infla: mismo tamaño de render que la landing. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   background:
     radial-gradient(130% 55% at 50% -12%, rgba(111,184,198,0.12), transparent 60%),
     radial-gradient(90% 40% at 95% 8%, rgba(232,102,74,0.06), transparent 55%),

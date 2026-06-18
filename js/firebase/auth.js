@@ -37,13 +37,20 @@ const AuthService = (() => {
    * Login con ID de Cliente + PIN
    * Retorna { success, error, user }
    */
+  // Tiempo máximo de espera para todo el proceso de login (import de
+  // Firebase Auth + signIn + lectura del perfil en Firestore). Si la red o
+  // Firestore no responden, getDoc puede quedarse colgado para siempre; este
+  // timeout garantiza que el login SIEMPRE resuelva y nunca deje la UI
+  // atrapada en "Verificando…" o "Cargando tu portal…".
+  const LOGIN_TIMEOUT_MS = 10000;
+
   async function login(clientId, pin) {
     if (!window.FB?.auth) {
       // ── MODO DEMO (sin Firebase real configurado) ──
       return _demoLogin(clientId, pin);
     }
 
-    try {
+    const work = (async () => {
       const { signInWithEmailAndPassword } = await import(
         "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"
       );
@@ -59,9 +66,20 @@ const AuthService = (() => {
       _notifyListeners({ type: 'login', user: _currentUser, profile: _clientProfile });
 
       return { success: true, user: _currentUser, profile: _clientProfile };
+    })();
 
+    const timeout = new Promise((resolve) =>
+      setTimeout(() => resolve({ _timedOut: true }), LOGIN_TIMEOUT_MS));
+
+    try {
+      const result = await Promise.race([work, timeout]);
+      if (result && result._timedOut) {
+        console.warn('[Auth] Login timeout — la red/Firestore no respondió.');
+        return { success: false, error: 'La conexión tardó demasiado. Revisa tu internet e inténtalo de nuevo.' };
+      }
+      return result;
     } catch (error) {
-      console.error('[Auth] Error de login:', error.code);
+      console.error('[Auth] Error de login:', error.code || error.message);
       return { success: false, error: _parseAuthError(error.code) };
     }
   }

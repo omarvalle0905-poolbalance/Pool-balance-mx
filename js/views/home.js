@@ -55,7 +55,14 @@ function renderHome() {
             aria-label="Diapositiva ${i + 1}"></button>`).join('');
 
   return `
-  <article class="view-page" id="view-home">
+  <article class="view-page hp-liquid" id="view-home">
+
+    <!-- Aurora líquida global (atmósfera de agua para toda la landing) -->
+    <div class="hp-aurora-field" aria-hidden="true">
+      <span class="hp-blob hp-blob-1"></span>
+      <span class="hp-blob hp-blob-2"></span>
+      <span class="hp-blob hp-blob-3"></span>
+    </div>
 
     <!-- ══ HERO CAROUSEL ══ -->
     <section class="hero-section" id="hero-carousel">
@@ -150,7 +157,7 @@ function renderHome() {
 
 
     <!-- ══ MÉTODO ══ -->
-    <section class="page-section-lg" id="metodo" style="background:#fff;">
+    <section class="page-section-lg" id="metodo">
       <div class="content-container">
         <header class="section-header reveal">
           <p class="section-eyebrow">Nuestro proceso</p>
@@ -381,7 +388,7 @@ function _renderHomePackages() {
     </section>
 
     <!-- ══ PAQUETES — fusionados en la landing ══ -->
-    <section class="page-section-lg" id="paquetes" style="background:#fff;">
+    <section class="page-section-lg" id="paquetes">
       <div class="content-container">
         <header class="section-header reveal" style="text-align:center;max-width:640px;margin:0 auto 8px;">
           <p class="section-eyebrow" style="justify-content:center;">Planes y precios</p>
@@ -413,7 +420,7 @@ function _renderVideoSection(hero) {
 
   if (video && video.url) {
     return `
-    <section class="page-section" id="promo-video" style="background:#fff;">
+    <section class="page-section" id="promo-video">
       <div class="content-container">
         <header class="section-header reveal" style="margin-bottom:24px;">
           <p class="section-eyebrow">Video</p>

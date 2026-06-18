@@ -529,3 +529,30 @@ body.portal-only .sidebar-nav {
 .pb-safe {
   padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
 }
+
+/* ═══════════════════════════════════════════
+   ARMONIZACIÓN AL TEMA OSCURO — barras superior e inferior
+   La barra de marca (arriba) y la de navegación (abajo) pasan a
+   vidrio oscuro translúcido para combinar con el tema marino de la
+   app; el bottom-nav lleva botones más grandes y cómodos al tacto.
+═══════════════════════════════════════════ */
+.brand-topbar {
+  background: rgba(8, 20, 33, 0.72) !important;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+.bottom-nav {
+  background: rgba(8, 20, 33, 0.9) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 -2px 26px rgba(0, 0, 0, 0.45) !important;
+}
+.bottom-nav-item { color: rgba(255, 255, 255, 0.55); padding: 10px 4px; }
+.bottom-nav-item.active { color: #ffffff; }
+.bottom-nav-item.active .bottom-nav-icon { color: var(--color-cristal); }
+.bottom-nav-icon { font-size: 1.5rem; }     /* botones más grandes */
+.bottom-nav-label { font-size: 0.74rem; }

@@ -121,6 +121,15 @@ const Router = (() => {
     // ── Disparar evento de vista lista ──
     document.dispatchEvent(new CustomEvent('viewRendered', { detail: { view: viewName } }));
 
+    // ── Escalado "fill-width" para igualar la proporción del portal ──
+    // En móvil, la landing pública se renderiza dentro de un lienzo de ancho
+    // de diseño (412px) y se escala con zoom igual que el portal, para que
+    // ambos se vean EXACTAMENTE con la misma proporción "nativa". En
+    // escritorio la landing se queda responsive (sin lienzo fijo). El portal
+    // y el reporte de bitácora gestionan su propio lienzo interno, así que
+    // aquí solo tocamos las vistas públicas.
+    fitViewCanvas(viewName);
+
     // ── Post-render hooks ──
     // Usamos setTimeout en lugar de requestAnimationFrame para garantizar
     // que el DOM esté completamente pintado antes de inicializar componentes JS
@@ -131,6 +140,28 @@ const Router = (() => {
     isNavigating = false;
   }
 
+  // Vistas públicas que adoptan la proporción nativa del portal en móvil.
+  const CANVAS_VIEWS = ['home', 'servicios', 'biblioteca'];
+  const CANVAS_DESIGN = 412;          // mismo ancho de diseño que el portal
+  const CANVAS_MOBILE_MAX = 1023;     // a partir de 1024px → responsive normal
+
+  function fitViewCanvas(viewName) {
+    const vc = document.getElementById('view-container');
+    if (!vc) return;
+    const vw = document.documentElement.clientWidth || window.innerWidth;
+    const useCanvas = CANVAS_VIEWS.includes(viewName) && vw <= CANVAS_MOBILE_MAX;
+    if (useCanvas) {
+      const scale = Math.max(0.5, vw / CANVAS_DESIGN);
+      vc.style.width = CANVAS_DESIGN + 'px';
+      vc.style.margin = '0 auto';
+      vc.style.zoom = scale.toFixed(4);
+    } else {
+      vc.style.width = '';
+      vc.style.margin = '';
+      vc.style.zoom = '';
+    }
+  }
+
   /**
    * Inicializa el router: maneja hash inicial y navegación por historial
    */
@@ -139,6 +170,12 @@ const Router = (() => {
     window.addEventListener('popstate', (e) => {
       const view = e.state?.view || getViewFromHash();
       navigate(view, false);
+    });
+
+    // Re-ajustar el lienzo de las vistas públicas al cambiar el tamaño /
+    // orientación o al cruzar el umbral móvil↔escritorio.
+    window.addEventListener('resize', () => {
+      if (currentView) fitViewCanvas(currentView);
     });
 
     // Navegación por hash en URL

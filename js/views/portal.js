@@ -32,6 +32,14 @@ function renderPortal() {
   // dispositivo, restaurar automáticamente sin volver a pedir datos.
   if (typeof localStorage !== 'undefined' && localStorage.getItem('pb_session')) {
     PortalAuth.restoreSession();
+    // Red de seguridad DURA e independiente: si tras 6s seguimos en la
+    // pantalla de carga (por la razón que sea), mostrar el login. El portal
+    // NUNCA debe quedarse atrapado en "Cargando tu portal…".
+    setTimeout(() => {
+      if (document.getElementById('view-portal-restoring')) {
+        try { PortalAuth._failRestore(); } catch (e) {}
+      }
+    }, 6000);
     return _renderRestoring();
   }
   return renderLogin();
@@ -583,7 +591,7 @@ const PortalAuth = {
       PortalState.isAuthenticated = true;
       PortalState.clientProfile   = result.profile;
       this._saveSession(APP_CONFIG.portal.demoClientId, APP_CONFIG.portal.demoAccessCode);
-      await this._loadBitacoras(result.profile);
+      Promise.resolve().then(() => { try { this._loadBitacoras(result.profile); } catch (e) {} });
       this._renderDashboard();
       Toast.show("Acceso Demo Autorizado", "success");
     } else {
@@ -617,7 +625,7 @@ const PortalAuth = {
       PortalState.isAuthenticated = true;
       PortalState.clientProfile   = result.profile;
       this._saveSession(idEl.value.trim().toUpperCase(), pinEl.value.trim());
-      await this._loadBitacoras(result.profile);
+      Promise.resolve().then(() => { try { this._loadBitacoras(result.profile); } catch (e) {} });
       this._renderDashboard();
       Toast.show(`Bienvenido${result.profile?.nombre ? ', ' + result.profile.nombre.split(' ')[0] : ''}`, 'success');
     } else {
@@ -682,7 +690,7 @@ const PortalAuth = {
     // consulta a Firestore que no responde), NO podemos quedarnos colgados
     // para siempre en "Cargando tu portal…". Tras unos segundos caemos al
     // login para que el cliente pueda entrar manualmente.
-    const TIMEOUT_MS = 8000;
+    const TIMEOUT_MS = 6000;
     const timeout = new Promise((resolve) =>
       setTimeout(() => resolve({ _timedOut: true }), TIMEOUT_MS));
 
@@ -696,16 +704,22 @@ const PortalAuth = {
     if (result && result.success) {
       PortalState.isAuthenticated = true;
       PortalState.clientProfile   = result.profile;
-      // La carga de bitácoras NO debe bloquear el render del dashboard: monta
-      // una suscripción en vivo y se actualiza sola. Si falla, el dashboard
-      // igual se muestra (con su estado vacío) y luego se rellena.
-      try { await this._loadBitacoras(result.profile); } catch (e) {}
+      // El dashboard se renderiza YA. La carga de bitácoras va en segundo
+      // plano (suscripción en vivo que se actualiza sola): no debe bloquear
+      // ni colgar la apertura del portal. Si renderDashboard fallara con los
+      // datos reales, caemos al login en vez de quedarnos en "Cargando…".
+      Promise.resolve().then(() => { try { this._loadBitacoras(result.profile); } catch (e) {} });
       const c = document.getElementById('view-container');
       if (c) {
-        c.innerHTML = renderDashboard();
-        document.getElementById('main-content')?.scrollTo({ top: 0 });
-        Nav.setActive('portal');
-        PostRender.portal();
+        try {
+          c.innerHTML = renderDashboard();
+          document.getElementById('main-content')?.scrollTo({ top: 0 });
+          Nav.setActive('portal');
+          PostRender.portal();
+        } catch (e) {
+          console.error('[Portal] Error al render dashboard en restore:', e);
+          this._failRestore();
+        }
       }
       return;
     }

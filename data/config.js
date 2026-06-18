@@ -48,7 +48,7 @@ const APP_CONFIG = {
     title: "Pool Balance | Gestoría Técnica y Monitoreo de Albercas en Veracruz",
     description:
       "Una alberca cristalina no siempre es una alberca segura. Pool Balance usa fotómetros digitales profesionales para garantizar el equilibrio químico real del agua de tu alberca en Veracruz. Servicio técnico certificado, bitácoras digitales y monitoreo continuo.",
-    ogImage: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023731_c26a86f3-4ce6-4634-af55-1677b9d0a4ad.png",
+    ogImage: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_030450_6b3934c0-28e0-4232-a44a-ecd718b2cb33.png",
     ogType: "website",
     canonicalUrl: "https://poolbalance.com.mx",
     keywords: "mantenimiento de albercas Veracruz, química de agua piscinas, monitoreo albercas, gestoría hídrica, Pool Balance Veracruz",
@@ -115,7 +115,7 @@ const APP_CONFIG = {
       slides: [
         {
           id: "slide-verde",
-          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023202_fecac0cb-bbf9-49fb-be98-352c8f7844b1.png",   // ← Slide 1: alberca verde (IA Higgsfield)
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_030341_9db1eec4-6f91-4b1f-b7d2-c48bd421f7aa.png",   // ← Slide 1: alberca verde (IA · a marca AQUA: agua azul profundo, piso antracita)
           tag: "⚠️ Agua verde",
           caption: "El color verde es causado por algas y metales en oxidación. El cobre, hierro y manganeso reaccionan con el cloro y tiñen el agua — incluso el cabello rubio. Sin tratamiento específico, el problema empeora cada día.",
           stat: { value: "72h", label: "para resolver sin drenar" },
@@ -125,7 +125,7 @@ const APP_CONFIG = {
         },
         {
           id: "slide-lsi",
-          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023331_f114c20c-a415-407a-9e15-28a1be4704fb.png",   // ← Slide 2: cristalina engañosa / LSI (IA Higgsfield)
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_030415_279433c3-b65c-4884-9538-2db2d4b1d97a.png",   // ← Slide 2: cristalina engañosa / LSI (IA · a marca AQUA: agua azul profundo, piso antracita)
           tag: "🔬 LSI negativo — agua agresiva",
           caption: "El agua puede verse perfectamente cristalina y aun así tener un Índice de Langelier negativo. Esto significa que está en modo 'corrosivo': disuelve activamente el acabado, los accesorios metálicos y el equipo de filtración.",
           stat: { value: "LSI", label: "el parámetro invisible" },
@@ -135,7 +135,7 @@ const APP_CONFIG = {
         },
         {
           id: "slide-cloro",
-          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023607_c49cdbee-6f16-4456-baae-94fb56062373.png",   // ← Slide 3: fotómetro digital (IA Higgsfield)
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_030610_e8eed770-ddb3-4f06-8998-a17b57f96275.png",   // ← Slide 3: fotómetro digital (IA · a marca AQUA: agua azul profundo, piso antracita)
           tag: "🧪 Cloro excesivo",
           caption: "Una alberca cristalina con cloro libre superior a 5 ppm irrita los ojos, blanquea trajes de baño y libera cloraminas tóxicas al respirar cerca de la superficie. Más cloro no es más seguro — es un riesgo diferente.",
           stat: { value: ">5 ppm", label: "cloro libre: zona de riesgo" },
@@ -145,7 +145,7 @@ const APP_CONFIG = {
         },
         {
           id: "slide-optimo",
-          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_023731_c26a86f3-4ce6-4634-af55-1677b9d0a4ad.png",   // ← Slide 4: alberca certificada (IA Higgsfield)
+          image: "https://d8j0ntlcm91z4.cloudfront.net/user_3FI25AySj9ABMbASSeIkvl2eo2x/hf_20260618_030450_6b3934c0-28e0-4232-a44a-ecd718b2cb33.png",   // ← Slide 4: alberca certificada (IA · a marca AQUA: agua azul profundo, piso antracita)
           tag: "✅ Agua certificada Pool Balance™",
           caption: "Cuando los 6 parámetros están en rango simultáneamente — pH, cloro libre, cloro combinado, alcalinidad, dureza cálcica e índice de Langelier — el agua es genuinamente segura, no solo transparente.",
           stat: { value: "6/6", label: "parámetros en rango" },

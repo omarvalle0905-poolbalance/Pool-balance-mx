@@ -306,6 +306,11 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
       max-width: 100%;
       margin: 0;
       overflow-x: hidden;
+      /* En pantallas anchas el lienzo (412px) se centra como columna,
+         no se infla, para igualar el tamaño de render del resto de la app. */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     /* Lienzo de "ancho de diseño" — se escala con zoom (JS) para
        llenar siempre el ancho real de la pantalla, igual que un
@@ -1476,8 +1481,9 @@ window.PostRender.bitacora = function() {
     const fit = document.getElementById('rp-fit');
     if (!fit) return;
     const DESIGN = 412;
+    const MAX = 1.15; // no inflar en pantallas anchas; columna tipo teléfono
     const vw = document.documentElement.clientWidth || window.innerWidth;
-    const scale = Math.max(0.5, vw / DESIGN);
+    const scale = Math.min(MAX, Math.max(0.5, vw / DESIGN));
     fit.style.zoom = scale.toFixed(4);
   };
   _fitReport();

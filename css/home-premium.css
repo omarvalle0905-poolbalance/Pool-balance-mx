@@ -577,3 +577,63 @@
 @media (prefers-reduced-motion: reduce) {
   .hp-ripple-wave { display: none; }
 }
+
+/* ─────────────────────────────────────────
+   17. LIENZO DE LA LANDING (proporción del portal en móvil)
+   El zoom lo aplica JS (_fitHomeCanvas) sobre este elemento interno,
+   nunca sobre #view-container (eso rompía iOS).
+───────────────────────────────────────── */
+#home-canvas { position: relative; z-index: 1; }
+#home-canvas > section { position: relative; }
+
+/* ─────────────────────────────────────────
+   18. EXPLICACIÓN INTERACTIVA SOBRE LA FOTO (efecto agua)
+   Tap en la foto activa → la explicación sube revelándose como agua.
+───────────────────────────────────────── */
+.hcar-info {
+  position: absolute; top: 12px; right: 12px; z-index: 6;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 11px; border-radius: 99px; cursor: pointer;
+  background: rgba(6,15,27,0.5); border: 1px solid rgba(255,255,255,0.22); color: #fff;
+  font-size: 0.7rem; font-weight: 600;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  opacity: 0; transition: opacity .3s ease;
+  font-family: 'Jost', sans-serif;
+}
+.hcar-slide.is-active .hcar-info { opacity: 1; }
+.hcar-slide.is-explaining .hcar-info { opacity: 0; pointer-events: none; }
+
+.hcar-explain {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: flex-end;
+  padding: 20px 18px;
+  opacity: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(6,15,27,0.25) 0%, rgba(6,15,27,0.84) 55%, rgba(6,15,27,0.96) 100%);
+  clip-path: inset(100% 0 0 0);          /* oculto: se revela de abajo hacia arriba */
+  -webkit-backdrop-filter: blur(0px); backdrop-filter: blur(0px);
+  transition: opacity .45s ease, clip-path .6s cubic-bezier(0.22,1,0.36,1), backdrop-filter .45s ease;
+}
+.hcar-slide.is-explaining .hcar-explain {
+  opacity: 1; pointer-events: auto;
+  clip-path: inset(0 0 0 0);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.hcar-explain-text {
+  color: #fff; font-size: 0.9rem; line-height: 1.5; margin: 0;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.7);
+  font-family: 'Jost', sans-serif;
+}
+/* Onda de agua que barre al abrir la explicación */
+.hcar-explain-wash {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at 50% 95%, rgba(111,184,198,0.4), transparent 62%);
+}
+.hcar-slide.is-explaining .hcar-explain-wash { animation: hcar-wash .85s ease-out; }
+@keyframes hcar-wash {
+  0%   { opacity: .85; transform: scale(0.55); }
+  100% { opacity: 0;   transform: scale(1.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hcar-explain { transition: opacity .2s ease; clip-path: none; }
+  .hcar-explain-wash { display: none; }
+}

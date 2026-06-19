@@ -18,13 +18,22 @@ function renderHome() {
 
   const waUrl = `https://wa.me/${company.whatsapp}?text=${encodeURIComponent('Hola Pool Balance, me gustaría conocer más sobre sus servicios.')}`;
 
-  // Carrusel 3D coverflow de fotos (estilo tarjetas anguladas). La foto vive
-  // contenida en una tarjeta; las vecinas asoman giradas en 3D.
+  // Carrusel 3D coverflow de fotos. Al tocar la foto activa, la explicación
+  // aparece SOBRE la imagen con efecto de agua (se oculta al volver a tocar o
+  // al cambiar de foto).
   const slidesHTML = hero.slides.map((s, i) => `
     <figure class="hcar-slide" data-hindex="${i}">
       <div class="hcar-card">
         <div class="hcar-img" style="background-image:url('${s.image}')"></div>
         ${s.tag ? `<figcaption class="hcar-tag hcar-tag--${s.accent}">${s.tag}</figcaption>` : ''}
+        ${s.caption ? `
+        <div class="hcar-explain" aria-hidden="true">
+          <div class="hcar-explain-wash"></div>
+          <p class="hcar-explain-text">${s.caption}</p>
+        </div>
+        <button class="hcar-info" type="button" aria-label="Ver explicación">
+          <i class="fa-solid fa-circle-info"></i><span>Toca para saber</span>
+        </button>` : ''}
         <div class="hcar-veil" aria-hidden="true"></div>
       </div>
     </figure>`).join('');
@@ -44,27 +53,19 @@ function renderHome() {
       <span class="hp-blob hp-blob-3"></span>
     </div>
 
-    <!-- ══ HERO EDITORIAL: titular + carrusel de fotos enmarcadas ══ -->
+    <!-- Lienzo de ancho de diseño: en móvil se escala con zoom igual que el
+         portal (proporción "nativa"); en escritorio se queda responsive. -->
+    <div class="home-canvas" id="home-canvas">
+
+    <!-- ══ HERO: titular + carrusel 3D de fotos ══ -->
     <section class="hero-editorial" id="hero-carousel">
       <div class="hero-aurora" aria-hidden="true"></div>
 
       <div class="hero-content">
-        <div class="hero-badge anim-fade-in">
-          <span class="hero-badge-dot"></span>${hero.badge}
-        </div>
         <h1 class="hero-headline anim-fade-in anim-delay-2">
           ${hero.headline.replace('cristalina','<em>cristalina</em>')}
         </h1>
         <p class="hero-subheadline anim-fade-in anim-delay-2">${hero.subheadline}</p>
-        <div class="hero-ctas anim-fade-in anim-delay-3">
-          <button class="btn btn-primary btn-lg" data-scroll="paquetes">
-            Ver planes
-            <i class="fa-solid fa-arrow-right text-sm"></i>
-          </button>
-          <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-ghost">
-            <i class="fa-brands fa-whatsapp"></i> Agendar diagnóstico
-          </a>
-        </div>
       </div>
 
       <!-- Carrusel 3D coverflow de fotos -->
@@ -85,18 +86,6 @@ function renderHome() {
     <!-- Se muestra SOLO cuando hay una URL en APP_CONFIG.home.hero.promoVideo.url
          (acepta YouTube, Vimeo o MP4). Si es null, esta sección no aparece. -->
     ${_renderVideoSection(hero)}
-
-
-    <!-- ══ BARRA DE CONFIANZA ══ -->
-    ${(trustBadges && trustBadges.length) ? `
-    <section class="trust-bar" aria-label="Sellos de confianza">
-      <div class="trust-bar-track">
-        ${trustBadges.map(b => `
-          <span class="trust-item">
-            <i class="fa-solid fa-${b.icon}"></i>${b.label}
-          </span>`).join('')}
-      </div>
-    </section>` : ''}
 
 
     <!-- ══ PROBLEMA ══ -->
@@ -141,11 +130,6 @@ function renderHome() {
               </div>
             </div>`).join('')}
         </div>
-        <div class="mt-10 reveal">
-          <button class="btn btn-primary" data-scroll="paquetes">
-            Ver planes <i class="fa-solid fa-arrow-right text-sm"></i>
-          </button>
-        </div>
       </div>
     </section>
 
@@ -177,36 +161,6 @@ function renderHome() {
 
     <!-- ══ PAQUETES + ANTES/DESPUÉS (fusionados en la landing) ══ -->
     ${_renderHomePackages()}
-
-
-    <!-- ══ TESTIMONIOS ══ -->
-    ${(testimonialsSection && testimonialsSection.items?.length) ? `
-    <section class="page-section-lg testimonials-section">
-      <div class="content-container">
-        <header class="section-header reveal" style="text-align:center;max-width:620px;margin-left:auto;margin-right:auto;">
-          <p class="section-eyebrow" style="justify-content:center;">Prueba social</p>
-          <h2 class="section-title">${testimonialsSection.title}</h2>
-          <p class="section-subtitle" style="margin-left:auto;margin-right:auto;">${testimonialsSection.subtitle}</p>
-        </header>
-        <div class="testimonials-grid">
-          ${testimonialsSection.items.map((t, i) => `
-            <article class="testimonial-card reveal reveal-delay-${Math.min(i+1,3)}">
-              <div class="testimonial-quote-mark">&ldquo;</div>
-              <div class="testimonial-stars" aria-label="${t.rating} de 5">
-                ${'★'.repeat(t.rating)}${'☆'.repeat(5 - t.rating)}
-              </div>
-              <p class="testimonial-text">${t.quote}</p>
-              <div class="testimonial-author">
-                <div class="testimonial-avatar">${_initials(t.name)}</div>
-                <div>
-                  <div class="testimonial-name">${t.name}</div>
-                  <div class="testimonial-role">${t.role}</div>
-                </div>
-              </div>
-            </article>`).join('')}
-        </div>
-      </div>
-    </section>` : ''}
 
 
     <!-- ══ FAQ ══ -->
@@ -245,8 +199,7 @@ function renderHome() {
         <p style="color:rgba(255,255,255,0.7);max-width:480px;margin:0 auto 32px;font-size:1rem;line-height:1.7;">
           Agenda tu diagnóstico inicial con fotómetro digital sin costo adicional al primer servicio.
         </p>
-        <div class="flex flex-wrap gap-4 justify-center">
-          <button class="btn btn-primary btn-lg" data-scroll="paquetes">Ver planes y precios</button>
+        <div class="flex justify-center">
           <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">
             <i class="fa-brands fa-whatsapp"></i> Escribir por WhatsApp
           </a>
@@ -257,6 +210,7 @@ function renderHome() {
       </div>
     </section>
 
+    </div><!-- /.home-canvas -->
   </article>`;
 }
 
@@ -366,11 +320,6 @@ function _renderHomePackages() {
         <p class="text-xs text-center mt-6 reveal" style="color:rgba(255,255,255,0.5);">
           <i class="fa-solid fa-circle-info mr-1"></i> ${services.pricingNote}
         </p>
-        <div class="text-center mt-6 reveal">
-          <a href="${`https://wa.me/${wa}?text=${encodeURIComponent('Hola Pool Balance, quiero agendar mi diagnóstico.')}`}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">
-            <i class="fa-brands fa-whatsapp"></i> Agendar diagnóstico
-          </a>
-        </div>
       </div>
     </section>`;
 }
@@ -473,7 +422,14 @@ const HeroCarousel = {
         sl.addEventListener('click', (e) => {
           if (this._swiped) { this._swiped = false; e.stopPropagation(); return; }
           const idx = parseInt(sl.dataset.hindex, 10);
-          if (idx !== this.active) { e.stopPropagation(); this.go(idx); this._restart(); }
+          if (idx !== this.active) { e.stopPropagation(); this.go(idx); this._restart(); return; }
+          // Tarjeta activa: si tiene explicación, mostrarla/ocultarla SOBRE la
+          // foto (con efecto de agua). Pausa el autoplay mientras se lee.
+          if (sl.querySelector('.hcar-explain')) {
+            e.stopPropagation();
+            const showing = sl.classList.toggle('is-explaining');
+            if (showing) this._stop(); else this._restart();
+          }
         });
       });
 
@@ -518,21 +474,25 @@ const HeroCarousel = {
     const slides = Array.from(document.querySelectorAll('#hcar-stage .hcar-slide'));
     const total = slides.length;
     slides.forEach((sl, i) => {
+      // Al cambiar de foto se oculta cualquier explicación abierta.
+      sl.classList.remove('is-explaining');
+
       let offset = i - this.active;
       if (offset > total / 2) offset -= total;
       if (offset < -total / 2) offset += total;
 
+      // Ángulo 3D más pronunciado (estilo "pared" de las referencias).
       let transform, opacity, z, pe = 'auto';
       if (offset === 0) {
         transform = 'translateX(-50%) rotateY(0deg) scale(1)';
         opacity = 1; z = 30;
       } else if (Math.abs(offset) === 1) {
         const dir = offset > 0 ? 1 : -1;
-        transform = `translateX(calc(-50% + ${dir * 60}%)) rotateY(${dir * -38}deg) scale(0.86)`;
+        transform = `translateX(calc(-50% + ${dir * 56}%)) rotateY(${dir * -48}deg) scale(0.82)`;
         opacity = 1; z = 20;
       } else {
         const dir = offset > 0 ? 1 : -1;
-        transform = `translateX(calc(-50% + ${dir * 78}%)) rotateY(${dir * -38}deg) scale(0.8)`;
+        transform = `translateX(calc(-50% + ${dir * 74}%)) rotateY(${dir * -48}deg) scale(0.72)`;
         opacity = 0; z = 10; pe = 'none';
       }
       sl.style.transform = transform;
@@ -821,8 +781,31 @@ function _initCardRipples() {
   }, { passive: true });
 }
 
+// ── Escalado estilo portal SOLO en móvil ─────────────────────
+// Mismo mecanismo PROBADO del portal: el contenido se diseña a 412px y se
+// escala con zoom sobre un elemento INTERNO (#home-canvas), no sobre el
+// contenedor que anima el router (eso rompía iOS). En escritorio queda
+// responsive (sin lienzo fijo).
+function _fitHomeCanvas() {
+  const fit = document.getElementById('home-canvas');
+  if (!fit) return;
+  const DESIGN = 412;
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  if (vw <= 1023) {
+    const scale = Math.max(0.5, vw / DESIGN);
+    fit.style.width = DESIGN + 'px';
+    fit.style.margin = '0 auto';
+    fit.style.zoom = scale.toFixed(4);
+  } else {
+    fit.style.width = '';
+    fit.style.margin = '';
+    fit.style.zoom = '';
+  }
+}
+
 // ── Inicializa todo lo de Home ───────────────────────────────
 function _initHome() {
+  _fitHomeCanvas();
   _initHeroCarousel();
   // Nota: el parallax de scroll del hero se retiró a propósito — provocaba un
   // "brinco" al soltar el dedo en móvil. Los reveals por IntersectionObserver
@@ -832,6 +815,10 @@ function _initHome() {
   _initPackageCarousel();
   _initScrollLinks();
   _initCardRipples();
+
+  if (window._homeFitHandler) window.removeEventListener('resize', window._homeFitHandler);
+  window._homeFitHandler = _fitHomeCanvas;
+  window.addEventListener('resize', window._homeFitHandler);
 }
 
 // ── Escuchar el evento del router → siempre que se renderice 'home' ──

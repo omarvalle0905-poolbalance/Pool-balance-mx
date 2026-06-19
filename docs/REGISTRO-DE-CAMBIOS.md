@@ -120,3 +120,18 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
   - Aplica a tarjetas de problema, comparativa, método, testimonios, paquetes,
     antes/después y fotos del hero.
   - `sw.js`: cache v33.
+
+- **Limpieza de CTAs + móvil con proporción del portal + hero interactivo**
+  - Limpieza (menos botones "desesperados"): se quitan el badge y los 2 botones
+    del hero, la barra de datos inferior (trust bar), TODA la sección de
+    testimonios, el botón redundante del método y el botón extra bajo paquetes;
+    el CTA final se reduce a un solo botón de WhatsApp. Los planes se contratan
+    desde el CTA de cada tarjeta + el FAB de WhatsApp.
+  - Móvil = proporción del portal: la landing se envuelve en #home-canvas y se
+    escala con zoom (DESIGN 412) SOLO en móvil (_fitHomeCanvas), igual que el
+    portal pero sobre un elemento interno (no rompe iOS). En escritorio queda
+    responsive.
+  - Hero: carrusel con ángulo 3D más pronunciado. Al tocar la foto activa, la
+    explicación aparece SOBRE la imagen con efecto de agua (clip-path + wash);
+    se oculta al volver a tocar o al cambiar de foto.
+  - sw.js: cache v34.

@@ -135,3 +135,15 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     explicación aparece SOBRE la imagen con efecto de agua (clip-path + wash);
     se oculta al volver a tocar o al cambiar de foto.
   - sw.js: cache v34.
+
+- **Hero a pantalla completa + "lo que nadie te cuenta" en carrusel 3D**
+  - Hero: vuelve a PANTALLA COMPLETA (100svh, usa svh para que no haya "brinco"
+    con la barra del navegador) con marco ligero, saludo arriba ("Bienvenido a
+    Pool Balance"), titular centrado y PARALLAX al desplazar (la foto se mueve
+    más lento y el texto se desvanece; rAF para que vaya suave). Crossfade entre
+    fotos, flechas, dots, swipe y autoplay. El hero va fuera del #home-canvas
+    (full-bleed); el resto del contenido conserva la proporción del portal.
+  - "El problema que nadie te cuenta": las 4 tarjetas pasan de grid a un
+    carrusel 3D coverflow (ProblemCarousel), estilo del video de referencia
+    (tarjetas que rotan en 3D, vecinas asomando).
+  - sw.js: cache v35.

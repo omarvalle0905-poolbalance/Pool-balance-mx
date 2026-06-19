@@ -18,30 +18,32 @@ function renderHome() {
 
   const waUrl = `https://wa.me/${company.whatsapp}?text=${encodeURIComponent('Hola Pool Balance, me gustaría conocer más sobre sus servicios.')}`;
 
-  // Carrusel 3D coverflow de fotos. Al tocar la foto activa, la explicación
-  // aparece SOBRE la imagen con efecto de agua (se oculta al volver a tocar o
-  // al cambiar de foto).
+  // Hero a PANTALLA COMPLETA con marco ligero. Saludo arriba, titular centrado
+  // y parallax al desplazar. Las fotos deben tener buena toma (van full-bleed).
   const slidesHTML = hero.slides.map((s, i) => `
-    <figure class="hcar-slide" data-hindex="${i}">
-      <div class="hcar-card">
-        <div class="hcar-img" style="background-image:url('${s.image}')"></div>
-        ${s.tag ? `<figcaption class="hcar-tag hcar-tag--${s.accent}">${s.tag}</figcaption>` : ''}
-        ${s.caption ? `
-        <div class="hcar-explain" aria-hidden="true">
-          <div class="hcar-explain-wash"></div>
-          <p class="hcar-explain-text">${s.caption}</p>
-        </div>
-        <button class="hcar-info" type="button" aria-label="Ver explicación">
-          <i class="fa-solid fa-circle-info"></i><span>Toca para saber</span>
-        </button>` : ''}
-        <div class="hcar-veil" aria-hidden="true"></div>
-      </div>
-    </figure>`).join('');
+    <div class="hfs-slide ${i === 0 ? 'is-active' : ''}" data-slide="${i}">
+      <div class="hfs-bg" style="background-image:url('${s.image}')"></div>
+      <div class="hfs-overlay"></div>
+      ${s.tag ? `<div class="hfs-tag hfs-tag--${s.accent}">${s.tag}</div>` : ''}
+    </div>`).join('');
 
   const dotsHTML = hero.slides.map((_, i) => `
-    <button class="hcar-dot ${i === 0 ? 'active' : ''}"
-            data-hdot="${i}" type="button"
-            aria-label="Foto ${i + 1}"></button>`).join('');
+    <button class="hfs-dot ${i === 0 ? 'active' : ''}"
+            data-hdot="${i}" type="button" aria-label="Foto ${i + 1}"></button>`).join('');
+
+  // "El problema que nadie te cuenta" → carrusel 3D coverflow (estilo del video).
+  const probSlides = problemSection.cards.map((c, i) => `
+    <figure class="probcar-slide" data-pindex="${i}">
+      <article class="prob-card prob-${c.color}">
+        <div class="prob-icon"><i class="fa-solid fa-${c.icon}"></i></div>
+        <h3 class="prob-title">${c.title}</h3>
+        <p class="prob-body">${c.body}</p>
+      </article>
+      <div class="probcar-veil" aria-hidden="true"></div>
+    </figure>`).join('');
+  const probDots = problemSection.cards.map((_, i) => `
+    <button class="probcar-dot ${i === 0 ? 'active' : ''}"
+            data-pdot="${i}" type="button" aria-label="Tarjeta ${i + 1}"></button>`).join('');
 
   return `
   <article class="view-page hp-liquid" id="view-home">
@@ -53,61 +55,57 @@ function renderHome() {
       <span class="hp-blob hp-blob-3"></span>
     </div>
 
-    <!-- Lienzo de ancho de diseño: en móvil se escala con zoom igual que el
-         portal (proporción "nativa"); en escritorio se queda responsive. -->
-    <div class="home-canvas" id="home-canvas">
+    <!-- ══ HERO A PANTALLA COMPLETA (con marco ligero + parallax) ══ -->
+    <section class="hfs" id="hero-carousel">
+      <div class="hfs-track" id="hfs-track">${slidesHTML}</div>
+      <div class="hfs-frame" aria-hidden="true"></div>
 
-    <!-- ══ HERO: titular + carrusel 3D de fotos ══ -->
-    <section class="hero-editorial" id="hero-carousel">
-      <div class="hero-aurora" aria-hidden="true"></div>
-
-      <div class="hero-content">
+      <div class="hfs-content">
+        <p class="hero-greet anim-fade-in">Bienvenido a Pool Balance</p>
         <h1 class="hero-headline anim-fade-in anim-delay-2">
           ${hero.headline.replace('cristalina','<em>cristalina</em>')}
         </h1>
         <p class="hero-subheadline anim-fade-in anim-delay-2">${hero.subheadline}</p>
       </div>
 
-      <!-- Carrusel 3D coverflow de fotos -->
-      <div class="hcar anim-fade-in anim-delay-4">
-        <div class="hcar-stage" id="hcar-stage">${slidesHTML}</div>
-        <button class="hcar-arrow prev" id="hcar-prev" type="button" aria-label="Anterior">
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <button class="hcar-arrow next" id="hcar-next" type="button" aria-label="Siguiente">
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-        <div class="hcar-dots" id="hcar-dots">${dotsHTML}</div>
-      </div>
+      <button class="hfs-arrow prev" id="hfs-prev" type="button" aria-label="Anterior">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button class="hfs-arrow next" id="hfs-next" type="button" aria-label="Siguiente">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <div class="hfs-dots" id="hfs-dots">${dotsHTML}</div>
+      <div class="hfs-cue" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
     </section>
 
+    <!-- Lienzo de ancho de diseño: en móvil se escala con zoom igual que el
+         portal (proporción "nativa"); en escritorio se queda responsive. -->
+    <div class="home-canvas" id="home-canvas">
 
-    <!-- ══ VIDEO PROMOCIONAL — directamente debajo del carrusel ══ -->
+    <!-- ══ VIDEO PROMOCIONAL — debajo del carrusel ══ -->
     <!-- Se muestra SOLO cuando hay una URL en APP_CONFIG.home.hero.promoVideo.url
          (acepta YouTube, Vimeo o MP4). Si es null, esta sección no aparece. -->
     ${_renderVideoSection(hero)}
 
 
-    <!-- ══ PROBLEMA ══ -->
-    <section class="page-section bg-bruma" id="problema">
+    <!-- ══ PROBLEMA — carrusel 3D ══ -->
+    <section class="page-section" id="problema">
       <div class="content-container">
         <header class="section-header reveal">
           <p class="section-eyebrow">El problema real</p>
           <h2 class="section-title">${problemSection.title}</h2>
           <p class="section-subtitle">${problemSection.subtitle}</p>
         </header>
-        <div class="grid-cards grid-cards-4" role="list">
-          ${problemSection.cards.map((card, i) => `
-            <article class="didactic-card card-${card.color} reveal reveal-delay-${Math.min(i+1,4)}"
-                     data-num="${i + 1}"
-                     role="listitem">
-              <div class="didactic-icon icon-${card.color}">
-                <i class="fa-solid fa-${card.icon}"></i>
-              </div>
-              <h3 class="didactic-card-title">${card.title}</h3>
-              <p class="didactic-card-body">${card.body}</p>
-            </article>`).join('')}
+        <div class="probcar reveal" id="probcar" role="group" aria-label="Lo que nadie te cuenta">
+          <div class="probcar-stage" id="probcar-stage">${probSlides}</div>
+          <button class="probcar-arrow prev" id="probcar-prev" type="button" aria-label="Anterior">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="probcar-arrow next" id="probcar-next" type="button" aria-label="Siguiente">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
         </div>
+        <div class="probcar-dots" id="probcar-dots">${probDots}</div>
       </div>
     </section>
 
@@ -392,107 +390,173 @@ function _buildVideoEmbed(url) {
 //  se desliza con scroll-snap. Flechas, dots y autoplay sincronizados.
 // ════════════════════════════════════════════════════════════
 
+// Hero a pantalla completa: crossfade entre fotos + parallax al desplazar.
 const HeroCarousel = {
-  active: 0,
-  total: 0,
-  _onUp: null,
-  _timer: null,
+  active: 0, total: 0, _timer: null, _raf: null, slides: [],
 
   init() {
-    const stage = document.getElementById('hcar-stage');
-    if (!stage) return;
-    this.total = stage.querySelectorAll('.hcar-slide').length;
+    const track = document.getElementById('hfs-track');
+    if (!track) return;
+    this.slides = Array.from(track.querySelectorAll('.hfs-slide'));
+    this.total = this.slides.length;
     if (!this.total) return;
     this.active = Math.min(this.active, this.total - 1);
-    this.layout();
+    this._show(this.active);
 
-    const prev = document.getElementById('hcar-prev');
-    const next = document.getElementById('hcar-next');
+    const prev = document.getElementById('hfs-prev');
+    const next = document.getElementById('hfs-next');
     prev && (prev.onclick = () => { this.go(this.active - 1); this._restart(); });
     next && (next.onclick = () => { this.go(this.active + 1); this._restart(); });
     document.querySelectorAll('[data-hdot]').forEach(d => {
       d.onclick = () => { this.go(parseInt(d.dataset.hdot, 10)); this._restart(); };
     });
 
-    // Gestos atados una sola vez por elemento
-    if (!stage.dataset.hcarBound) {
-      stage.dataset.hcarBound = '1';
+    const sec = document.getElementById('hero-carousel');
+    if (sec && !sec.dataset.hbound) {
+      sec.dataset.hbound = '1';
+      let sx = null;
+      sec.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+      sec.addEventListener('touchend', (e) => {
+        if (sx == null) return;
+        const dx = e.changedTouches[0].clientX - sx;
+        if (dx > 40) this.go(this.active - 1);
+        else if (dx < -40) this.go(this.active + 1);
+        sx = null; this._restart();
+      }, { passive: true });
+    }
 
-      stage.querySelectorAll('.hcar-slide').forEach(sl => {
+    // Parallax: el fondo de la foto activa se mueve más lento y el texto se
+    // desvanece al desplazar. rAF para que vaya suave (sin "brincos").
+    if (window._heroParallax) window.removeEventListener('scroll', window._heroParallax);
+    window._heroParallax = () => {
+      if (this._raf) return;
+      this._raf = requestAnimationFrame(() => {
+        this._raf = null;
+        const s = document.getElementById('hero-carousel');
+        if (!s) return;
+        const y = window.scrollY || window.pageYOffset || 0;
+        const h = s.offsetHeight || 1;
+        if (y > h + 60) return;
+        const bg = this.slides[this.active] && this.slides[this.active].querySelector('.hfs-bg');
+        if (bg) bg.style.transform = `translate3d(0, ${(y * 0.4).toFixed(1)}px, 0) scale(1.12)`;
+        const content = document.querySelector('.hfs-content');
+        if (content) {
+          content.style.transform = `translate3d(0, ${(y * 0.18).toFixed(1)}px, 0)`;
+          content.style.opacity = String(Math.max(0, 1 - y / (h * 0.65)));
+        }
+      });
+    };
+    window.addEventListener('scroll', window._heroParallax, { passive: true });
+
+    document.addEventListener('viewRendered', (e) => { if (e.detail?.view !== 'home') this._stop(); });
+    this._restart();
+  },
+
+  _show(n) {
+    this.slides.forEach((s, i) => s.classList.toggle('is-active', i === n));
+    document.querySelectorAll('[data-hdot]').forEach((d, i) => d.classList.toggle('active', i === n));
+    const bg = this.slides[n] && this.slides[n].querySelector('.hfs-bg');
+    if (bg) bg.style.transform = 'translate3d(0,0,0) scale(1.12)';
+  },
+
+  go(i) { if (!this.total) return; this.active = ((i % this.total) + this.total) % this.total; this._show(this.active); },
+  _start() { clearInterval(this._timer); this._timer = setInterval(() => this.go(this.active + 1), 5500); },
+  _stop()  { clearInterval(this._timer); },
+  _restart() { this._stop(); this._start(); },
+};
+window.HeroCarousel = HeroCarousel;
+
+function _initHeroCarousel() {
+  if (!document.getElementById('hfs-track')) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => HeroCarousel.init()));
+  setTimeout(() => HeroCarousel.init(), 200);
+}
+
+// "Lo que nadie te cuenta" — carrusel 3D coverflow (estilo del video).
+const ProblemCarousel = {
+  active: 0, total: 0, _onUp: null,
+
+  init() {
+    const stage = document.getElementById('probcar-stage');
+    if (!stage) return;
+    this.total = stage.querySelectorAll('.probcar-slide').length;
+    if (!this.total) return;
+    this.active = Math.min(this.active, this.total - 1);
+    this._sizeStage();
+    this.layout();
+
+    const prev = document.getElementById('probcar-prev');
+    const next = document.getElementById('probcar-next');
+    prev && (prev.onclick = () => this.go(this.active - 1));
+    next && (next.onclick = () => this.go(this.active + 1));
+    document.querySelectorAll('[data-pdot]').forEach(d => {
+      d.onclick = () => this.go(parseInt(d.dataset.pdot, 10));
+    });
+
+    if (!stage.dataset.pbound) {
+      stage.dataset.pbound = '1';
+      stage.querySelectorAll('.probcar-slide').forEach(sl => {
         sl.addEventListener('click', (e) => {
           if (this._swiped) { this._swiped = false; e.stopPropagation(); return; }
-          const idx = parseInt(sl.dataset.hindex, 10);
-          if (idx !== this.active) { e.stopPropagation(); this.go(idx); this._restart(); return; }
-          // Tarjeta activa: si tiene explicación, mostrarla/ocultarla SOBRE la
-          // foto (con efecto de agua). Pausa el autoplay mientras se lee.
-          if (sl.querySelector('.hcar-explain')) {
-            e.stopPropagation();
-            const showing = sl.classList.toggle('is-explaining');
-            if (showing) this._stop(); else this._restart();
-          }
+          const idx = parseInt(sl.dataset.pindex, 10);
+          if (idx !== this.active) { e.stopPropagation(); this.go(idx); }
         });
       });
-
       let sx = null;
-      stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; this._swiped = false; this._stop(); }, { passive: true });
+      stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; this._swiped = false; }, { passive: true });
       stage.addEventListener('touchend', (e) => {
         if (sx == null) return;
         const dx = e.changedTouches[0].clientX - sx;
         if (Math.abs(dx) > 8) { this._swiped = true; setTimeout(() => { this._swiped = false; }, 400); }
         if (dx > 40) this.go(this.active - 1);
         else if (dx < -40) this.go(this.active + 1);
-        sx = null; this._restart();
+        sx = null;
       }, { passive: true });
-
       let mx = null;
-      stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; this._stop(); });
+      stage.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; });
       if (this._onUp) window.removeEventListener('pointerup', this._onUp);
       this._onUp = (e) => {
         if (mx == null) return;
         const dx = e.clientX - mx;
         if (dx > 50) this.go(this.active - 1);
         else if (dx < -50) this.go(this.active + 1);
-        mx = null; this._restart();
+        mx = null;
       };
       window.addEventListener('pointerup', this._onUp);
     }
-
-    document.addEventListener('viewRendered', (e) => {
-      if (e.detail?.view !== 'home') this._stop();
-    });
-
-    this._restart();
   },
 
-  go(i) {
-    if (!this.total) return;
-    this.active = ((i % this.total) + this.total) % this.total;
-    this.layout();
+  _sizeStage() {
+    const wrap = document.getElementById('probcar');
+    const slides = Array.from(document.querySelectorAll('#probcar-stage .probcar-slide'));
+    if (!wrap || !slides.length) return;
+    let max = 0;
+    slides.forEach(sl => { sl.style.height = 'auto'; const c = sl.querySelector('.prob-card'); if (c) max = Math.max(max, c.offsetHeight); });
+    if (!max) return;
+    slides.forEach(sl => { sl.style.height = max + 'px'; });
+    wrap.style.height = (max + 24) + 'px';
   },
+
+  go(i) { if (!this.total) return; this.active = ((i % this.total) + this.total) % this.total; this.layout(); },
 
   layout() {
-    const slides = Array.from(document.querySelectorAll('#hcar-stage .hcar-slide'));
+    const slides = Array.from(document.querySelectorAll('#probcar-stage .probcar-slide'));
     const total = slides.length;
     slides.forEach((sl, i) => {
-      // Al cambiar de foto se oculta cualquier explicación abierta.
-      sl.classList.remove('is-explaining');
-
       let offset = i - this.active;
       if (offset > total / 2) offset -= total;
       if (offset < -total / 2) offset += total;
-
-      // Ángulo 3D más pronunciado (estilo "pared" de las referencias).
       let transform, opacity, z, pe = 'auto';
       if (offset === 0) {
         transform = 'translateX(-50%) rotateY(0deg) scale(1)';
         opacity = 1; z = 30;
       } else if (Math.abs(offset) === 1) {
         const dir = offset > 0 ? 1 : -1;
-        transform = `translateX(calc(-50% + ${dir * 56}%)) rotateY(${dir * -48}deg) scale(0.82)`;
+        transform = `translateX(calc(-50% + ${dir * 62}%)) rotateY(${dir * -42}deg) scale(0.84)`;
         opacity = 1; z = 20;
       } else {
         const dir = offset > 0 ? 1 : -1;
-        transform = `translateX(calc(-50% + ${dir * 74}%)) rotateY(${dir * -48}deg) scale(0.72)`;
+        transform = `translateX(calc(-50% + ${dir * 80}%)) rotateY(${dir * -42}deg) scale(0.76)`;
         opacity = 0; z = 10; pe = 'none';
       }
       sl.style.transform = transform;
@@ -501,21 +565,15 @@ const HeroCarousel = {
       sl.style.pointerEvents = pe;
       sl.classList.toggle('is-active', offset === 0);
     });
-    document.querySelectorAll('[data-hdot]').forEach((d, i) => {
-      d.classList.toggle('active', i === this.active);
-    });
+    document.querySelectorAll('[data-pdot]').forEach((d, i) => d.classList.toggle('active', i === this.active));
   },
-
-  _start() { clearInterval(this._timer); this._timer = setInterval(() => this.go(this.active + 1), 5500); },
-  _stop()  { clearInterval(this._timer); },
-  _restart() { this._stop(); this._start(); },
 };
-window.HeroCarousel = HeroCarousel;
+window.ProblemCarousel = ProblemCarousel;
 
-function _initHeroCarousel() {
-  if (!document.getElementById('hcar-stage')) return;
-  requestAnimationFrame(() => requestAnimationFrame(() => HeroCarousel.init()));
-  setTimeout(() => HeroCarousel.init(), 200);
+function _initProblemCarousel() {
+  if (!document.getElementById('probcar-stage')) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => ProblemCarousel.init()));
+  setTimeout(() => ProblemCarousel.init(), 200);
 }
 
 // ── Parallax scroll effect driver ────────────────────────────
@@ -764,7 +822,7 @@ function _initCardRipples() {
 
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  const SEL = '.didactic-card, .cmp-card, .method-step, .testimonial-card, .pricing-card, .ba-tile, .hcar-card';
+  const SEL = '.prob-card, .cmp-card, .method-step, .pricing-card, .ba-tile';
   view.addEventListener('pointerdown', (e) => {
     const card = e.target.closest(SEL);
     if (!card) return;
@@ -807,12 +865,10 @@ function _fitHomeCanvas() {
 function _initHome() {
   _fitHomeCanvas();
   _initHeroCarousel();
-  // Nota: el parallax de scroll del hero se retiró a propósito — provocaba un
-  // "brinco" al soltar el dedo en móvil. Los reveals por IntersectionObserver
-  // (que sí se sienten bien) se mantienen.
   _initReveal();
   _initFaq();
   _initPackageCarousel();
+  _initProblemCarousel();
   _initScrollLinks();
   _initCardRipples();
 

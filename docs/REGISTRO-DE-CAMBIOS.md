@@ -147,3 +147,18 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     carrusel 3D coverflow (ProblemCarousel), estilo del video de referencia
     (tarjetas que rotan en 3D, vecinas asomando).
   - sw.js: cache v35.
+
+- **Fix: el portal no mostraba las fotos del servicio (carrusel de la bitácora)**
+  - Causa probable: las fotos guardadas en Firestore no estaban bajo el campo
+    exacto `fotos` (o venían en otro formato), así que el detalle mostraba la
+    foto de relleno.
+  - `bitacora-detalle.js`: nuevo `_collectFotos()` que reúne las fotos tolerando
+    varios nombres de campo (fotos/photos/imagenes/fotos_servicio/evidencias/
+    galeria/images…) y estructuras (array, mapa-objeto o string), varias claves
+    de URL (url/downloadURL/src/link/href/uri/secure_url/path) y normaliza
+    enlaces de Google Drive ("view" → directo de imagen). Se usa en el hero de
+    fotos y en el visor a pantalla completa.
+  - `portal.js`: el conteo de fotos del dashboard usa el mismo colector.
+  - Diagnóstico: si no se detectan fotos, se loguea en consola la lista de
+    campos de la bitácora para identificar nombres no contemplados.
+  - sw.js: cache v36.

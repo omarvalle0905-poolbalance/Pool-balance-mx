@@ -336,7 +336,9 @@ function _carouselCardHTML(bit, i) {
   const estado = bit.estado || 'optimo';
   const st     = ST_MAP[estado] || ST_MAP.optimo;
   const accent = st.c;
-  const fotosCount = bit.fotos?.length || 0;
+  const fotosCount = (typeof _collectFotos === 'function')
+    ? _collectFotos(bit).length
+    : (bit.fotos?.length || 0);
 
   const metrics = [
     { key:'ph',             label:'PH',     val: bit.lecturas?.ph },

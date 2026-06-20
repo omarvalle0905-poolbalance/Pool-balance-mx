@@ -186,15 +186,59 @@ const PARAMETROS = {
 
 // ─────────────────────────────────────────
 //  HELPER: normaliza una foto a URL string
-//  Soporta ambos formatos:
+//  Soporta múltiples formatos y orígenes:
 //    - string (formato viejo)
-//    - { url, path, momento, timestamp } (formato nuevo PhotoQueue V1.0.1+)
+//    - { url | downloadURL | src | link | href | uri | path } (objeto)
+//    - enlaces de Google Drive de "ver/compartir" → enlace directo de imagen
 // ─────────────────────────────────────────
+
+function _driveDirect(u) {
+  if (typeof u !== 'string') return u;
+  // Convierte enlaces de Drive (file/d/ID, open?id=, uc?id=) a uno que SÍ
+  // renderiza dentro de <img>. Los enlaces "view" no cargan como imagen.
+  const m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/);
+  if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  return u;
+}
 
 function _fotoToUrl(foto) {
   if (!foto) return '';
-  if (typeof foto === 'string') return foto;
-  return foto.url || '';
+  let u = '';
+  if (typeof foto === 'string') {
+    u = foto;
+  } else if (typeof foto === 'object') {
+    u = foto.url || foto.downloadURL || foto.downloadUrl || foto.src ||
+        foto.link || foto.href || foto.uri || foto.secure_url || '';
+    // Algunos pipelines guardan solo "path"; si es una URL completa, úsala.
+    if (!u && typeof foto.path === 'string' && /^https?:\/\//.test(foto.path)) u = foto.path;
+  }
+  u = (u || '').trim();
+  return u ? _driveDirect(u) : '';
+}
+
+// Reúne las fotos de una bitácora tolerando distintos nombres de campo y
+// estructuras (array, mapa-objeto o string suelto). Así el portal SIEMPRE
+// encuentra las fotos aunque el pipeline de guardado use otro nombre.
+function _collectFotos(bitacora) {
+  if (!bitacora || typeof bitacora !== 'object') return [];
+  const KEYS = [
+    'fotos', 'photos', 'imagenes', 'imágenes', 'images',
+    'fotos_servicio', 'fotosServicio', 'fotosUrls', 'fotos_urls',
+    'evidencias', 'galeria', 'galería', 'gallery',
+  ];
+  let raw = null;
+  for (const k of KEYS) {
+    const v = bitacora[k];
+    if (v == null) continue;
+    if (Array.isArray(v) ? v.length : true) { raw = v; break; }
+  }
+  if (raw == null) return [];
+  let arr;
+  if (Array.isArray(raw)) arr = raw;
+  else if (typeof raw === 'string') arr = [raw];
+  else if (typeof raw === 'object') arr = Object.values(raw); // mapa {0:..} o {a:{url}}
+  else arr = [];
+  return arr.map(_fotoToUrl).filter(Boolean);
 }
 
 // ─────────────────────────────────────────
@@ -204,9 +248,17 @@ function _fotoToUrl(foto) {
 function renderBitacoraDetalle(bitacora, clienteNombre = '') {
   if (!bitacora) return `<div class="p-8 text-center" style="color: #6FB8C6; font-family: 'Bricolage Grotesque', sans-serif;">Bitácora no encontrada.</div>`;
 
-  const { lecturas, acciones, notas, fotos = [], estado,
+  const { lecturas, acciones, notas, estado,
           tecnico, fecha, pdf_url, litros_retrolav,
           litros_evap, quimicos_usados, _id } = bitacora;
+
+  // Fotos: se reúnen de forma robusta (varios nombres de campo y formatos).
+  const fotos = _collectFotos(bitacora);
+  // Diagnóstico: si no se encontraron fotos pero la bitácora trae datos, deja
+  // ver en consola QUÉ campos llegaron (para detectar nombres no contemplados).
+  if (!fotos.length) {
+    try { console.warn('[Bitácora] Sin fotos detectadas. Campos disponibles:', Object.keys(bitacora)); } catch (e) {}
+  }
 
   // Parámetros principales (siempre visibles)
   const paramPrincipales = ['ph','cloro_libre','cloro_combinado','alcalinidad','dureza_calcica','lsi'];
@@ -1135,9 +1187,8 @@ const BitacoraUI = {
   },
 
   openGallery(index) {
-    // Normaliza las fotos a array de URLs strings (soporta formato objeto y string)
-    const fotosRaw = window._currentBitacora?.fotos || [];
-    this._fotos = fotosRaw.map(_fotoToUrl).filter(Boolean);
+    // Reúne las fotos de forma robusta (varios nombres de campo y formatos).
+    this._fotos = _collectFotos(window._currentBitacora);
     if (!this._fotos.length) return;
     this._currentIndex = index;
 

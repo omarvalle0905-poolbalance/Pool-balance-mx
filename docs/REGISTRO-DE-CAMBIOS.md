@@ -184,3 +184,29 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     getDownloadURL), ordena foto-1, foto-2… y re-renderiza el detalle con las
     fotos reales. Se dispara en PostRender.bitacora.
   - sw.js: cache v38.
+
+- **Visor de fotos de la bitácora → PANTALLA COMPLETA real + CLAUDE.md**
+  - El visor abría a 94vw/86dvh con padding (se veía "un poco más grande", no a
+    pantalla completa). Se ajustó `css/components.css` (`.photo-modal`,
+    `.gallery-stage`, `#gallery-modal-img`) a 100vw/100dvh, sin padding, fondo
+    negro y `object-fit: contain` → la foto abre cubriendo TODA la pantalla.
+  - Se creó `CLAUDE.md` con las reglas del proyecto: el PORTAL DEL CLIENTE está
+    terminado y NO se toca sin permiso; visor a pantalla completa; fotos en
+    Storage; no romper la carga; subir cache en cada cambio.
+  - sw.js: cache v39.
+  - PENDIENTE (a confirmar con el dueño): si además quiere restaurar el LAYOUT
+    del carrusel de fotos del reporte a la versión original (foto grande + tira
+    3D de todas las fotos) en vez del coverflow actual.
+
+- **Restaurar el carrusel de fotos ORIGINAL del reporte (foto grande + tira 3D)**
+  - A petición del dueño: el carrusel de fotos del reporte vuelve a su forma
+    original del portal terminado: una FOTO GRANDE arriba (toca → pantalla
+    completa) + una GALERÍA 3D con TODAS las fotos debajo (tarjeta central +
+    vecinas anguladas, flechas y dots).
+  - `bitacora-detalle.js`: `_renderPhotoHero` reescrito a foto grande + tira 3D
+    (reusa el CSS `gallery-3d-*` que seguía intacto). Se restauraron en
+    `BitacoraUI` los métodos `slide3D / goTo3DSlide / handleCardClick /
+    update3DGallery / init3DSwipe` y `_current3DIndex`. PostRender inicializa la
+    galería 3D; las flechas del teclado la controlan. El coverflow `phc` queda
+    sin uso. El visor sigue a pantalla completa.
+  - sw.js: cache v40.

@@ -266,6 +266,58 @@ function _collectFotos(bitacora) {
 }
 
 // ─────────────────────────────────────────
+//  HIDRATAR FOTOS DESDE FIREBASE STORAGE
+//  Cuando el documento de Firestore NO trae las URLs de las fotos pero sí
+//  existen en Storage (caso real: el pipeline sube las fotos a
+//  clientes/{cliente}/albercas/{alberca}/bitacoras/{bitacora}/foto-N.jpg pero
+//  no escribe las URLs al doc), listamos esa carpeta y cargamos las fotos.
+// ─────────────────────────────────────────
+async function _hydrateFotosFromStorage(bitacora) {
+  try {
+    if (!bitacora || !window.FB || !window.FB.storage) return;
+    // Si el doc ya trae URLs, no hace falta tocar Storage.
+    if (_collectFotos(bitacora).length) return;
+
+    const prof = window._currentClientProfile || {};
+    const clientId  = prof._id || bitacora.cliente_id || bitacora.clienteId || bitacora.cliente;
+    const albercaId = prof.alberca_id || bitacora.alberca_id || bitacora.albercaId || 'principal';
+    const folder    = bitacora._id || bitacora.id || bitacora.fecha;
+    if (!clientId || !folder) return;
+
+    const { ref, listAll, getDownloadURL } = await import(
+      'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js'
+    );
+    const path = `clientes/${clientId}/albercas/${albercaId}/bitacoras/${folder}`;
+    const dir = ref(window.FB.storage, path);
+    const res = await listAll(dir);
+    if (!res || !res.items || !res.items.length) {
+      console.warn('[Bitácora] No se hallaron fotos en Storage en:', path);
+      return;
+    }
+    // Ordenar foto-1, foto-2, … de forma natural.
+    res.items.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    const urls = (await Promise.all(
+      res.items.map(it => getDownloadURL(it).catch(() => ''))
+    )).filter(Boolean);
+    if (!urls.length) return;
+
+    bitacora.fotos = urls;                     // adjunta para que todo lo lea
+    window._currentBitacora = bitacora;
+
+    // Re-render del detalle ahora que ya hay fotos (vuelve a inicializar el
+    // carrusel). El guard de _collectFotos evita repetir esta carga.
+    const c = document.getElementById('view-container');
+    if (c && document.getElementById('view-bitacora-detalle')) {
+      c.innerHTML = renderBitacoraDetalle(bitacora, (window._currentClientProfile || {}).nombre || '');
+      if (window.PostRender && window.PostRender.bitacora) window.PostRender.bitacora();
+    }
+  } catch (e) {
+    console.warn('[Bitácora] No se pudieron listar las fotos en Storage:', e);
+  }
+}
+window._hydrateFotosFromStorage = _hydrateFotosFromStorage;
+
+// ─────────────────────────────────────────
 //  RENDER PRINCIPAL DE LA VISTA
 // ─────────────────────────────────────────
 
@@ -1541,6 +1593,10 @@ window.PostRender = window.PostRender || {}; // <-- ESTA ES LA LÍNEA SALVAVIDAS
 
 window.PostRender.bitacora = function() {
   window.BitacoraUI = BitacoraUI;
+
+  // Si el documento no trae las URLs de las fotos, intentar listarlas desde
+  // Firebase Storage (carpeta de la bitácora). Si las encuentra, re-renderiza.
+  _hydrateFotosFromStorage(window._currentBitacora);
 
   // ── ESCALADO "FILL-WIDTH" (imita el WebView nativo) ──
   // El contenido se diseña a un ancho fijo (412px) y se escala con

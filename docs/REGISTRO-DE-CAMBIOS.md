@@ -173,3 +173,14 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     (Firebase Storage, Drive, googleusercontent, CDNs o con extensión de
     imagen), excluyendo el PDF. Encuentra las fotos sin importar el nombre.
   - `sw.js`: cache v37.
+
+- **Fotos del servicio (v3): las fotos están en Storage, no en el doc**
+  - Hallazgo (con capturas de Firebase Storage): las fotos viven en
+    `clientes/{cliente}/albercas/{alberca}/bitacoras/{bitacora}/foto-N.jpg`, pero
+    el documento de Firestore de la bitácora NO guarda las URLs. Por eso el
+    portal no tenía nada que renderizar (mostraba la de relleno).
+  - `bitacora-detalle.js`: `_hydrateFotosFromStorage()` — si el doc no trae URLs,
+    lista esa carpeta de Storage (Firebase Storage SDK: ref/listAll/
+    getDownloadURL), ordena foto-1, foto-2… y re-renderiza el detalle con las
+    fotos reales. Se dispara en PostRender.bitacora.
+  - sw.js: cache v38.

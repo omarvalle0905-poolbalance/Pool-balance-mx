@@ -216,6 +216,14 @@ function _fotoToUrl(foto) {
   return u ? _driveDirect(u) : '';
 }
 
+// ¿La URL parece una imagen (Storage/Drive/CDN o con extensión de imagen)?
+function _isImageUrl(u) {
+  if (typeof u !== 'string' || !/^https?:\/\//.test(u)) return false;
+  if (/\.pdf(\?|#|$)/i.test(u)) return false;            // nunca el PDF
+  return /\.(jpe?g|png|webp|gif|avif|heic|bmp)(\?|#|$)/i.test(u)
+    || /firebasestorage\.googleapis\.com|storage\.googleapis\.com|googleusercontent\.com|drive\.google\.com|lh3\.google|cloudinary\.com|cloudfront\.net|imgur\.com|unsplash\.com|\.amazonaws\.com/i.test(u);
+}
+
 // Reúne las fotos de una bitácora tolerando distintos nombres de campo y
 // estructuras (array, mapa-objeto o string suelto). Así el portal SIEMPRE
 // encuentra las fotos aunque el pipeline de guardado use otro nombre.
@@ -224,7 +232,7 @@ function _collectFotos(bitacora) {
   const KEYS = [
     'fotos', 'photos', 'imagenes', 'imágenes', 'images',
     'fotos_servicio', 'fotosServicio', 'fotosUrls', 'fotos_urls',
-    'evidencias', 'galeria', 'galería', 'gallery',
+    'evidencias', 'galeria', 'galería', 'gallery', 'media', 'archivos', 'adjuntos',
   ];
   let raw = null;
   for (const k of KEYS) {
@@ -232,13 +240,29 @@ function _collectFotos(bitacora) {
     if (v == null) continue;
     if (Array.isArray(v) ? v.length : true) { raw = v; break; }
   }
-  if (raw == null) return [];
-  let arr;
-  if (Array.isArray(raw)) arr = raw;
-  else if (typeof raw === 'string') arr = [raw];
-  else if (typeof raw === 'object') arr = Object.values(raw); // mapa {0:..} o {a:{url}}
-  else arr = [];
-  return arr.map(_fotoToUrl).filter(Boolean);
+
+  if (raw != null) {
+    let arr;
+    if (Array.isArray(raw)) arr = raw;
+    else if (typeof raw === 'string') arr = [raw];
+    else if (typeof raw === 'object') arr = Object.values(raw); // mapa {0:..} o {a:{url}}
+    else arr = [];
+    const out = arr.map(_fotoToUrl).filter(Boolean);
+    if (out.length) return out;
+  }
+
+  // Último recurso: escanear TODOS los campos buscando URLs de imagen, sin
+  // importar el nombre del campo (excluye PDF). Garantiza encontrar las fotos.
+  const found = [];
+  for (const [k, v] of Object.entries(bitacora)) {
+    if (/pdf/i.test(k)) continue;
+    let items = [];
+    if (Array.isArray(v)) items = v;
+    else if (v && typeof v === 'object') items = Object.values(v);
+    else if (typeof v === 'string') items = [v];
+    items.forEach(it => { const u = _fotoToUrl(it); if (u && _isImageUrl(u)) found.push(u); });
+  }
+  return [...new Set(found)];
 }
 
 // ─────────────────────────────────────────

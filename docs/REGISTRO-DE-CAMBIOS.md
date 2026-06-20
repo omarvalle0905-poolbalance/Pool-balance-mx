@@ -162,3 +162,14 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
   - Diagnóstico: si no se detectan fotos, se loguea en consola la lista de
     campos de la bitácora para identificar nombres no contemplados.
   - sw.js: cache v36.
+
+- **Fotos del servicio (v2): escaneo profundo + hallazgo del historial**
+  - Revisión del historial: `firestore.js`, `_loadBitacoras` y `_fotoToUrl`
+    están IDÉNTICOS a la versión que servía → el código de lectura NO cambió con
+    los cambios de la landing. Conclusión: las fotos de este cliente quedaron en
+    un campo/estructura distinta a `fotos`.
+  - `bitacora-detalle.js`: `_collectFotos()` ahora, si no encuentra los nombres
+    conocidos, ESCANEA todos los campos de la bitácora buscando URLs de imagen
+    (Firebase Storage, Drive, googleusercontent, CDNs o con extensión de
+    imagen), excluyendo el PDF. Encuentra las fotos sin importar el nombre.
+  - `sw.js`: cache v37.

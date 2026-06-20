@@ -1597,12 +1597,12 @@
 .photo-modal {
   position: fixed;
   inset: 0;
-  background: rgba(10,51,80,0.92);
+  background: rgba(0,0,0,0.96);
   z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 0;
   animation: fadeIn 0.2s ease;
 }
 
@@ -1652,16 +1652,17 @@
   font-weight: 500;
 }
 
-/* Lightbox singleton (anclado a <body>) — foto a pantalla completa */
+/* Lightbox singleton (anclado a <body>) — foto a PANTALLA COMPLETA real */
 .photo-modal .gallery-stage {
   position: relative;
   display: flex; align-items: center; justify-content: center;
-  max-width: 94vw; max-height: 86dvh;
+  width: 100vw; height: 100dvh;
+  max-width: 100vw; max-height: 100dvh;
 }
 #gallery-modal-img {
-  max-width: 94vw; max-height: 86dvh; min-height: 120px;
-  border-radius: 14px; object-fit: contain; display: block;
-  background: rgba(255,255,255,0.04); box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  max-width: 100vw; max-height: 100dvh; min-height: 120px;
+  border-radius: 0; object-fit: contain; display: block;
+  background: transparent; box-shadow: none;
 }
 .gallery-counter {
   position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);

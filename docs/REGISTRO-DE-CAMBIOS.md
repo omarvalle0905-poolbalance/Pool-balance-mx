@@ -197,3 +197,16 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
   - PENDIENTE (a confirmar con el dueño): si además quiere restaurar el LAYOUT
     del carrusel de fotos del reporte a la versión original (foto grande + tira
     3D de todas las fotos) en vez del coverflow actual.
+
+- **Restaurar el carrusel de fotos ORIGINAL del reporte (foto grande + tira 3D)**
+  - A petición del dueño: el carrusel de fotos del reporte vuelve a su forma
+    original del portal terminado: una FOTO GRANDE arriba (toca → pantalla
+    completa) + una GALERÍA 3D con TODAS las fotos debajo (tarjeta central +
+    vecinas anguladas, flechas y dots).
+  - `bitacora-detalle.js`: `_renderPhotoHero` reescrito a foto grande + tira 3D
+    (reusa el CSS `gallery-3d-*` que seguía intacto). Se restauraron en
+    `BitacoraUI` los métodos `slide3D / goTo3DSlide / handleCardClick /
+    update3DGallery / init3DSwipe` y `_current3DIndex`. PostRender inicializa la
+    galería 3D; las flechas del teclado la controlan. El coverflow `phc` queda
+    sin uso. El visor sigue a pantalla completa.
+  - sw.js: cache v40.

@@ -919,41 +919,48 @@ function _renderParametroCard(key, cfg, val, bitacora) {
 // ─────────────────────────────────────────
 
 function _renderPhotoHero(fotos, score, scoreColor) {
-  const list = (fotos && fotos.length) ? fotos : [null];
+  const list = (fotos && fotos.length) ? fotos : [];
+  const mainUrl = list.length ? _fotoToUrl(list[0])
+    : 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800';
 
-  const slides = list.map((foto, i) => {
-    const url = foto ? _fotoToUrl(foto) : 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800';
-    return `
-      <div class="phc-slide" data-pindex="${i}" aria-label="Foto ${i + 1} de ${list.length}">
-        <div class="phc-card">
-          <img src="${url}" alt="Foto ${i + 1} del servicio" loading="lazy" />
-          <div class="phc-veil-tl" aria-hidden="true"></div>
-          <div class="phc-score" aria-label="Salud del agua: ${score} de 100">
-            <span class="bita-score-num" style="color:${scoreColor};">${score}</span>
-            <span class="bita-score-den">/ 100 · salud</span>
+  // Foto grande principal (toca para abrir a PANTALLA COMPLETA)
+  const mainPhoto = `
+    <div style="position:relative;width:100%;height:240px;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.45);cursor:pointer;"
+         onclick="BitacoraUI.openGallery(0)" role="button" aria-label="Ampliar foto del servicio">
+      <img src="${mainUrl}" alt="Fotografía del servicio" loading="lazy"
+           style="width:100%;height:100%;object-fit:cover;display:block;" />
+      <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.6);border-radius:8px;padding:5px 10px;color:#EEF1F5;font-size:12px;display:inline-flex;align-items:center;gap:5px;backdrop-filter:blur(4px);">
+        <i class="fa-solid fa-expand"></i> Ampliar
+      </div>
+    </div>`;
+
+  // Tira / galería 3D con TODAS las fotos (solo si hay más de una)
+  const strip = (list.length > 1) ? `
+    <section aria-label="Galería del servicio (${list.length} fotos)" style="overflow:hidden;display:flex;flex-direction:column;gap:12px;">
+      <h2 style="color:#6FB8C6;font-size:13px;font-weight:600;letter-spacing:2px;font-family:'Bricolage Grotesque',sans-serif;text-transform:uppercase;">
+        Galería del servicio · ${list.length} fotos
+      </h2>
+      <div class="gallery-3d-wrapper">
+        <button class="gallery-3d-arrow prev" onclick="BitacoraUI.slide3D(-1)" aria-label="Foto anterior" type="button"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="gallery-3d-container">
+          <div class="gallery-3d-track" id="gallery-3d-track" role="list">
+            ${list.map((foto, i) => {
+              const u = _fotoToUrl(foto);
+              return `<div class="gallery-3d-card" role="listitem" data-index="${i}" onclick="BitacoraUI.handleCardClick(${i})" tabindex="0" aria-label="Ver foto ${i + 1} de ${list.length}">
+                <img src="${u}" alt="Foto ${i + 1} del servicio" loading="lazy" />
+                <div class="gallery-3d-overlay"><i class="fa-solid fa-expand text-white"></i></div>
+              </div>`;
+            }).join('')}
           </div>
-          <div class="phc-expand"><i class="fa-solid fa-expand" aria-hidden="true"></i></div>
-          <div class="phc-dim" aria-hidden="true"></div>
         </div>
-      </div>`;
-  }).join('');
+        <button class="gallery-3d-arrow next" onclick="BitacoraUI.slide3D(1)" aria-label="Foto siguiente" type="button"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="gallery-3d-dots" id="gallery-3d-dots">
+          ${list.map((_, i) => `<span class="gallery-3d-dot ${i === 0 ? 'active' : ''}" onclick="BitacoraUI.goTo3DSlide(${i})" role="button" aria-label="Ir a foto ${i + 1}"></span>`).join('')}
+        </div>
+      </div>
+    </section>` : '';
 
-  const arrows = list.length > 1 ? `
-    <button class="dcar-arrow prev" id="phc-prev" type="button" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left"></i></button>
-    <button class="dcar-arrow next" id="phc-next" type="button" aria-label="Foto siguiente"><i class="fa-solid fa-chevron-right"></i></button>` : '';
-
-  const dots = list.length > 1
-    ? `<div class="dcar-dots" id="phc-dots">${list.map((_, i) => `<button class="dcar-dot ${i === 0 ? 'active' : ''}" data-pdot="${i}" type="button" aria-label="Ir a foto ${i + 1}"></button>`).join('')}</div>`
-    : '';
-
-  return `
-  <section class="phc" id="phc" aria-roledescription="carrusel" aria-label="Fotografías del servicio">
-    <div class="phc-stage" id="phc-stage" role="list">
-      ${slides}
-    </div>
-    ${arrows}
-  </section>
-  ${dots}`;
+  return mainPhoto + strip;
 }
 
 // ─────────────────────────────────────────
@@ -1332,6 +1339,71 @@ const BitacoraUI = {
     img.src = this._fotos[this._currentIndex];
   },
 
+  // ── Galería 3D (tira de fotos del reporte, estilo original) ──
+  _current3DIndex: 0,
+
+  slide3D(dir) {
+    const fotos = _collectFotos(window._currentBitacora);
+    if (!fotos.length) return;
+    this._current3DIndex = (this._current3DIndex + dir + fotos.length) % fotos.length;
+    this.update3DGallery();
+  },
+
+  goTo3DSlide(index) {
+    this._current3DIndex = index;
+    this.update3DGallery();
+  },
+
+  // Tocar una tarjeta: si ya está al centro, abre a pantalla completa; si no, la centra.
+  handleCardClick(index) {
+    if (this._current3DIndex === index) {
+      this.openGallery(index);
+    } else {
+      this._current3DIndex = index;
+      this.update3DGallery();
+    }
+  },
+
+  update3DGallery() {
+    const track = document.getElementById('gallery-3d-track');
+    if (!track) return;
+    const cards = Array.from(track.querySelectorAll('.gallery-3d-card'));
+    const dots  = Array.from(document.querySelectorAll('.gallery-3d-dot'));
+    if (!cards.length) return;
+    const activeIdx = this._current3DIndex || 0;
+    cards.forEach((card, i) => {
+      const diff = i - activeIdx;
+      let rotateY = 0, translateZ = 0, translateX = 0, scale = 1, opacity = 1;
+      const zIndex = 100 - Math.abs(diff);
+      if (diff === 0) {
+        translateZ = 80; scale = 1.05; opacity = 1;
+      } else {
+        rotateY = diff < 0 ? 30 : -30;
+        translateZ = -90;
+        translateX = diff * 120;
+        scale = 0.82;
+        opacity = Math.abs(diff) > 1 ? 0.25 : 0.65;
+      }
+      card.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
+      card.style.zIndex = zIndex;
+      card.style.opacity = opacity;
+      card.classList.toggle('active', i === activeIdx);
+    });
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === activeIdx));
+  },
+
+  init3DSwipe() {
+    const track = document.getElementById('gallery-3d-track');
+    if (!track || track.dataset.swipeBound) return;
+    track.dataset.swipeBound = '1';
+    let startX = 0;
+    track.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', (e) => {
+      const diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) this.slide3D(diff > 0 ? 1 : -1);
+    }, { passive: true });
+  },
+
   shareWhatsApp() {
     const bit  = window._currentBitacora;
     const prof = window._currentClientProfile;
@@ -1634,31 +1706,31 @@ window.PostRender.bitacora = function() {
     if (e.key === 'Escape') BitacoraUI.closeGallery();
     if (e.key === 'ArrowLeft') {
       if (galleryOpen) BitacoraUI.galleryPrev();
-      else PhotoCarousel.go(PhotoCarousel.active - 1);
+      else BitacoraUI.slide3D(-1);
     }
     if (e.key === 'ArrowRight') {
       if (galleryOpen) BitacoraUI.galleryNext();
-      else PhotoCarousel.go(PhotoCarousel.active + 1);
+      else BitacoraUI.slide3D(1);
     }
   };
 
   document.addEventListener('keydown', window._bitacoraKeyHandler);
 
-  // Inicializar carruseles 3D Coverflow (fotos + detalles) — robusto: rAF + fallback
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    PhotoCarousel.init();
+  // Inicializar: galería 3D de fotos (estilo original) + carrusel de detalles.
+  BitacoraUI._current3DIndex = 0;
+  const _initGalerias = () => {
+    BitacoraUI.update3DGallery();
+    BitacoraUI.init3DSwipe();
     DetailCarousel.init();
-  }));
-  setTimeout(() => {
-    PhotoCarousel.init();
-    DetailCarousel.init();
-  }, 120);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(_initGalerias));
+  setTimeout(_initGalerias, 120);
 
-  // Re-acomodar los carruseles al rotar / cambiar tamaño de pantalla
+  // Re-acomodar al rotar / cambiar tamaño de pantalla
   if (window._bitacoraResizeHandler) {
     window.removeEventListener('resize', window._bitacoraResizeHandler);
   }
-  window._bitacoraResizeHandler = () => { PhotoCarousel.layout(); DetailCarousel.layout(); };
+  window._bitacoraResizeHandler = () => { BitacoraUI.update3DGallery(); DetailCarousel.layout(); };
   window.addEventListener('resize', window._bitacoraResizeHandler);
 };
 

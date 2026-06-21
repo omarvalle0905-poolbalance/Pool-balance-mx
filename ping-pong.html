@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ping Pong</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0b0f1a;
+    color: #fff;
+    font-family: system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 16px;
+  }
+  h1 { font-weight: 600; letter-spacing: 1px; }
+  #marcador { font-size: 28px; font-variant-numeric: tabular-nums; }
+  canvas {
+    background: #111827;
+    border: 2px solid #334155;
+    border-radius: 8px;
+    touch-action: none;
+    max-width: 95vw;
+    height: auto;
+  }
+  .ayuda { font-size: 13px; color: #94a3b8; text-align: center; }
+  button {
+    background: #2563eb; color: #fff; border: none;
+    padding: 10px 20px; border-radius: 8px; font-size: 15px; cursor: pointer;
+  }
+  button:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+  <h1>🏓 Ping Pong</h1>
+  <div id="marcador">0 — 0</div>
+  <canvas id="juego" width="700" height="450"></canvas>
+  <div class="ayuda">
+    Mueve tu paleta (izquierda) con el <b>mouse</b>, el <b>dedo</b> o las flechas <b>↑ / ↓</b>.<br>
+    Primero en llegar a 5 puntos gana.
+  </div>
+  <button id="reiniciar">Reiniciar partida</button>
+
+<script>
+const canvas = document.getElementById('juego');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// --- Elementos del juego ---
+const palaAncho = 12, palaAlto = 80;
+const jugador = { x: 20, y: H/2 - palaAlto/2, vel: 6 };
+const cpu     = { x: W - 20 - palaAncho, y: H/2 - palaAlto/2, vel: 4.5 };
+const pelota  = { x: W/2, y: H/2, r: 9, vx: 5, vy: 3 };
+
+let puntosJugador = 0, puntosCpu = 0;
+let finJuego = false;
+const teclas = {};
+
+// --- Controles ---
+document.addEventListener('keydown', e => {
+  teclas[e.key] = true;
+  if (['ArrowUp','ArrowDown'].includes(e.key)) e.preventDefault();
+});
+document.addEventListener('keyup', e => teclas[e.key] = false);
+
+function moverConPuntero(clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const escala = H / rect.height;
+  jugador.y = (clientY - rect.top) * escala - palaAlto/2;
+}
+canvas.addEventListener('mousemove', e => moverConPuntero(e.clientY));
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  moverConPuntero(e.touches[0].clientY);
+}, { passive: false });
+
+document.getElementById('reiniciar').addEventListener('click', () => {
+  puntosJugador = 0; puntosCpu = 0; finJuego = false;
+  reiniciarPelota(1);
+});
+
+// --- Lógica ---
+function reiniciarPelota(direccion) {
+  pelota.x = W/2; pelota.y = H/2;
+  pelota.vx = 5 * direccion;
+  pelota.vy = (Math.random() * 6 - 3);
+}
+
+function limita(p) { p.y = Math.max(0, Math.min(H - palaAlto, p.y)); }
+
+function actualizar() {
+  if (finJuego) return;
+
+  // Jugador con teclado
+  if (teclas['ArrowUp'])   jugador.y -= jugador.vel;
+  if (teclas['ArrowDown']) jugador.y += jugador.vel;
+  limita(jugador);
+
+  // CPU sigue la pelota (con un poco de retraso)
+  const centroCpu = cpu.y + palaAlto/2;
+  if (centroCpu < pelota.y - 10) cpu.y += cpu.vel;
+  else if (centroCpu > pelota.y + 10) cpu.y -= cpu.vel;
+  limita(cpu);
+
+  // Mover pelota
+  pelota.x += pelota.vx;
+  pelota.y += pelota.vy;
+
+  // Rebote arriba/abajo
+  if (pelota.y - pelota.r < 0 || pelota.y + pelota.r > H) {
+    pelota.vy *= -1;
+    pelota.y = Math.max(pelota.r, Math.min(H - pelota.r, pelota.y));
+  }
+
+  // Colisión con paletas
+  if (pelota.vx < 0 &&
+      pelota.x - pelota.r < jugador.x + palaAncho &&
+      pelota.x > jugador.x &&
+      pelota.y > jugador.y && pelota.y < jugador.y + palaAlto) {
+    rebotePaleta(jugador);
+  }
+  if (pelota.vx > 0 &&
+      pelota.x + pelota.r > cpu.x &&
+      pelota.x < cpu.x + palaAncho &&
+      pelota.y > cpu.y && pelota.y < cpu.y + palaAlto) {
+    rebotePaleta(cpu);
+  }
+
+  // Puntos
+  if (pelota.x < 0) { puntosCpu++; comprobarFin(-1); }
+  if (pelota.x > W) { puntosJugador++; comprobarFin(1); }
+}
+
+function rebotePaleta(pala) {
+  pelota.vx *= -1.06; // acelera un poco en cada golpe
+  const impacto = (pelota.y - (pala.y + palaAlto/2)) / (palaAlto/2);
+  pelota.vy = impacto * 6;
+}
+
+function comprobarFin(dir) {
+  document.getElementById('marcador').textContent = puntosJugador + ' — ' + puntosCpu;
+  if (puntosJugador >= 5 || puntosCpu >= 5) finJuego = true;
+  else reiniciarPelota(dir);
+}
+
+// --- Dibujo ---
+function dibujar() {
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, W, H);
+
+  // Red central
+  ctx.strokeStyle = '#334155';
+  ctx.setLineDash([10, 12]);
+  ctx.beginPath();
+  ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Paletas
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(jugador.x, jugador.y, palaAncho, palaAlto);
+  ctx.fillStyle = '#f87171';
+  ctx.fillRect(cpu.x, cpu.y, palaAncho, palaAlto);
+
+  // Pelota
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(pelota.x, pelota.y, pelota.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (finJuego) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    ctx.font = '32px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    const ganaste = puntosJugador > puntosCpu;
+    ctx.fillText(ganaste ? '¡Ganaste! 🎉' : 'Perdiste 😢', W/2, H/2 - 10);
+    ctx.font = '16px system-ui, sans-serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('Pulsa "Reiniciar partida"', W/2, H/2 + 24);
+  }
+}
+
+function bucle() {
+  actualizar();
+  dibujar();
+  requestAnimationFrame(bucle);
+}
+bucle();
+</script>
+</body>
+</html>

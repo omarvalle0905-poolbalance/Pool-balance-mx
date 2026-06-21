@@ -2,188 +2,311 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ping Pong</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Ping Pong Mundial ⚽</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
     background: #0b0f1a;
-    color: #fff;
     font-family: system-ui, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    gap: 16px;
-  }
-  h1 { font-weight: 600; letter-spacing: 1px; }
-  #marcador { font-size: 28px; font-variant-numeric: tabular-nums; }
-  canvas {
-    background: #111827;
-    border: 2px solid #334155;
-    border-radius: 8px;
+    overscroll-behavior: none;
     touch-action: none;
-    max-width: 95vw;
-    height: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
-  .ayuda { font-size: 13px; color: #94a3b8; text-align: center; }
-  button {
-    background: #2563eb; color: #fff; border: none;
-    padding: 10px 20px; border-radius: 8px; font-size: 15px; cursor: pointer;
+  #juego { display: block; width: 100vw; height: 100vh; touch-action: none; }
+  #overlay {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 18px; text-align: center; color: #fff;
+    background: rgba(5,8,16,0.82);
+    padding: 24px;
   }
-  button:hover { background: #1d4ed8; }
+  #overlay h1 { font-size: clamp(26px, 7vw, 52px); font-weight: 700; }
+  #overlay p { font-size: clamp(14px, 3.6vw, 19px); color: #cbd5e1; max-width: 620px; line-height: 1.55; }
+  #overlay button {
+    background: #16a34a; color: #fff; border: none;
+    padding: 14px 30px; border-radius: 999px;
+    font-size: clamp(16px, 4.4vw, 20px); font-weight: 600; cursor: pointer;
+  }
+  #overlay button:active { transform: scale(0.96); }
+  .hide { display: none !important; }
 </style>
 </head>
 <body>
-  <h1>🏓 Ping Pong</h1>
-  <div id="marcador">0 — 0</div>
-  <canvas id="juego" width="700" height="450"></canvas>
-  <div class="ayuda">
-    Mueve tu paleta (izquierda) con el <b>mouse</b>, el <b>dedo</b> o las flechas <b>↑ / ↓</b>.<br>
-    Primero en llegar a 5 puntos gana.
+  <canvas id="juego"></canvas>
+
+  <div id="overlay">
+    <h1>🏓 Ping Pong Mundial ⚽</h1>
+    <p>
+      <b>2 jugadores.</b> Cada uno controla su paleta tocando y deslizando
+      en <b>su mitad de la pantalla</b> (izquierda y derecha).<br>
+      En computadora: Jugador 1 = <b>W / S</b>, Jugador 2 = <b>↑ / ↓</b>.<br>
+      Gana el primero en llegar a <b>7 goles</b>. ⚽
+    </p>
+    <button id="btnJugar">Jugar</button>
   </div>
-  <button id="reiniciar">Reiniciar partida</button>
 
 <script>
 const canvas = document.getElementById('juego');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
+const overlay = document.getElementById('overlay');
+const btnJugar = document.getElementById('btnJugar');
 
-// --- Elementos del juego ---
-const palaAncho = 12, palaAlto = 80;
-const jugador = { x: 20, y: H/2 - palaAlto/2, vel: 6 };
-const cpu     = { x: W - 20 - palaAncho, y: H/2 - palaAlto/2, vel: 4.5 };
-const pelota  = { x: W/2, y: H/2, r: 9, vx: 5, vy: 3 };
+let W = 0, H = 0, dpr = 1;
+function ajustarTamano() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Reposicionar paletas verticalmente al cambiar tamaño
+  jugador1.x = 24;
+  jugador2.x = W - 24 - palaAncho;
+}
+window.addEventListener('resize', ajustarTamano);
+window.addEventListener('orientationchange', () => setTimeout(ajustarTamano, 200));
 
-let puntosJugador = 0, puntosCpu = 0;
-let finJuego = false;
+// --- Dimensiones relativas ---
+const palaAncho = 16;
+function altoPala() { return Math.max(80, H * 0.18); }
+
+const jugador1 = { x: 24, y: 0, toque: null };
+const jugador2 = { x: 0,  y: 0, toque: null };
+const pelota = { x: 0, y: 0, r: 16, vx: 0, vy: 0, giro: 0 };
+
+let puntos1 = 0, puntos2 = 0;
+const META = 7;
+let jugando = false, finJuego = false;
 const teclas = {};
 
-// --- Controles ---
+// --- Controles teclado ---
 document.addEventListener('keydown', e => {
-  teclas[e.key] = true;
-  if (['ArrowUp','ArrowDown'].includes(e.key)) e.preventDefault();
+  teclas[e.key.toLowerCase()] = true;
+  if (['arrowup','arrowdown'].includes(e.key.toLowerCase())) e.preventDefault();
 });
-document.addEventListener('keyup', e => teclas[e.key] = false);
+document.addEventListener('keyup', e => teclas[e.key.toLowerCase()] = false);
 
-function moverConPuntero(clientY) {
-  const rect = canvas.getBoundingClientRect();
-  const escala = H / rect.height;
-  jugador.y = (clientY - rect.top) * escala - palaAlto/2;
-}
-canvas.addEventListener('mousemove', e => moverConPuntero(e.clientY));
-canvas.addEventListener('touchmove', e => {
+// --- Controles táctiles multitáctiles ---
+// Cada toque se asigna a la mitad izquierda (J1) o derecha (J2).
+function actualizarToques(e) {
   e.preventDefault();
-  moverConPuntero(e.touches[0].clientY);
-}, { passive: false });
-
-document.getElementById('reiniciar').addEventListener('click', () => {
-  puntosJugador = 0; puntosCpu = 0; finJuego = false;
-  reiniciarPelota(1);
-});
+  for (const t of e.touches) {
+    const x = t.clientX;
+    if (x < W / 2) jugador1.objetivo = t.clientY;
+    else jugador2.objetivo = t.clientY;
+  }
+}
+canvas.addEventListener('touchstart', actualizarToques, { passive: false });
+canvas.addEventListener('touchmove', actualizarToques, { passive: false });
+canvas.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
 // --- Lógica ---
-function reiniciarPelota(direccion) {
-  pelota.x = W/2; pelota.y = H/2;
-  pelota.vx = 5 * direccion;
-  pelota.vy = (Math.random() * 6 - 3);
+function lanzarPelota(dir) {
+  pelota.x = W / 2;
+  pelota.y = H / 2;
+  const vel = Math.max(6, W * 0.008);
+  pelota.vx = vel * dir;
+  pelota.vy = (Math.random() * 2 - 1) * vel * 0.6;
+  pelota.giro = 0;
 }
 
-function limita(p) { p.y = Math.max(0, Math.min(H - palaAlto, p.y)); }
+function nuevaPartida() {
+  puntos1 = 0; puntos2 = 0;
+  finJuego = false; jugando = true;
+  jugador1.y = H/2 - altoPala()/2;
+  jugador2.y = H/2 - altoPala()/2;
+  jugador1.objetivo = null; jugador2.objetivo = null;
+  lanzarPelota(Math.random() < 0.5 ? 1 : -1);
+  overlay.classList.add('hide');
+}
+btnJugar.addEventListener('click', nuevaPartida);
+
+function limita(p) {
+  const a = altoPala();
+  p.y = Math.max(0, Math.min(H - a, p.y));
+}
+
+function moverPala(p, arriba, abajo) {
+  const a = altoPala();
+  const velTeclado = Math.max(8, H * 0.014);
+  // Táctil: seguir el dedo suavemente
+  if (p.objetivo != null) {
+    const destino = p.objetivo - a / 2;
+    p.y += (destino - p.y) * 0.35;
+  }
+  // Teclado
+  if (teclas[arriba]) p.y -= velTeclado;
+  if (teclas[abajo])  p.y += velTeclado;
+  limita(p);
+}
+
+function rebotePaleta(pala, dir) {
+  const a = altoPala();
+  pelota.vx = Math.abs(pelota.vx) * 1.05 * dir;
+  const impacto = (pelota.y - (pala.y + a/2)) / (a/2);
+  pelota.vy = impacto * Math.max(7, W * 0.009);
+  pelota.giro += impacto * 0.4;
+  // Limitar velocidad máxima
+  const max = W * 0.022;
+  pelota.vx = Math.max(-max, Math.min(max, pelota.vx));
+}
 
 function actualizar() {
-  if (finJuego) return;
+  if (!jugando) return;
 
-  // Jugador con teclado
-  if (teclas['ArrowUp'])   jugador.y -= jugador.vel;
-  if (teclas['ArrowDown']) jugador.y += jugador.vel;
-  limita(jugador);
+  moverPala(jugador1, 'w', 's');
+  moverPala(jugador2, 'arrowup', 'arrowdown');
 
-  // CPU sigue la pelota (con un poco de retraso)
-  const centroCpu = cpu.y + palaAlto/2;
-  if (centroCpu < pelota.y - 10) cpu.y += cpu.vel;
-  else if (centroCpu > pelota.y + 10) cpu.y -= cpu.vel;
-  limita(cpu);
-
-  // Mover pelota
   pelota.x += pelota.vx;
   pelota.y += pelota.vy;
+  pelota.giro += pelota.vx * 0.01;
 
   // Rebote arriba/abajo
-  if (pelota.y - pelota.r < 0 || pelota.y + pelota.r > H) {
-    pelota.vy *= -1;
-    pelota.y = Math.max(pelota.r, Math.min(H - pelota.r, pelota.y));
-  }
+  if (pelota.y - pelota.r < 0) { pelota.y = pelota.r; pelota.vy *= -1; }
+  if (pelota.y + pelota.r > H) { pelota.y = H - pelota.r; pelota.vy *= -1; }
 
-  // Colisión con paletas
+  const a = altoPala();
+  // Colisión J1 (izquierda)
   if (pelota.vx < 0 &&
-      pelota.x - pelota.r < jugador.x + palaAncho &&
-      pelota.x > jugador.x &&
-      pelota.y > jugador.y && pelota.y < jugador.y + palaAlto) {
-    rebotePaleta(jugador);
+      pelota.x - pelota.r < jugador1.x + palaAncho &&
+      pelota.x - pelota.r > jugador1.x - 20 &&
+      pelota.y > jugador1.y && pelota.y < jugador1.y + a) {
+    pelota.x = jugador1.x + palaAncho + pelota.r;
+    rebotePaleta(jugador1, 1);
   }
+  // Colisión J2 (derecha)
   if (pelota.vx > 0 &&
-      pelota.x + pelota.r > cpu.x &&
-      pelota.x < cpu.x + palaAncho &&
-      pelota.y > cpu.y && pelota.y < cpu.y + palaAlto) {
-    rebotePaleta(cpu);
+      pelota.x + pelota.r > jugador2.x &&
+      pelota.x + pelota.r < jugador2.x + palaAncho + 20 &&
+      pelota.y > jugador2.y && pelota.y < jugador2.y + a) {
+    pelota.x = jugador2.x - pelota.r;
+    rebotePaleta(jugador2, -1);
   }
 
-  // Puntos
-  if (pelota.x < 0) { puntosCpu++; comprobarFin(-1); }
-  if (pelota.x > W) { puntosJugador++; comprobarFin(1); }
+  // Goles
+  if (pelota.x < -pelota.r) { puntos2++; punto(-1); }
+  if (pelota.x > W + pelota.r) { puntos1++; punto(1); }
 }
 
-function rebotePaleta(pala) {
-  pelota.vx *= -1.06; // acelera un poco en cada golpe
-  const impacto = (pelota.y - (pala.y + palaAlto/2)) / (palaAlto/2);
-  pelota.vy = impacto * 6;
+function punto(dir) {
+  if (puntos1 >= META || puntos2 >= META) {
+    finJuego = true; jugando = false;
+    mostrarFin();
+  } else {
+    lanzarPelota(dir);
+  }
 }
 
-function comprobarFin(dir) {
-  document.getElementById('marcador').textContent = puntosJugador + ' — ' + puntosCpu;
-  if (puntosJugador >= 5 || puntosCpu >= 5) finJuego = true;
-  else reiniciarPelota(dir);
+function mostrarFin() {
+  const ganador = puntos1 > puntos2 ? 'Jugador 1 🟦' : 'Jugador 2 🟥';
+  overlay.querySelector('h1').textContent = '⚽ ¡' + ganador + ' gana! ⚽';
+  overlay.querySelector('p').innerHTML =
+    'Marcador final: <b>' + puntos1 + ' — ' + puntos2 + '</b><br>¿Otra revancha?';
+  btnJugar.textContent = 'Jugar de nuevo';
+  overlay.classList.remove('hide');
 }
 
-// --- Dibujo ---
-function dibujar() {
-  ctx.fillStyle = '#111827';
-  ctx.fillRect(0, 0, W, H);
+// --- Dibujo del balón de fútbol ---
+function dibujarBalon(x, y, r, giro) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(giro);
 
-  // Red central
-  ctx.strokeStyle = '#334155';
-  ctx.setLineDash([10, 12]);
+  // Esfera blanca con sombreado
+  const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, r*0.2, 0, 0, r);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(1, '#d4d4d4');
   ctx.beginPath();
-  ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Paletas
-  ctx.fillStyle = '#38bdf8';
-  ctx.fillRect(jugador.x, jugador.y, palaAncho, palaAlto);
-  ctx.fillStyle = '#f87171';
-  ctx.fillRect(cpu.x, cpu.y, palaAncho, palaAlto);
-
-  // Pelota
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(pelota.x, pelota.y, pelota.r, 0, Math.PI * 2);
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
   ctx.fill();
 
-  if (finJuego) {
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#fff';
-    ctx.font = '32px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    const ganaste = puntosJugador > puntosCpu;
-    ctx.fillText(ganaste ? '¡Ganaste! 🎉' : 'Perdiste 😢', W/2, H/2 - 10);
-    ctx.font = '16px system-ui, sans-serif';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText('Pulsa "Reiniciar partida"', W/2, H/2 + 24);
+  // Pentágono central negro
+  ctx.fillStyle = '#111';
+  pentagono(0, 0, r * 0.42, -Math.PI / 2);
+  ctx.fill();
+
+  // Pentágonos exteriores alrededor
+  const dist = r * 0.78;
+  for (let i = 0; i < 5; i++) {
+    const ang = -Math.PI / 2 + i * (Math.PI * 2 / 5);
+    const px = Math.cos(ang) * dist;
+    const py = Math.sin(ang) * dist;
+    ctx.fillStyle = '#111';
+    pentagono(px, py, r * 0.26, ang + Math.PI / 5);
+    ctx.fill();
   }
+
+  // Borde
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#999';
+  ctx.stroke();
+
+  ctx.restore();
+}
+function pentagono(cx, cy, rad, rot) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = rot + i * (Math.PI * 2 / 5);
+    const px = cx + Math.cos(a) * rad;
+    const py = cy + Math.sin(a) * rad;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+function dibujar() {
+  // Cancha
+  ctx.fillStyle = '#0c4a2f';
+  ctx.fillRect(0, 0, W, H);
+  // Franjas de césped
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  const franja = W / 10;
+  for (let i = 0; i < 10; i += 2) ctx.fillRect(i * franja, 0, franja, H);
+
+  // Línea y círculo central
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([14, 14]);
+  ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(W/2, H/2, Math.min(W,H)*0.12, 0, Math.PI*2); ctx.stroke();
+
+  // Paletas
+  const a = altoPala();
+  redondeado(jugador1.x, jugador1.y, palaAncho, a, '#3b82f6');
+  redondeado(jugador2.x, jugador2.y, palaAncho, a, '#ef4444');
+
+  // Marcador
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font = 'bold ' + Math.round(Math.min(W,H)*0.09) + 'px system-ui, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText(puntos1, W*0.25, 18);
+  ctx.fillText(puntos2, W*0.75, 18);
+
+  // Balón
+  if (jugando) dibujarBalon(pelota.x, pelota.y, pelota.r, pelota.giro);
+}
+
+function redondeado(x, y, w, h, color) {
+  const r = w / 2;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  ctx.fill();
 }
 
 function bucle() {
@@ -191,6 +314,15 @@ function bucle() {
   dibujar();
   requestAnimationFrame(bucle);
 }
+
+// Tamaño del balón relativo a la pantalla
+function ajustarPelota() { pelota.r = Math.max(12, Math.min(W, H) * 0.03); }
+
+ajustarTamano();
+ajustarPelota();
+window.addEventListener('resize', ajustarPelota);
+jugador1.y = H/2 - altoPala()/2;
+jugador2.y = H/2 - altoPala()/2;
 bucle();
 </script>
 </body>

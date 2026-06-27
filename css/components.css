@@ -1850,7 +1850,7 @@
 .gallery-3d-wrapper {
   position: relative;
   width: 100%;
-  margin: 16px 0;
+  margin: 4px 0 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1859,13 +1859,14 @@
 
 .gallery-3d-container {
   width: 100%;
-  height: 300px;
-  overflow: hidden;
+  height: 340px;
+  overflow: visible;            /* deja respirar sombras y vecinas apiladas */
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1200px; /* Brinda profundidad 3D real */
+  perspective: 1500px;          /* más profundidad real que el coverflow */
+  perspective-origin: 50% 38%;
 }
 
 /* Pista de deslizamiento para transformaciones 3D */
@@ -1879,20 +1880,32 @@
   transform-style: preserve-3d;
 }
 
-/* Tarjeta 3D suavizada con aceleración por hardware */
+/* Tarjeta de la PILA 3D — marco tipo polaroid flotante con sombras en capas */
 .gallery-3d-card {
   position: absolute;
-  width: 210px;
-  height: 270px;
-  border-radius: var(--radius-2xl);
+  width: 236px;
+  height: 296px;
+  border-radius: 22px;
   overflow: hidden;
-  background: var(--color-bruma);
-  box-shadow: 0 12px 28px rgba(14, 69, 105, 0.22);
+  background:
+    linear-gradient(150deg, rgba(255,255,255,0.16), rgba(255,255,255,0) 42%),
+    var(--color-bruma);
+  /* Sombra en capas → sensación de objeto físico levantado del fondo */
+  box-shadow:
+    0 2px 6px rgba(8, 38, 58, 0.30),
+    0 14px 28px rgba(8, 38, 58, 0.34),
+    0 32px 60px rgba(8, 38, 58, 0.40);
   cursor: pointer;
-  transition: transform 0.48s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.48s ease, z-index 0.48s ease;
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s ease,
+    box-shadow 0.5s ease,
+    filter 0.5s ease;
   user-select: none;
   -webkit-user-drag: none;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  filter: saturate(0.92) brightness(0.9);
+  will-change: transform, opacity;
 }
 
 .gallery-3d-card img {
@@ -1902,76 +1915,113 @@
   pointer-events: none; /* Asegura suavidad táctil en móviles */
 }
 
+/* Velo + brillo de cristal sobre cada foto */
 .gallery-3d-card::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%);
-  opacity: 0.7;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 30%),
+    linear-gradient(to top, rgba(6, 28, 44, 0.55) 0%, transparent 55%);
+  opacity: 0.85;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.45s ease;
+}
+
+/* La tarjeta frontal: nítida, a todo color y con un aro/halo de marca */
+.gallery-3d-card.active {
+  filter: saturate(1.06) brightness(1.02);
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 4px 10px rgba(8, 38, 58, 0.32),
+    0 20px 40px rgba(8, 38, 58, 0.42),
+    0 44px 80px rgba(8, 38, 58, 0.50),
+    0 0 0 1px rgba(111, 184, 198, 0.45),
+    0 0 34px rgba(111, 184, 198, 0.30);
 }
 
 .gallery-3d-card.active::after {
-  opacity: 0.2;
+  opacity: 0.32;
 }
 
-/* Indicador de expandir */
+/* Contador discreto N/Total en cada foto */
+.gallery-3d-count {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #EAF6F9;
+  background: rgba(6, 28, 44, 0.5);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.gallery-3d-card.active .gallery-3d-count { opacity: 1; }
+
+/* Indicador de expandir (solo en la frontal / hover) */
 .gallery-3d-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(14, 69, 105, 0);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 14px;
+  color: #fff;
+  font-size: 16px;
+  transition: opacity 0.3s ease;
   z-index: 2;
   opacity: 0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
 
+.gallery-3d-card.active .gallery-3d-overlay,
 .gallery-3d-card:hover .gallery-3d-overlay {
-  background: rgba(14, 69, 105, 0.3);
-  opacity: 1;
+  opacity: 0.92;
 }
 
 /* Flechas laterales premium */
 .gallery-3d-arrow {
   position: absolute;
-  top: 42%;
+  top: 46%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   color: var(--color-marino);
   border: 1px solid rgba(14, 69, 105, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  z-index: 20;
+  box-shadow: 0 6px 18px rgba(8, 38, 58, 0.30);
   transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .gallery-3d-arrow:hover {
   background: #ffffff;
-  transform: translateY(-50%) scale(1.06);
+  transform: translateY(-50%) scale(1.08);
 }
 
-.gallery-3d-arrow.prev {
-  left: 6px;
-}
+.gallery-3d-arrow:active { transform: translateY(-50%) scale(0.94); }
 
-.gallery-3d-arrow.next {
-  right: 6px;
-}
+.gallery-3d-arrow.prev { left: 2px; }
+.gallery-3d-arrow.next { right: 2px; }
 
 /* Dots circulares interactivos */
 .gallery-3d-dots {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 6px;
   justify-content: center;
   align-items: center;
 }
@@ -1980,31 +2030,76 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(14, 69, 105, 0.16);
+  background: rgba(111, 184, 198, 0.28);
   cursor: pointer;
   transition: all 0.33s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .gallery-3d-dot.active {
   background: var(--color-arcilla);
-  width: 18px;
+  width: 20px;
   border-radius: 4px;
+  box-shadow: 0 0 10px rgba(111, 184, 198, 0.5);
 }
 
-/* Contendedor alineado para una sola foto */
-.single-photo-container {
-  width: 100%;
+/* ── Encabezado / pie de la pila de fotos ── */
+.photo-deck-sec {
+  overflow: hidden;
   display: flex;
-  justify-content: center;
-  padding: 6px 0;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.single-thumb {
+.photo-deck-title {
+  color: #6FB8C6;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  text-transform: uppercase;
+}
+
+.photo-deck-hint {
+  text-align: center;
+  color: rgba(255,255,255,0.34);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+/* ── Marco de UNA sola foto (0 o 1 fotos) ── */
+.photo-deck-single {
+  position: relative;
   width: 100%;
-  max-width: 270px;
-  aspect-ratio: 1.35;
-  box-shadow: var(--shadow-md);
-  border: 2px solid #fff;
+  height: 248px;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow:
+    0 4px 10px rgba(8, 38, 58, 0.30),
+    0 24px 48px rgba(8, 38, 58, 0.40);
+}
+
+.photo-deck-single img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-deck-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(6, 28, 44, 0.6);
+  border-radius: 8px;
+  padding: 5px 10px;
+  color: #EEF1F5;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(4px);
 }
 
 /* ═══════════════════════════════════════════

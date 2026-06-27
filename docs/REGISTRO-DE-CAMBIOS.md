@@ -210,3 +210,31 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     galería 3D; las flechas del teclado la controlan. El coverflow `phc` queda
     sin uso. El visor sigue a pantalla completa.
   - sw.js: cache v40.
+
+- **Rediseño del carrusel de fotos del reporte (pila 3D flotante) + Agent Skills**
+  - A petición explícita del dueño (autoriza tocar el portal para esto):
+    - **Se quitó la FOTO FIJA** que iba arriba del carrusel en el reporte de
+      bitácora (`_renderPhotoHero` ya no renderiza una foto grande estática +
+      tira; ahora hay un solo componente de galería).
+    - **Nuevo estilo 3D propio (pila / "deck" flotante)**, distinto del coverflow
+      que usan los otros carruseles (`dcar`, `pkgcar`, `pcar`): la foto frontal
+      va grande y levantada, y las vecinas se **apilan detrás y abajo** con giro
+      hacia el centro (`rotateY`) + leve inclinación de plano (`rotateZ`),
+      escala y opacidad decrecientes → más profundidad y sin verse repetitivo.
+    - **Tamaño correcto:** contenedor 340px con `perspective: 1500px` y
+      `overflow: visible` para que respiren sombras y vecinas; tarjeta 236×296.
+    - **Sombras en capas** (3 niveles) + halo de marca en la activa, velo de
+      cristal/brillo, contador `N/Total` y badge de "Ampliar".
+  - Casos: 0 fotos → marco neutro "Sin fotos"; 1 foto → marco grande tappable a
+    pantalla completa; ≥2 fotos → pila 3D. El visor sigue a **pantalla completa**
+    (no se tocó `.photo-modal`).
+  - Archivos: `js/views/bitacora-detalle.js` (`_renderPhotoHero` y
+    `update3DGallery` reescritos; el engine `slide3D/goTo3DSlide/handleCardClick/
+    init3DSwipe` se conserva), `css/components.css` (bloque `gallery-3d-*`
+    rediseñado; se agregan `.photo-deck-*`; se quitan `.single-photo-container` y
+    `.single-thumb` que ya no se usaban).
+  - **Agent Skills:** se agregaron en `.claude/skills/` los skills
+    `frontend-ingenieria-avanzada`, `pool-balance-web-premium` y
+    `pool-balance-aqua` (con sus `reference/`) para que estén disponibles en
+    futuras sesiones de Claude Code.
+  - sw.js: cache v41.

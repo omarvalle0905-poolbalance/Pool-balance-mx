@@ -920,26 +920,33 @@ function _renderParametroCard(key, cfg, val, bitacora) {
 
 function _renderPhotoHero(fotos, score, scoreColor) {
   const list = (fotos && fotos.length) ? fotos : [];
-  const mainUrl = list.length ? _fotoToUrl(list[0])
-    : 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800';
 
-  // Foto grande principal (toca para abrir a PANTALLA COMPLETA)
-  const mainPhoto = `
-    <div style="position:relative;width:100%;height:240px;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.45);cursor:pointer;"
-         onclick="BitacoraUI.openGallery(0)" role="button" aria-label="Ampliar foto del servicio">
-      <img src="${mainUrl}" alt="Fotografía del servicio" loading="lazy"
-           style="width:100%;height:100%;object-fit:cover;display:block;" />
-      <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.6);border-radius:8px;padding:5px 10px;color:#EEF1F5;font-size:12px;display:inline-flex;align-items:center;gap:5px;backdrop-filter:blur(4px);">
-        <i class="fa-solid fa-expand"></i> Ampliar
-      </div>
-    </div>`;
+  // ── Sin fotos: marco neutro (no se inventa galería) ──
+  if (!list.length) {
+    const ph = 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800';
+    return `
+      <div class="photo-deck-single" aria-label="Sin fotografías del servicio">
+        <img src="${ph}" alt="Servicio de alberca" loading="lazy" />
+        <span class="photo-deck-badge"><i class="fa-solid fa-image"></i> Sin fotos</span>
+      </div>`;
+  }
 
-  // Tira / galería 3D con TODAS las fotos (solo si hay más de una)
-  const strip = (list.length > 1) ? `
-    <section aria-label="Galería del servicio (${list.length} fotos)" style="overflow:hidden;display:flex;flex-direction:column;gap:12px;">
-      <h2 style="color:#6FB8C6;font-size:13px;font-weight:600;letter-spacing:2px;font-family:'Bricolage Grotesque',sans-serif;text-transform:uppercase;">
-        Galería del servicio · ${list.length} fotos
-      </h2>
+  // ── Una sola foto: marco grande tappable a pantalla completa ──
+  if (list.length === 1) {
+    return `
+      <div class="photo-deck-single" onclick="BitacoraUI.openGallery(0)" role="button"
+           tabindex="0" aria-label="Ampliar fotografía del servicio">
+        <img src="${_fotoToUrl(list[0])}" alt="Fotografía del servicio" loading="lazy" />
+        <span class="photo-deck-badge"><i class="fa-solid fa-expand"></i> Ampliar</span>
+      </div>`;
+  }
+
+  // ── Varias fotos: PILA 3D FLOTANTE (deck) — estilo propio, distinto del
+  //    coverflow de los otros carruseles: tarjeta frontal grande y las vecinas
+  //    apiladas detrás/abajo con inclinación y sombras en capas (profundidad).
+  return `
+    <section class="photo-deck-sec" aria-label="Galería del servicio (${list.length} fotos)">
+      <h2 class="photo-deck-title">Galería del servicio · ${list.length} fotos</h2>
       <div class="gallery-3d-wrapper">
         <button class="gallery-3d-arrow prev" onclick="BitacoraUI.slide3D(-1)" aria-label="Foto anterior" type="button"><i class="fa-solid fa-chevron-left"></i></button>
         <div class="gallery-3d-container">
@@ -948,7 +955,8 @@ function _renderPhotoHero(fotos, score, scoreColor) {
               const u = _fotoToUrl(foto);
               return `<div class="gallery-3d-card" role="listitem" data-index="${i}" onclick="BitacoraUI.handleCardClick(${i})" tabindex="0" aria-label="Ver foto ${i + 1} de ${list.length}">
                 <img src="${u}" alt="Foto ${i + 1} del servicio" loading="lazy" />
-                <div class="gallery-3d-overlay"><i class="fa-solid fa-expand text-white"></i></div>
+                <span class="gallery-3d-count">${i + 1}/${list.length}</span>
+                <div class="gallery-3d-overlay"><i class="fa-solid fa-expand"></i></div>
               </div>`;
             }).join('')}
           </div>
@@ -958,9 +966,8 @@ function _renderPhotoHero(fotos, score, scoreColor) {
           ${list.map((_, i) => `<span class="gallery-3d-dot ${i === 0 ? 'active' : ''}" onclick="BitacoraUI.goTo3DSlide(${i})" role="button" aria-label="Ir a foto ${i + 1}"></span>`).join('')}
         </div>
       </div>
-    </section>` : '';
-
-  return mainPhoto + strip;
+      <p class="photo-deck-hint">Desliza o toca una foto · toca el centro para pantalla completa</p>
+    </section>`;
 }
 
 // ─────────────────────────────────────────
@@ -1373,18 +1380,27 @@ const BitacoraUI = {
     const activeIdx = this._current3DIndex || 0;
     cards.forEach((card, i) => {
       const diff = i - activeIdx;
-      let rotateY = 0, translateZ = 0, translateX = 0, scale = 1, opacity = 1;
-      const zIndex = 100 - Math.abs(diff);
+      const a = Math.abs(diff);
+      const side = diff < 0 ? -1 : 1;
+      const zIndex = 100 - a;
+      let tx, ty, tz, ry, rz, scale, opacity;
       if (diff === 0) {
-        translateZ = 80; scale = 1.05; opacity = 1;
+        // Tarjeta frontal: grande, ligeramente levantada, sin giro.
+        tx = 0; ty = -10; tz = 110; ry = 0; rz = 0; scale = 1; opacity = 1;
       } else {
-        rotateY = diff < 0 ? 30 : -30;
-        translateZ = -90;
-        translateX = diff * 120;
-        scale = 0.82;
-        opacity = Math.abs(diff) > 1 ? 0.25 : 0.65;
+        // Vecinas: apiladas DETRÁS y ABAJO, tucked (no se abren como coverflow),
+        // con giro hacia el centro + leve inclinación de plano (efecto baraja).
+        tx = side * (66 + (a - 1) * 30);
+        ty = 16 + (a - 1) * 12;
+        tz = -70 - (a - 1) * 78;
+        ry = side * -24;
+        rz = side * 5;
+        scale = Math.max(0.6, 0.86 - (a - 1) * 0.1);
+        opacity = a > 2 ? 0.12 : (a > 1 ? 0.4 : 0.74);
       }
-      card.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
+      card.style.transform =
+        `translateX(${tx}px) translateY(${ty}px) translateZ(${tz}px) ` +
+        `rotateY(${ry}deg) rotateZ(${rz}deg) scale(${scale})`;
       card.style.zIndex = zIndex;
       card.style.opacity = opacity;
       card.classList.toggle('active', i === activeIdx);

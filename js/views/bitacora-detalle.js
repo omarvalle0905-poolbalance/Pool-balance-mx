@@ -518,7 +518,7 @@ function renderBitacoraDetalle(bitacora, clienteNombre = '') {
     <div id="rp-fit">
 
     <!-- ── TOPBAR PREMIUM ── -->
-    <div style="position: relative; height: 64px; margin: -16px -16px 8px; background-color: #0A0E14; border-bottom: 2px solid #E8664A; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+    <div style="position: relative; height: calc(64px + env(safe-area-inset-top, 0px)); margin: calc(-16px - env(safe-area-inset-top, 0px)) -16px 14px; padding: env(safe-area-inset-top, 0px) 16px 0; background: linear-gradient(180deg, #0b1a28 0%, #081320 100%); border-bottom: 2px solid #E8664A; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 6px 18px rgba(0,0,0,0.40);">
       <div style="display: flex; align-items: center; gap: 12px;">
         <!-- Simulated Yin-Yang Logo in a 40x40 circle -->
         <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #11161F; display: flex; align-items: center; justify-content: center;">

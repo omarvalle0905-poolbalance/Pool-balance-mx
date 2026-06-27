@@ -238,3 +238,24 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     `pool-balance-aqua` (con sus `reference/`) para que estén disponibles en
     futuras sesiones de Claude Code.
   - sw.js: cache v41.
+
+- **Barra superior unificada + bottom-nav 3D + refuerzo del carrusel (v42)**
+  - **Barra superior (reporte):** en modo `portal-active` el `main-content` tenía
+    un hueco de 80px arriba (el topbar global se oculta pero dejaba el espacio),
+    lo que producía "tres colores" (franja azul + barra negra + azul de fondo).
+    - `css/layout.css`: nuevo `body.portal-active .main-content { padding-top:
+      env(safe-area-inset-top) }` → se elimina el hueco de 80px.
+    - `bitacora-detalle.js`: la barra del reporte ahora es full-bleed: cubre el
+      notch (`padding-top: env(safe-area-inset-top)`, `margin-top` negativo que
+      incluye el safe-area) y usa un degradado marino oscuro. Resultado: header
+      oscuro pegado arriba → cuerpo azul. Dos tonos limpios, sin franja extra.
+  - **Bottom-nav (Inicio / Mi Portal):** se rediseñó el estado activo como una
+    **píldora 3D** (cápsula marino→cristal con realce interno y sombra), el ícono
+    activo se eleva y flota con halo cristal; íconos más grandes y labels más
+    legibles (bold). Íconos nuevos: `fa-house-chimney` y `fa-circle-user`
+    (antes `fa-house` / `fa-user-shield`). Cambiados en bottom-nav y sidebar.
+    `css/layout.css` (bloque de armonización oscura) + `index.html`.
+  - **Carrusel:** sin cambios de lógica respecto a v41 (ya era la pila 3D nueva);
+    se sube cache para forzar que producción tome la versión nueva (la captura del
+    dueño mostraba aún el diseño viejo por caché del Service Worker / despliegue).
+  - sw.js: cache v42.

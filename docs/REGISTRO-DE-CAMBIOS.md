@@ -259,3 +259,14 @@ Este archivo es la **bitácora oficial del proyecto**. Aquí se documenta:
     se sube cache para forzar que producción tome la versión nueva (la captura del
     dueño mostraba aún el diseño viejo por caché del Service Worker / despliegue).
   - sw.js: cache v42.
+
+- **Reactivar modo SOLO PORTAL (ocultar la landing) (v43)**
+  - A petición del dueño: al escribir la dirección, la app abre directo el
+    **Portal del Cliente**, con la landing larga (`#view-home`) oculta.
+  - `data/config.js`: `features.portalOnly` pasa de `false` a `true`. Esto hace
+    que `js/app.js` NO registre las rutas `home/servicios/biblioteca`, ponga
+    `portal` como vista por defecto y agregue `body.portal-only` (que oculta
+    bottom-nav, topbar global y nav del sidebar). Cualquier hash viejo
+    (`#servicios`, etc.) cae automáticamente al portal.
+  - Verificado en navegador: con `#servicios` abre el login del portal; sin home.
+  - sw.js: cache v43.

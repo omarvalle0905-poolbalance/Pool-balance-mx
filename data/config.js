@@ -22,7 +22,7 @@ const APP_CONFIG = {
   //  Para reactivar toda la app, cambia esto a false.
   // ─────────────────────────────────────────────
   features: {
-    portalOnly: false,
+    portalOnly: true,
   },
 
   // ─────────────────────────────────────────────
